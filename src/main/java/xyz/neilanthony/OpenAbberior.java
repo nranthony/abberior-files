@@ -8,11 +8,11 @@
 
 package xyz.neilanthony;
 
-import loci.formats.ClassList;
-import loci.formats.FormatException;
-import loci.formats.IFormatReader;
-import loci.formats.ImageReader;
-import loci.formats.in.OBFReader;
+//import loci.formats.ClassList;
+//import loci.formats.FormatException;
+//import loci.formats.IFormatReader;
+//import loci.formats.ImageReader;
+//import loci.formats.in.OBFReader;
 import net.imagej.Dataset;
 import net.imagej.ImageJ;
 import net.imagej.ops.OpService;

@@ -5,12 +5,12 @@
 		http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<!--<parent>
+	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
 		<version>30.0.0</version>
 		<relativePath />
-	</parent>-->
+	</parent>
 
 	<groupId>xyz.neilanthony</groupId>
 	<artifactId>OpenAbberiorFiles</artifactId>
@@ -76,8 +76,6 @@
 		<main-class>xyz.neilanthony.OpenAbberior</main-class>
 		<license.licenseName>bsd_2</license.licenseName>
 		<license.copyrightOwners>Neil Anthony</license.copyrightOwners>
-                <!--<maven.compiler.source>1.7</maven.compiler.source>
-                <maven.compiler.target>1.7</maven.compiler.target>-->
         </properties>
 
         <repositories>
@@ -85,67 +83,39 @@
 			<id>scijava.public</id>
 			<url>https://maven.scijava.org/content/groups/public</url>
 		</repository>
-		
 		<repository>
                         <id>imagej.public</id>
                         <url>http://maven.imagej.net/content/groups/public</url>
   		</repository>
-  
+                <repository>
+                        <id>ome.releases</id>
+                        <url>https://artifacts.openmicroscopy.org/artifactory/ome.releases/</url>
+  		</repository>
 	</repositories>
-
-	<dependencyManagement>
-  		<dependencies>
-    		<!-- NB: Inherit the SCIFIO version management. -->
-                    <dependency>
-                        <groupId>net.imagej</groupId>
-                        <artifactId>pom-imagej</artifactId>
-                        <version>5.12.0</version>
-                    </dependency>
-  		</dependencies>
-	</dependencyManagement>
 
 	<dependencies>
 		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej</artifactId>
 		</dependency>
-		
-		<dependency>
+                <!-- https://mvnrepository.com/artifact/ome/bioformats_package -->
+                <dependency>
                         <groupId>ome</groupId>
                         <artifactId>bioformats_package</artifactId>
-                        <version>6.5.1</version> 
-		</dependency>
-		
-		<dependency>
-                        <groupId>sc.fiji</groupId>
-                        <artifactId>fiji-lib</artifactId>
-		</dependency>
+                        <version>6.6.1</version>
+                        <type>pom</type>
+                        <exclusions>
+                                <exclusion>
+                                        <groupId>xpp3</groupId>
+                                        <artifactId>xpp3</artifactId>
+                                </exclusion>
+                                <exclusion>
+                                        <groupId>xalan</groupId>
+                                        <artifactId>xalan</artifactId>
+                                </exclusion>
+                        </exclusions> 
+                </dependency>
 
-		<dependency>
-                        <groupId>ome</groupId>
-                        <artifactId>scifio</artifactId>
-                        <version>5.0.0-rc2</version>
-		</dependency>
-	
-		<dependency>
-  			<groupId>io.scif</groupId>
-  			<artifactId>scifio</artifactId>
-		</dependency>
-		
-  		<dependency>
-  			<groupId>io.scif</groupId>
-  			<artifactId>scifio-bf-compat</artifactId>
-		</dependency>
-
-		<dependency>
-  			<groupId>ome</groupId>
-  			<artifactId>formats-bsd</artifactId>
-		</dependency>
-
-		<dependency>
-  			<groupId>ome</groupId>
-  			<artifactId>formats-gpl</artifactId>
-		</dependency>
 	</dependencies>
 
 </project>
