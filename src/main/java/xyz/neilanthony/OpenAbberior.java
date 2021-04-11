@@ -6,8 +6,13 @@
  *     http://creativecommons.org/publicdomain/zero/1.0/
  */
 
-package com.mycompany.imagej;
+package xyz.neilanthony;
 
+import loci.formats.ClassList;
+import loci.formats.FormatException;
+import loci.formats.IFormatReader;
+import loci.formats.ImageReader;
+import loci.formats.in.OBFReader;
 import net.imagej.Dataset;
 import net.imagej.ImageJ;
 import net.imagej.ops.OpService;
@@ -22,6 +27,7 @@ import org.scijava.ui.UIService;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.WindowConstants;
 
 /**
  * This example illustrates how to create an ImageJ {@link Command} plugin.
@@ -33,8 +39,8 @@ import java.util.List;
  * and replace the {@link run} method implementation with your own logic.
  * </p>
  */
-@Plugin(type = Command.class, menuPath = "Plugins>Gauss Filtering")
-public class GaussFiltering<T extends RealType<T>> implements Command {
+@Plugin(type = Command.class, menuPath = "Plugins>EmoryICI>Open Abberior Files")
+public class OpenAbberior<T extends RealType<T>> implements Command {
     //
     // Feel free to add more parameters here...
     //
@@ -82,20 +88,31 @@ public class GaussFiltering<T extends RealType<T>> implements Command {
         // create the ImageJ application context with all available services
         final ImageJ ij = new ImageJ();
         ij.ui().showUI();
-
+        // invoke the plugin
+        //ij.command().run(OpenAbberior.class, true);
+        
+        // open GUI window
+        OpenAbbeJFrame AbbeFrame = new OpenAbbeJFrame();
+        AbbeFrame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+        AbbeFrame.setLocation(64, 64);
+        AbbeFrame.invalidate();
+        AbbeFrame.repaint();
+        AbbeFrame.setVisible(true);
+        
+        
         // ask the user for a file to open
-        final File file = ij.ui().chooseFile(null, "open");
+        //final File file = ij.ui().chooseFile(null, "open");
 
-        if (file != null) {
-            // load the dataset
-            final Dataset dataset = ij.scifio().datasetIO().open(file.getPath());
-
-            // show the image
-            ij.ui().show(dataset);
-
-            // invoke the plugin
-            ij.command().run(GaussFiltering.class, true);
-        }
+//        if (file != null) {
+//            // load the dataset
+//            final Dataset dataset = ij.scifio().datasetIO().open(file.getPath());
+//
+//            // show the image
+//            ij.ui().show(dataset);
+//
+//            // invoke the plugin
+//            ij.command().run(OpenAbberior.class, true);
+//        }
     }
 
 }

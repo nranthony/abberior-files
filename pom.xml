@@ -12,17 +12,17 @@
 		<relativePath />
 	</parent>
 
-	<groupId>com.mycompany</groupId>
-	<artifactId>GaussFiltering</artifactId>
+	<groupId>xyz.neilanthony</groupId>
+	<artifactId>OpenAbberiorFiles</artifactId>
 	<version>0.1.0-SNAPSHOT</version>
 
-	<name>Gauss Filtering</name>
-	<description>A Maven project implementing an ImageJ command.</description>
-	<url>https://mycompany.com/imagej/gauss-filtering/</url>
-	<inceptionYear>2017</inceptionYear>
+	<name>OpenAbberiorFiles</name>
+	<description>A Maven project for opening Abberior .obf and .msr files.</description>
+	<url>https://github.com/nranthony/abberior-files</url>
+	<inceptionYear>2021</inceptionYear>
 	<organization>
-		<name>My Company</name>
-		<url>https://mycompany.com/</url>
+		<name>Emory Integrated Cellular Imaging</name>
+		<url>https://www.cores.emory.edu/ici/</url>
 	</organization>
 	<licenses>
 		<license>
@@ -32,57 +32,50 @@
 	</licenses>
 
 	<developers>
-		<!-- See https://imagej.net/Team -->
 		<developer>
-			<id>ctrueden</id>
-			<name>Curtis Rueden</name>
-			<url>https://imagej.net/User:Rueden</url>
+			<id>nranthony</id>
+			<name>Neil Anthony</name>
+			<url>neilanthony.xyz</url>
 			<roles>
-				<role>founder</role>
-				<role>lead</role>
 				<role>developer</role>
-				<role>debugger</role>
-				<role>reviewer</role>
-				<role>support</role>
-				<role>maintainer</role>
 			</roles>
 		</developer>
 	</developers>
+
 	<contributors>
 		<contributor>
-			<name>Yili Zhao</name>
-			<url>https://imagej.net/User:Panovr</url>
-			<roles><role>founder</role></roles>
-			<properties><id>panovr</id></properties>
+			<name>Neil Anthony</name>
+			<url>neilanthony.xyz</url>
+			<properties><id>nranthony</id></properties>
 		</contributor>
 	</contributors>
 
 	<mailingLists>
 		<mailingList>
-			<name>Image.sc Forum</name>
+                        <name>Image.sc Forum</name>
 			<archive>https://forum.image.sc/tags/imagej</archive>
 		</mailingList>
 	</mailingLists>
-
+        
 	<scm>
-		<connection>scm:git:git://github.com/imagej/example-imagej-command</connection>
-		<developerConnection>scm:git:git@github.com:imagej/example-imagej-command</developerConnection>
+		<connection>scm:git:git://github.com/nranthony/abberior-files</connection>
+		<developerConnection>scm:git:git@github.com:nranthony/abberior-files</developerConnection>
 		<tag>HEAD</tag>
-		<url>https://github.com/imagej/example-imagej-command</url>
+		<url>https://github.com/nranthony/abberior-files</url>
 	</scm>
 	<issueManagement>
 		<system>GitHub Issues</system>
-		<url>https://github.com/imagej/example-imagej-command/issues</url>
+		<url>https://github.com/nranthony/abberior-files/issues</url>
 	</issueManagement>
 	<ciManagement>
 		<system>None</system>
 	</ciManagement>
-
-	<properties>
-		<package-name>com.mycompany.imagej</package-name>
-		<main-class>com.mycompany.imagej.GaussFiltering</main-class>
+        
+        <properties>
+		<package-name>xyz.neilanthony.OpenAbberior</package-name>
+		<main-class>xyz.neilanthony.OpenAbberior</main-class>
 		<license.licenseName>bsd_2</license.licenseName>
-		<license.copyrightOwners>My Company, Inc.</license.copyrightOwners>
+		<license.copyrightOwners>Neil Anthony</license.copyrightOwners>
 	</properties>
 
 	<repositories>
@@ -96,6 +89,17 @@
 		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej</artifactId>
+		</dependency>
+                <dependency>
+                        <groupId>net.imagej</groupId>
+                        <artifactId>imagej-legacy</artifactId>
+                        <scope>runtime</scope>
+                        <optional>true</optional>
+                </dependency>
+                <dependency>
+                    <groupId>ome</groupId>
+                    <artifactId>bioformats_package</artifactId>
+                    <version>6.6.1</version> 
 		</dependency>
 	</dependencies>
 </project>
