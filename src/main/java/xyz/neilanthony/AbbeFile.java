@@ -14,6 +14,11 @@ import loci.formats.in.OBFReader;
 import loci.formats.in.OMEXMLReader;
 
 import java.nio.file.Path;
+import loci.common.services.DependencyException;
+import loci.common.services.ServiceException;
+import loci.common.services.ServiceFactory;
+import loci.formats.meta.IMetadata;
+import loci.formats.services.OMEXMLService;
 
 /**
  *
@@ -37,7 +42,7 @@ public class AbbeFile {
         fPath = filePath;
     }
 
-    public void pullOMEXML () {
+    public void pullOMEXML () throws DependencyException, ServiceException {
         //final File file = new File(fPath.toString());
         
         ServiceFactory factory = new ServiceFactory();
@@ -49,11 +54,12 @@ public class AbbeFile {
         cl.addClass(OMEXMLReader.class);
         ImageReader reader = new ImageReader(cl);
         
-        reader.setMetadataStore(omexml);
-    reader.setId(inputFile);
+        //reader.setMetadataStore(omexml);
+        reader.setId(fPath.toString());
+        reader.getMetadataStore()
         
         try {
-            reader.setId(fPath.toAbsolutePath());
+            reader.setId();
             reader.
         } catch (FormatException | IOException e) {
                 throw new RuntimeException(e);
