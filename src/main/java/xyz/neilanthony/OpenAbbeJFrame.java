@@ -15,6 +15,10 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Vector;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
@@ -28,10 +32,14 @@ import net.imagej.ImageJ;
 public class OpenAbbeJFrame extends javax.swing.JFrame {
 
     private Point panelOffset = new Point();
-    private ImageJ ij;
-    // change to thread safe Vector
+    final private ImageJ ij;
+    
+    final private LinkedBlockingQueue<String> todoQueue = new LinkedBlockingQueue<>();
+    final private ExecutorService importPool = Executors.newFixedThreadPool(4);
+    
+    // holds information about all files dragged on to GUI
+    private final Vector<AbbeFile> abbeFilesVect = new Vector<>();
     // cast to sychronized (vectorName)
-    //private ArrayList<Integer> myList = new java.util.ArrayList<Integer>();
     
     /* Creates new form OpenAbbeJFrame */
     public OpenAbbeJFrame(ImageJ ij) throws IOException {
@@ -65,7 +73,8 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
                     List<File> droppedFiles = (List<File>)
                         evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
                     for (File file : droppedFiles) {
-                        jTextArea1.append(file.toString() + System.lineSeparator());
+                        todoQueue.add(file.toString());
+                        jTextArea1.append(file.toString() + " added to todo queue." + System.lineSeparator());
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();
@@ -178,12 +187,9 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jPanel_exitButtonMouseReleased
 
     private void jPanel_topBarMouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanel_topBarMouseDragged
-//        System.out.println(String.format("Dragging [getXY]: %d %d", evt.getX(), evt.getY()));
 //        System.out.println(String.format("Dragging [getXYonScreen]: %d %d", evt.getXOnScreen(), evt.getYOnScreen()));
-//        System.out.println(String.format("Dragging [panelOffset]: %d %d", panelOffset.x, panelOffset.y));
         this.setLocation(evt.getLocationOnScreen().x - panelOffset.x,
                          evt.getLocationOnScreen().y - panelOffset.y);
-        this.ij.console().log().debug(String.format("Dragging [getXYonScreen]: %d %d", evt.getXOnScreen(), evt.getYOnScreen()));
     }//GEN-LAST:event_jPanel_topBarMouseDragged
 
     private void jPanel_topBarMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanel_topBarMousePressed
@@ -219,18 +225,11 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         }
         //</editor-fold>
 
-        /* Create and display the form */
-//        java.awt.EventQueue.invokeLater(new Runnable() {
-//            public void run() {
-//                try {
-//                    new OpenAbbeJFrame().setVisible(true);
-//                } catch (IOException ex) {
-//                    Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
-//                }
-//            }
-//        });
     }
 
+    
+    
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel jPanel_exitButton;
     private javax.swing.JPanel jPanel_mainBkgd;

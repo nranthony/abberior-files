@@ -114,39 +114,4 @@ public class OpenAbberior<T extends RealType<T>> implements Command {
 //        }
     }
 
-    
-    public class FileInOAClass {
-        
-        private String omexml;
-        private int index = -1;
-        private Path fPath = null;
-
-        FileInOAClass() {
-            // constructor
-        }
-
-        public void setIndex () {
-            
-        }
-
-        public void setPath () {
-            
-        }
-
-        public void getOMEXML () {
-            
-        }
-    
-        
-        
-        
-
-    }
-    
-    class OAFileClass {
-        public String omexml;
-        public int index;
-        public Path fpath;
-        
-    }
 }
