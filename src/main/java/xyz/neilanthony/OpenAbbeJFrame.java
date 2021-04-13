@@ -14,6 +14,8 @@ import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
@@ -23,6 +25,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+import loci.common.services.DependencyException;
+import loci.common.services.ServiceException;
+import loci.formats.FormatException;
 import net.imagej.ImageJ;
 
 /**
@@ -81,6 +86,22 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
                 }
             }
         });
+        
+        //xyz.neilanthony.AbbeFile abFile = new xyz.neilanthony.AbbeFile();
+        AbbeFile abFile = new AbbeFile();
+        Path fPath = Paths.get("C:/ici-cloud-sections/WBRB Abberior STED/2021/Neil/2021-03-17/Ab4C_02.obf");
+        abFile.setPath(fPath);
+        try {
+            abFile.pullOMEXML();
+        } catch (DependencyException ex) {
+            Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ServiceException ex) {
+            Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (FormatException ex) {
+            Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     /**
@@ -97,6 +118,7 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         jPanel_exitButton = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTextArea1 = new javax.swing.JTextArea();
+        jButton1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(32, 32, 32));
@@ -149,14 +171,26 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         jTextArea1.setBorder(null);
         jScrollPane1.setViewportView(jTextArea1);
 
+        jButton1.setText("jButton1");
+        jButton1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton1MouseClicked(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel_mainBkgdLayout = new javax.swing.GroupLayout(jPanel_mainBkgd);
         jPanel_mainBkgd.setLayout(jPanel_mainBkgdLayout);
         jPanel_mainBkgdLayout.setHorizontalGroup(
             jPanel_mainBkgdLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel_topBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(jPanel_mainBkgdLayout.createSequentialGroup()
-                .addGap(43, 43, 43)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 766, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel_mainBkgdLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel_mainBkgdLayout.createSequentialGroup()
+                        .addGap(43, 43, 43)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 766, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel_mainBkgdLayout.createSequentialGroup()
+                        .addGap(224, 224, 224)
+                        .addComponent(jButton1)))
                 .addContainerGap(37, Short.MAX_VALUE))
         );
         jPanel_mainBkgdLayout.setVerticalGroup(
@@ -165,7 +199,9 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
                 .addComponent(jPanel_topBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(143, 143, 143)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 198, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 366, Short.MAX_VALUE))
+                .addGap(172, 172, 172)
+                .addComponent(jButton1)
+                .addGap(0, 172, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -197,6 +233,10 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         panelOffset.x = evt.getX();
         panelOffset.y = evt.getY();
     }//GEN-LAST:event_jPanel_topBarMousePressed
+
+    private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked
+
+    }//GEN-LAST:event_jButton1MouseClicked
     
     /**
      * @param args the command line arguments
@@ -224,13 +264,14 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
             java.util.logging.Logger.getLogger(OpenAbbeJFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
-
+        
     }
 
     
     
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButton1;
     private javax.swing.JPanel jPanel_exitButton;
     private javax.swing.JPanel jPanel_mainBkgd;
     private javax.swing.JPanel jPanel_topBar;
