@@ -25,6 +25,7 @@ import org.scijava.plugin.Plugin;
 import org.scijava.ui.UIService;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.WindowConstants;
@@ -56,12 +57,10 @@ public class OpenAbberior<T extends RealType<T>> implements Command {
 
     @Override
     public void run() {
+        //  copy code below to add images to ImageJ UI once collated and selected
+        
         final Img<T> image = (Img<T>)currentData.getImgPlus();
 
-        //
-        // Enter image processing code here ...
-        // The following is just a Gauss filtering example
-        //
         final double[] sigmas = {1.0, 3.0, 5.0};
 
         List<RandomAccessibleInterval<T>> results = new ArrayList<>();
@@ -92,7 +91,7 @@ public class OpenAbberior<T extends RealType<T>> implements Command {
         //ij.command().run(OpenAbberior.class, true);
         
         // open GUI window
-        OpenAbbeJFrame AbbeFrame = new OpenAbbeJFrame();
+        OpenAbbeJFrame AbbeFrame = new OpenAbbeJFrame(ij);
         AbbeFrame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
         AbbeFrame.setLocation(64, 64);
         AbbeFrame.invalidate();
@@ -115,4 +114,39 @@ public class OpenAbberior<T extends RealType<T>> implements Command {
 //        }
     }
 
+    
+    public class FileInOAClass {
+        
+        private String omexml;
+        private int index = -1;
+        private Path fPath = null;
+
+        FileInOAClass() {
+            // constructor
+        }
+
+        public void setIndex () {
+            
+        }
+
+        public void setPath () {
+            
+        }
+
+        public void getOMEXML () {
+            
+        }
+    
+        
+        
+        
+
+    }
+    
+    class OAFileClass {
+        public String omexml;
+        public int index;
+        public Path fpath;
+        
+    }
 }

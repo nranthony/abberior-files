@@ -7,19 +7,19 @@ package xyz.neilanthony;
 
 import java.awt.Color;
 import java.awt.Point;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.WindowEvent;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
-import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
+import net.imagej.ImageJ;
 
 /**
  *
@@ -28,10 +28,16 @@ import javax.swing.WindowConstants;
 public class OpenAbbeJFrame extends javax.swing.JFrame {
 
     private Point panelOffset = new Point();
+    private ImageJ ij;
+    // change to thread safe Vector
+    // cast to sychronized (vectorName)
+    //private ArrayList<Integer> myList = new java.util.ArrayList<Integer>();
     
     /* Creates new form OpenAbbeJFrame */
-    public OpenAbbeJFrame() throws IOException {
-               
+    public OpenAbbeJFrame(ImageJ ij) throws IOException {
+        
+        this.ij = ij;
+        
         initComponents();
         
         ImageIcon imgIcon_exit = new ImageIcon("src/main/resources/close.png");
@@ -52,6 +58,20 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         panelOffset.x = 0;
         panelOffset.y = 0;
         
+        jPanel_mainBkgd.setDropTarget(new DropTarget() {
+            public synchronized void drop(DropTargetDropEvent evt) {
+                try {
+                    evt.acceptDrop(DnDConstants.ACTION_COPY);
+                    List<File> droppedFiles = (List<File>)
+                        evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+                    for (File file : droppedFiles) {
+                        jTextArea1.append(file.toString() + System.lineSeparator());
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
     }
 
     /**
@@ -66,6 +86,8 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         jPanel_mainBkgd = new javax.swing.JPanel();
         jPanel_topBar = new javax.swing.JPanel();
         jPanel_exitButton = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTextArea1 = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(32, 32, 32));
@@ -105,7 +127,7 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         jPanel_topBarLayout.setHorizontalGroup(
             jPanel_topBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel_topBarLayout.createSequentialGroup()
-                .addGap(0, 823, Short.MAX_VALUE)
+                .addGap(0, 0, Short.MAX_VALUE)
                 .addComponent(jPanel_exitButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         jPanel_topBarLayout.setVerticalGroup(
@@ -113,17 +135,28 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
             .addComponent(jPanel_exitButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
+        jTextArea1.setColumns(20);
+        jTextArea1.setRows(5);
+        jTextArea1.setBorder(null);
+        jScrollPane1.setViewportView(jTextArea1);
+
         javax.swing.GroupLayout jPanel_mainBkgdLayout = new javax.swing.GroupLayout(jPanel_mainBkgd);
         jPanel_mainBkgd.setLayout(jPanel_mainBkgdLayout);
         jPanel_mainBkgdLayout.setHorizontalGroup(
             jPanel_mainBkgdLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel_topBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(jPanel_mainBkgdLayout.createSequentialGroup()
+                .addGap(43, 43, 43)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 766, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(37, Short.MAX_VALUE))
         );
         jPanel_mainBkgdLayout.setVerticalGroup(
             jPanel_mainBkgdLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel_mainBkgdLayout.createSequentialGroup()
                 .addComponent(jPanel_topBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 707, Short.MAX_VALUE))
+                .addGap(143, 143, 143)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 198, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 366, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -150,6 +183,7 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
 //        System.out.println(String.format("Dragging [panelOffset]: %d %d", panelOffset.x, panelOffset.y));
         this.setLocation(evt.getLocationOnScreen().x - panelOffset.x,
                          evt.getLocationOnScreen().y - panelOffset.y);
+        this.ij.console().log().debug(String.format("Dragging [getXYonScreen]: %d %d", evt.getXOnScreen(), evt.getYOnScreen()));
     }//GEN-LAST:event_jPanel_topBarMouseDragged
 
     private void jPanel_topBarMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanel_topBarMousePressed
@@ -186,20 +220,22 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                try {
-                    new OpenAbbeJFrame().setVisible(true);
-                } catch (IOException ex) {
-                    Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        });
+//        java.awt.EventQueue.invokeLater(new Runnable() {
+//            public void run() {
+//                try {
+//                    new OpenAbbeJFrame().setVisible(true);
+//                } catch (IOException ex) {
+//                    Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
+//                }
+//            }
+//        });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel jPanel_exitButton;
     private javax.swing.JPanel jPanel_mainBkgd;
     private javax.swing.JPanel jPanel_topBar;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTextArea jTextArea1;
     // End of variables declaration//GEN-END:variables
 }
