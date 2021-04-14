@@ -102,6 +102,7 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         } catch (IOException ex) {
             Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
+        jTextArea1.append(abFile.getOMEXML());
     }
 
     /**
