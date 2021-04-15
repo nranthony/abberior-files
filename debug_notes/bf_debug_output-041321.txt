@@ -1,0 +1,91 @@
+20:19:22.422 [main] DEBUG loci.common.services.ServiceFactory - Loaded properties from: services.properties
+20:19:22.427 [main] DEBUG loci.common.services.ServiceFactory - Added interface interface loci.formats.services.POIService and implementation class loci.formats.services.POIServiceImpl
+20:19:22.428 [main] DEBUG loci.common.services.ServiceFactory - Added interface interface loci.formats.services.MDBService and implementation class loci.formats.services.MDBServiceImpl
+20:19:22.429 [main] DEBUG loci.common.services.ServiceFactory - Added interface interface loci.formats.services.JPEGTurboService and implementation class loci.formats.services.JPEGTurboServiceImpl
+20:19:22.430 [main] DEBUG loci.common.services.ServiceFactory - Added interface interface ome.codecs.services.LuraWaveService and implementation class ome.codecs.services.LuraWaveServiceImpl
+20:19:22.431 [main] DEBUG loci.common.services.ServiceFactory - Added interface interface loci.common.services.S3ClientService and implementation class loci.common.services.S3ClientServiceImpl
+20:19:22.431 [main] DEBUG loci.common.services.ServiceFactory - Added interface interface loci.formats.services.JAIIIOService and implementation class loci.formats.services.JAIIIOServiceImpl
+20:19:22.432 [main] DEBUG loci.common.services.ServiceFactory - Added interface interface loci.formats.services.WlzService and implementation class loci.formats.services.WlzServiceImpl
+20:19:22.433 [main] DEBUG loci.common.services.ServiceFactory - Added interface interface loci.formats.services.JHDFService and implementation class loci.formats.services.JHDFServiceImpl
+20:19:22.435 [main] DEBUG loci.common.services.ServiceFactory - Added interface interface loci.formats.services.NetCDFService and implementation class loci.formats.services.NetCDFServiceImpl
+20:19:22.436 [main] DEBUG loci.common.services.ServiceFactory - Added interface interface loci.formats.services.EXIFService and implementation class loci.formats.services.EXIFServiceImpl
+20:19:22.436 [main] DEBUG loci.common.services.ServiceFactory - Added interface interface loci.formats.services.MetakitService and implementation class loci.formats.services.MetakitServiceImpl
+20:19:22.437 [main] DEBUG loci.common.services.ServiceFactory - Added interface interface loci.formats.services.LuraWaveService and implementation class loci.formats.services.LuraWaveServiceImpl
+20:19:22.439 [main] DEBUG loci.common.services.ServiceFactory - Added interface interface loci.formats.services.OMEXMLService and implementation class loci.formats.services.OMEXMLServiceImpl
+20:19:22.439 [main] DEBUG loci.common.services.ServiceFactory - Added interface interface ome.codecs.services.JAIIIOService and implementation class ome.codecs.services.JAIIIOServiceImpl
+20:19:22.440 [main] DEBUG loci.common.services.ServiceFactory - Added interface interface loci.formats.services.JPEGXRService and implementation class loci.formats.services.JPEGXRServiceImpl
+20:19:22.570 [main] DEBUG loci.formats.ClassList - Could not find loci.formats.in.URLReader
+java.lang.ClassNotFoundException: loci.formats.in.URLReader
+	at java.net.URLClassLoader.findClass(URLClassLoader.java:382)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:418)
+	at sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:355)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:351)
+	at java.lang.Class.forName0(Native Method)
+	at java.lang.Class.forName(Class.java:264)
+	at loci.formats.ClassList.parseLine(ClassList.java:196)
+	at loci.formats.ClassList.parseFile(ClassList.java:258)
+	at loci.formats.ClassList.<init>(ClassList.java:138)
+	at loci.formats.ClassList.<init>(ClassList.java:122)
+	at loci.formats.ImageReader.getDefaultReaderClasses(ImageReader.java:80)
+	at loci.formats.ImageReader.<init>(ImageReader.java:122)
+	at xyz.neilanthony.AbbeFile.pullOMEXML(AbbeFile.java:54)
+	at xyz.neilanthony.OpenAbbeJFrame.<init>(OpenAbbeJFrame.java:95)
+	at xyz.neilanthony.OpenAbberior.main(OpenAbberior.java:94)
+20:19:22.576 [main] DEBUG loci.formats.ClassList - Could not find loci.formats.in.SlideBook6Reader
+java.lang.ClassNotFoundException: loci.formats.in.SlideBook6Reader
+	at java.net.URLClassLoader.findClass(URLClassLoader.java:382)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:418)
+	at sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:355)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:351)
+	at java.lang.Class.forName0(Native Method)
+	at java.lang.Class.forName(Class.java:264)
+	at loci.formats.ClassList.parseLine(ClassList.java:196)
+	at loci.formats.ClassList.parseFile(ClassList.java:258)
+	at loci.formats.ClassList.<init>(ClassList.java:138)
+	at loci.formats.ClassList.<init>(ClassList.java:122)
+	at loci.formats.ImageReader.getDefaultReaderClasses(ImageReader.java:80)
+	at loci.formats.ImageReader.<init>(ImageReader.java:122)
+	at xyz.neilanthony.AbbeFile.pullOMEXML(AbbeFile.java:54)
+	at xyz.neilanthony.OpenAbbeJFrame.<init>(OpenAbbeJFrame.java:95)
+	at xyz.neilanthony.OpenAbberior.main(OpenAbberior.java:94)
+20:19:22.577 [main] DEBUG loci.formats.ClassList - Could not find loci.formats.in.ScreenReader
+java.lang.ClassNotFoundException: loci.formats.in.ScreenReader
+	at java.net.URLClassLoader.findClass(URLClassLoader.java:382)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:418)
+	at sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:355)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:351)
+	at java.lang.Class.forName0(Native Method)
+	at java.lang.Class.forName(Class.java:264)
+	at loci.formats.ClassList.parseLine(ClassList.java:196)
+	at loci.formats.ClassList.parseFile(ClassList.java:258)
+	at loci.formats.ClassList.<init>(ClassList.java:138)
+	at loci.formats.ClassList.<init>(ClassList.java:122)
+	at loci.formats.ImageReader.getDefaultReaderClasses(ImageReader.java:80)
+	at loci.formats.ImageReader.<init>(ImageReader.java:122)
+	at xyz.neilanthony.AbbeFile.pullOMEXML(AbbeFile.java:54)
+	at xyz.neilanthony.OpenAbbeJFrame.<init>(OpenAbbeJFrame.java:95)
+	at xyz.neilanthony.OpenAbberior.main(OpenAbberior.java:94)
+20:19:22.940 [main] DEBUG org.scijava.nativelib.BaseJniExtractor - Not deleting leftover folder C:\Users\nelly\AppData\Local\Temp\nativelib-loader_1213660767500270392: is 244321ms old
+20:19:22.940 [main] DEBUG org.scijava.nativelib.BaseJniExtractor - Not deleting leftover folder C:\Users\nelly\AppData\Local\Temp\nativelib-loader_620137741805615111: is 137547ms old
+20:19:23.198 [main] DEBUG org.scijava.nativelib.NativeLibraryUtil - processor is INTEL_64 os.arch is amd64
+20:19:23.199 [main] DEBUG org.scijava.nativelib.NativeLibraryUtil - architecture is WINDOWS_64 os.name is windows 10
+20:19:23.199 [main] DEBUG org.scijava.nativelib.NativeLibraryUtil - architecture is WINDOWS_64 os.name is windows 10
+20:19:23.199 [main] DEBUG org.scijava.nativelib.NativeLibraryUtil - platform specific path is natives/windows_64/
+20:19:23.199 [main] DEBUG org.scijava.nativelib.BaseJniExtractor - mappedLib is turbojpeg.dll
+20:19:23.200 [main] DEBUG org.scijava.nativelib.BaseJniExtractor - Couldn't find resource natives/windows_64/turbojpeg.dll
+20:19:23.200 [main] DEBUG org.scijava.nativelib.NativeLibraryUtil - platform specific path is windows_64/
+20:19:23.200 [main] DEBUG org.scijava.nativelib.BaseJniExtractor - mappedLib is turbojpeg.dll
+20:19:23.200 [main] DEBUG org.scijava.nativelib.BaseJniExtractor - Couldn't find resource windows_64/turbojpeg.dll
+20:19:23.200 [main] DEBUG org.scijava.nativelib.NativeLibraryUtil - platform specific path is META-INF/lib/windows_64/
+20:19:23.201 [main] DEBUG org.scijava.nativelib.BaseJniExtractor - mappedLib is turbojpeg.dll
+20:19:23.201 [main] DEBUG org.scijava.nativelib.BaseJniExtractor - URL is jar:file:/C:/Users/nelly/.m2/repository/ome/turbojpeg/6.5.1/turbojpeg-6.5.1.jar!/META-INF/lib/windows_64/turbojpeg.dll
+20:19:23.201 [main] DEBUG org.scijava.nativelib.BaseJniExtractor - URL path is file:/C:/Users/nelly/.m2/repository/ome/turbojpeg/6.5.1/turbojpeg-6.5.1.jar!/META-INF/lib/windows_64/turbojpeg.dll
+20:19:23.202 [main] DEBUG org.scijava.nativelib.BaseJniExtractor - Extracting 'jar:file:/C:/Users/nelly/.m2/repository/ome/turbojpeg/6.5.1/turbojpeg-6.5.1.jar!/META-INF/lib/windows_64/turbojpeg.dll' to 'C:\Users\nelly\AppData\Local\Temp\nativelib-loader_4158216903650091475\turbojpeg.dll'
+20:19:23.223 [main] DEBUG loci.common.NIOByteBufferProvider - Using mapped byte buffer? false
+20:19:23.261 [main] INFO loci.formats.ImageReader - OBFReader initializing C:\ici-cloud-sections\WBRB Abberior STED\2021\Neil\2021-03-17\Ab4C_02.obf
+20:19:23.261 [main] DEBUG loci.formats.FormatHandler - OBFReader initializing C:\ici-cloud-sections\WBRB Abberior STED\2021\Neil\2021-03-17\Ab4C_02.obf
+20:19:23.262 [main] DEBUG loci.formats.FormatHandler - loci.formats.in.OBFReader.initFile(C:\ici-cloud-sections\WBRB Abberior STED\2021\Neil\2021-03-17\Ab4C_02.obf)
+20:19:23.881 [main] INFO loci.common.xml.XMLTools - Parsing schema path
+20:19:23.900 [main] INFO loci.common.xml.XMLTools - http://www.openmicroscopy.org/Schemas/OME/2016-06/ome.xsd
+20:19:23.900 [main] INFO loci.common.xml.XMLTools - Validating OME-XML
+20:19:39.328 [main] INFO loci.common.xml.XMLTools - No validation errors found.
