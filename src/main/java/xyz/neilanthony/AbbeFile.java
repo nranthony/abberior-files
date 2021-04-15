@@ -6,7 +6,12 @@
 package xyz.neilanthony;
 
 import io.scif.gui.BufferedImageReader;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import loci.formats.FormatException;
 import loci.formats.IFormatReader;
 import loci.formats.ImageReader;
@@ -53,17 +58,43 @@ public class AbbeFile {
         IFormatReader reader = null;
         reader = new ImageReader();
         reader.setId(this.fPath.toString());
-        
+                
         MetadataStore readerMetaStore = reader.getMetadataStore();
         MetadataRetrieve retrieve = omexmlService.asRetrieve(readerMetaStore);
         this.omexml = omexmlService.getOMEXML(retrieve);
         
     }
     
+    public void pullOMEXMLRaw () throws FileNotFoundException, IOException {
+        File file = new File(this.fPath.toString());
+        RandomAccessFile raf = new RandomAccessFile(file, "r");
+        
+        byte[] readBytes = new byte[5];
+        int n = 5;
+        Boolean looking = true;
+        while (looking) {            
+            n += 1;
+            raf.seek(file.length() - n);
+            raf.read(readBytes);
+            
+            if (decodeUTF8(readBytes).contains("<?xml")) {
+                looking = false;
+            }
+        }
+        byte[] rawXMLBytes = new byte[n];
+        raf.read(rawXMLBytes);
+        
+        raf.close();
+        this.omexml = decodeUTF8(rawXMLBytes);
+    }   
+    
     public String getOMEXML () {
         return this.omexml;
     }
     
-    
+    private final Charset UTF8_CHARSET = Charset.forName("UTF-8");
+    String decodeUTF8(byte[] bytes) {
+        return new String(bytes, UTF8_CHARSET);
+    }
 }
 

@@ -89,16 +89,11 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         
         //xyz.neilanthony.AbbeFile abFile = new xyz.neilanthony.AbbeFile();
         AbbeFile abFile = new AbbeFile();
-        Path fPath = Paths.get("C:/ici-cloud-sections/WBRB Abberior STED/2021/Neil/2021-03-17/Ab4C_02.obf");
+        //Path fPath = Paths.get("C:/ici-cloud-sections/WBRB Abberior STED/2021/Neil/2021-03-17/Ab4C_02.obf");
+        Path fPath = Paths.get("C:/temp-data/abberior_obf_examples/Ab4C_02.obf");
         abFile.setPath(fPath);
         try {
-            abFile.pullOMEXML();
-        } catch (DependencyException ex) {
-            Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ServiceException ex) {
-            Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (FormatException ex) {
-            Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
+            abFile.pullOMEXMLRaw();
         } catch (IOException ex) {
             Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
