@@ -24,6 +24,9 @@ import java.nio.file.Path;
 import loci.common.services.DependencyException;
 import loci.common.services.ServiceException;
 import loci.common.services.ServiceFactory;
+import loci.formats.MetadataTools;
+import loci.formats.in.OBFReader;
+import loci.formats.meta.IMetadata;
 import loci.formats.meta.MetadataRetrieve;
 import loci.formats.meta.MetadataStore;
 import loci.formats.services.OMEXMLService;
@@ -34,9 +37,11 @@ import loci.formats.services.OMEXMLService;
  */
 public class AbbeFile {
     
-    private String omexml;
+    private String omexml = null;
     private int index = -1;
     private Path fPath = null;
+    
+    private String[] folderNames = null;
     
     AbbeFile() {
         // constructor
@@ -49,7 +54,22 @@ public class AbbeFile {
     public void setPath (Path filePath) {
         fPath = filePath;
     }
-
+    
+    public String getOMEXML () throws IOException {
+        if ( this.omexml == null ) {
+            this.pullOMEXMLRaw();
+        }
+        return this.omexml;
+    }
+    
+    public String[] getOMEFolders () throws FormatException, IOException {
+        if ( this.folderNames == null ) {
+            this.pullOMEFolders();
+        }
+        return this.folderNames;
+    }
+    
+    // below super slow and only gets the first line
     public void pullOMEXML () throws DependencyException, ServiceException, FormatException, IOException {
 
         OMEXMLService omexmlService = null;
@@ -68,47 +88,22 @@ public class AbbeFile {
         this.omexml = omexmlService.getOMEXML(retrieve);
         
     }
-    
-    public void pullOMEXMLRaw () throws FileNotFoundException, IOException {
-        File file = new File(this.fPath.toString());
-        RandomAccessFile raf = new RandomAccessFile(file, "r");
-        
-        long readLong = 0;
-        byte[] readBytes = new byte[5];
-        int n = 10;
-        Boolean looking = true;
-        while (looking) {            
-            n += 1;
-            raf.seek(file.length() - (4 + 4*n));
-            readLong = raf.readLong();
-            
-            if (decodeUTF8(longToBytes(readLong)).contains("<?xml")) {
-                looking = false;
-            }
+
+    public void pullOMEFolders() throws FormatException, IOException {
+        OBFReader reader = new OBFReader();
+        IMetadata omeMeta = MetadataTools.createOMEXMLMetadata();
+        reader.setMetadataStore(omeMeta);
+        reader.setId(this.fPath.toString());
+
+        int folderCount = omeMeta.getFolderCount();
+        this.folderNames = new String[folderCount];
+        for (int i = 0; i < folderCount; i++) {
+            this.folderNames[i] = omeMeta.getFolderName(i);
         }
-//        String tmpStr;
-//        tmpStr = "";
-//        for (int i = 1; i < 5; i++) {
-//            
-//            raf.seek(file.length() - (4 + 4*i));
-//            readLong = raf.readLong();
-//            
-//            tmpStr += decodeUTF8(longToBytes(readLong)) + System.lineSeparator();
-//            
-//        }
-        raf.seek(file.length() - (8 + 4*n));
-        byte[] rawXMLBytes = new byte[8 + 4*n];
-        raf.read(rawXMLBytes);
         
-        raf.close();
-        this.omexml = decodeUTF8(rawXMLBytes);
-    }   
-    
-    public String getOMEXML () {
-        return this.omexml;
     }
     
-    public void pullOMEXMLRawFast() throws FileNotFoundException, IOException {
+    public void pullOMEXMLRaw() throws FileNotFoundException, IOException {
         
         // get memory mapped buffer of last ~2MB of obf file
         // TODO - check location of xml within .msr files
@@ -148,13 +143,7 @@ public class AbbeFile {
         this.omexml = decodeUTF8(xmlBytes);
         channel.close();
     }
-    
-    public byte[] longToBytes(long x) {
-        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
-        buffer.putLong(x);
-        return buffer.array();
-    }
-    
+        
     private final Charset UTF8_CHARSET = Charset.forName("UTF-8");
     String decodeUTF8(byte[] bytes) {
         return new String(bytes, UTF8_CHARSET);

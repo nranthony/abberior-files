@@ -47,7 +47,7 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
     // cast to sychronized (vectorName)
     
     /* Creates new form OpenAbbeJFrame */
-    public OpenAbbeJFrame(ImageJ ij) throws IOException {
+    public OpenAbbeJFrame(ImageJ ij) throws IOException, FormatException {
         
         this.ij = ij;
         
@@ -93,11 +93,18 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         //Path fPath = Paths.get("C:/temp-data/abberior_obf_examples/Ab4C_02.obf");
         abFile.setPath(fPath);
         try {
-            abFile.pullOMEXMLRawFast();
+            jTextArea1.append(abFile.getOMEXML());
+            jTextArea1.append(System.lineSeparator());
+            String[] folders = abFile.getOMEFolders();
+            for (String folder : folders) {
+                jTextArea1.append(folder + System.lineSeparator());
+            }
+            
+            
         } catch (IOException ex) {
             Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
-        jTextArea1.append(abFile.getOMEXML());
+        
     }
 
     /**
