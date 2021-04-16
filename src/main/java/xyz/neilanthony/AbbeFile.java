@@ -7,9 +7,13 @@ package xyz.neilanthony;
 
 import io.scif.gui.BufferedImageReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import loci.formats.FormatException;
@@ -69,19 +73,31 @@ public class AbbeFile {
         File file = new File(this.fPath.toString());
         RandomAccessFile raf = new RandomAccessFile(file, "r");
         
+        long readLong = 0;
         byte[] readBytes = new byte[5];
-        int n = 5;
+        int n = 10;
         Boolean looking = true;
         while (looking) {            
             n += 1;
-            raf.seek(file.length() - n);
-            raf.read(readBytes);
+            raf.seek(file.length() - (4 + 4*n));
+            readLong = raf.readLong();
             
-            if (decodeUTF8(readBytes).contains("<?xml")) {
+            if (decodeUTF8(longToBytes(readLong)).contains("<?xml")) {
                 looking = false;
             }
         }
-        byte[] rawXMLBytes = new byte[n];
+//        String tmpStr;
+//        tmpStr = "";
+//        for (int i = 1; i < 5; i++) {
+//            
+//            raf.seek(file.length() - (4 + 4*i));
+//            readLong = raf.readLong();
+//            
+//            tmpStr += decodeUTF8(longToBytes(readLong)) + System.lineSeparator();
+//            
+//        }
+        raf.seek(file.length() - (8 + 4*n));
+        byte[] rawXMLBytes = new byte[8 + 4*n];
         raf.read(rawXMLBytes);
         
         raf.close();
@@ -90,6 +106,48 @@ public class AbbeFile {
     
     public String getOMEXML () {
         return this.omexml;
+    }
+    public void pullOMEXMLRawFast() throws FileNotFoundException, IOException {
+        final FileChannel channel = new FileInputStream(this.fPath.toString()).getChannel();
+        long startMap;
+        long fileSize;
+        fileSize = channel.size();
+        startMap = (long) Math.min(fileSize, Math.pow(2, 21)); // 2,097,152
+        
+        // TODO
+        // set startMap to be big enough for large xml, but not bigger than the file being read
+        // maybe ~2MB
+        MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, fileSize - startMap, fileSize);
+        
+        byte[] xmlStartBytes = "<?xm".getBytes(Charset.forName("UTF-8"));
+        ByteBuffer xmlStartByteBuf = ByteBuffer.wrap(xmlStartBytes);
+        //int xmlStart = xmlStartByteBuf.getInt();
+        
+        ByteBuffer compByteBuf = ByteBuffer.allocate(4);
+        //compByteBuf.order(ByteOrder.BIG_ENDIAN); // optional, the initial order of a byte buffer is always BIG_ENDIAN.
+        
+        //  scan through int sized chunks of buffer and compare to xmlStartByteBuf
+        int comp; int offset = 0;
+        for (int i = 0; i < startMap - 8; i++) {
+            compByteBuf.putInt(buffer.getInt(i));
+            comp = compByteBuf.compareTo(xmlStartByteBuf);
+            if (comp == 0) {
+                offset = i;
+                break;
+            }
+        }
+        int readLength = (int)(startMap - offset);
+        byte[] xmlBytes = new byte[readLength];
+        buffer.get(xmlBytes, offset, readLength);
+        
+        this.omexml = decodeUTF8(xmlBytes);
+        channel.close();
+    }
+    
+    public byte[] longToBytes(long x) {
+        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
+        buffer.putLong(x);
+        return buffer.array();
     }
     
     private final Charset UTF8_CHARSET = Charset.forName("UTF-8");

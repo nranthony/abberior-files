@@ -93,7 +93,7 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         Path fPath = Paths.get("C:/temp-data/abberior_obf_examples/Ab4C_02.obf");
         abFile.setPath(fPath);
         try {
-            abFile.pullOMEXMLRaw();
+            abFile.pullOMEXMLRawFast();
         } catch (IOException ex) {
             Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
