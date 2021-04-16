@@ -107,38 +107,43 @@ public class AbbeFile {
     public String getOMEXML () {
         return this.omexml;
     }
+    
     public void pullOMEXMLRawFast() throws FileNotFoundException, IOException {
+        
+        // get memory mapped buffer of last ~2MB of obf file
+        // TODO - check location of xml within .msr files
         final FileChannel channel = new FileInputStream(this.fPath.toString()).getChannel();
-        long startMap;
+        long mapSize;
         long fileSize;
         fileSize = channel.size();
-        startMap = (long) Math.min(fileSize, Math.pow(2, 21)); // 2,097,152
+        mapSize = (long) Math.min(fileSize, Math.pow(2, 21)); // 2,097,152   ~2MB
+        MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, fileSize - mapSize, mapSize);
         
-        // TODO
-        // set startMap to be big enough for large xml, but not bigger than the file being read
-        // maybe ~2MB
-        MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, fileSize - startMap, fileSize);
-        
+        // create integer from xml 4 chars at start
         byte[] xmlStartBytes = "<?xm".getBytes(Charset.forName("UTF-8"));
         ByteBuffer xmlStartByteBuf = ByteBuffer.wrap(xmlStartBytes);
-        //int xmlStart = xmlStartByteBuf.getInt();
-        
-        ByteBuffer compByteBuf = ByteBuffer.allocate(4);
-        //compByteBuf.order(ByteOrder.BIG_ENDIAN); // optional, the initial order of a byte buffer is always BIG_ENDIAN.
-        
+        int xmlStartInt = xmlStartByteBuf.getInt();
+
         //  scan through int sized chunks of buffer and compare to xmlStartByteBuf
-        int comp; int offset = 0;
-        for (int i = 0; i < startMap - 8; i++) {
-            compByteBuf.putInt(buffer.getInt(i));
-            comp = compByteBuf.compareTo(xmlStartByteBuf);
-            if (comp == 0) {
+        int offset = -1; int compInt = 0; int xorInt = 1;
+        for (int i = 0; i < mapSize - 8; i++) {
+            compInt = buffer.getInt(i);
+            xorInt = compInt ^ xmlStartInt;
+            if (xorInt == 0) { // XOR bitwise operator equals zero if all bits the same
                 offset = i;
                 break;
             }
         }
-        int readLength = (int)(startMap - offset);
+        if (offset == -1) {
+            this.omexml = "";
+            channel.close();
+            return;
+        }
+        
+        int readLength = (int)(mapSize - offset);
         byte[] xmlBytes = new byte[readLength];
-        buffer.get(xmlBytes, offset, readLength);
+        buffer.position(offset-1);
+        buffer.get(xmlBytes);
         
         this.omexml = decodeUTF8(xmlBytes);
         channel.close();
