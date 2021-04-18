@@ -6,16 +6,19 @@
 package xyz.neilanthony;
 
 import java.awt.Color;
+import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
+import javax.swing.plaf.basic.BasicScrollBarUI;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
@@ -24,11 +27,15 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.xml.parsers.ParserConfigurationException;
 import loci.common.services.DependencyException;
 import loci.common.services.ServiceException;
 import loci.formats.FormatException;
 import net.imagej.ImageJ;
+import org.xml.sax.SAXException;
 
 /**
  *
@@ -46,8 +53,13 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
     private final Vector<AbbeFile> abbeFilesVect = new Vector<>();
     // cast to sychronized (vectorName)
     
+    private Color colorBkgd = Color.getHSBColor(0.0f, 0.0f, 0.10f);
+    private Color colorBkgdDark = Color.getHSBColor(0.0f, 0.0f, 0.06f);
+    
+    private final List<JPanel> panelList = new ArrayList<JPanel>();
+    
     /* Creates new form OpenAbbeJFrame */
-    public OpenAbbeJFrame(ImageJ ij) throws IOException, FormatException {
+    public OpenAbbeJFrame(ImageJ ij) throws IOException, FormatException, ParserConfigurationException, SAXException {
         
         this.ij = ij;
         
@@ -61,51 +73,79 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         jPanel_exitButton.setLayout(null);
         jPanel_exitButton.add(jLabel_exit);
         
-        jPanel_topBar.setBackground(Color.getHSBColor(0.0f, 0.0f, 0.06f));
-        jPanel_mainBkgd.setBackground(Color.getHSBColor(0.0f, 0.0f, 0.10f));
+        //jPanel_topBar.setBackground(Color.getHSBColor(0.0f, 0.0f, 0.06f));
+        jPanel_topBar.setBackground(colorBkgdDark);
+        //jPanel_mainBkgd.setBackground(colorBkgd);
+        
+        jScrollPane_ImgPanels.getViewport().setBackground(colorBkgd);
+        
+        // To change the background color of the scroll bar, you can do this:
+
+        jScrollPane_ImgPanels.getVerticalScrollBar().setBackground(colorBkgd);
+        jScrollPane_ImgPanels.getHorizontalScrollBar().setBackground(Color.BLACK);
+        
+        // To change the color of the scrollbar itself, use the following code:
+
+        jScrollPane_ImgPanels.getVerticalScrollBar().setUI(new BasicScrollBarUI() {
+            @Override
+            protected void configureScrollBarColors() {
+                this.thumbColor = colorBkgdDark;
+                //this.incrButton.
+            }
+        });
         
         jPanel_topBar.setVisible(true);
         jPanel_exitButton.setVisible(true);
-        jPanel_mainBkgd.setVisible(true);
+        //jPanel_mainBkgd.setVisible(true);
         
         panelOffset.x = 0;
         panelOffset.y = 0;
         
-        jPanel_mainBkgd.setDropTarget(new DropTarget() {
-            public synchronized void drop(DropTargetDropEvent evt) {
-                try {
-                    evt.acceptDrop(DnDConstants.ACTION_COPY);
-                    List<File> droppedFiles = (List<File>)
-                        evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
-                    for (File file : droppedFiles) {
-                        todoQueue.add(file.toString());
-                        jTextArea1.append(file.toString() + " added to todo queue." + System.lineSeparator());
-                    }
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            }
-        });
+//        jPanel_mainBkgd.setDropTarget(new DropTarget() {
+//            public synchronized void drop(DropTargetDropEvent evt) {
+//                try {
+//                    evt.acceptDrop(DnDConstants.ACTION_COPY);
+//                    List<File> droppedFiles = (List<File>)
+//                        evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+//                    for (File file : droppedFiles) {
+//                        todoQueue.add(file.toString());
+//                        jTextArea1.append(file.toString() + " added to todo queue." + System.lineSeparator());
+//                    }
+//                } catch (Exception ex) {
+//                    ex.printStackTrace();
+//                }
+//            }
+//        });
         
         //xyz.neilanthony.AbbeFile abFile = new xyz.neilanthony.AbbeFile();
         AbbeFile abFile = new AbbeFile();
         Path fPath = Paths.get("C:/ici-cloud-sections/WBRB Abberior STED/2021/Neil/2021-03-17/Ab4C_02.obf");
         //Path fPath = Paths.get("C:/temp-data/abberior_obf_examples/Ab4C_02.obf");
-        abFile.setPath(fPath);
-        try {
-            jTextArea1.append(abFile.getOMEXML());
-            jTextArea1.append(System.lineSeparator());
-            String[] folders = abFile.getOMEFolders();
-            for (String folder : folders) {
-                jTextArea1.append(folder + System.lineSeparator());
-            }
-            
-            
-        } catch (IOException ex) {
-            Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
-        }
+//        abFile.setPath(fPath);
+//        try {
+//            jTextArea1.append(abFile.getOMEXML());            
+//        } catch (IOException ex) {
+//            Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+        JPanel imagesPanel = this.createImgPanels();
         
+        jScrollPane_ImgPanels.setViewportView(imagesPanel);
+        //jScrollPane_ImgPanels.setVisible(true);
     }
+    
+    private JPanel createImgPanels() {
+        int N = 6;
+        JPanel p = new JPanel(new GridLayout(N, 1));
+        for (int i = 0; i < N; i++) {
+            int row = i;
+            int col = 1;
+            JPanel imgPanel = new AbbeImageJPanel();
+            panelList.add(imgPanel);
+            p.add(imgPanel);
+        }
+        return p;
+    }
+    
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -116,12 +156,9 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jPanel_mainBkgd = new javax.swing.JPanel();
         jPanel_topBar = new javax.swing.JPanel();
         jPanel_exitButton = new javax.swing.JPanel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
-        jButton1 = new javax.swing.JButton();
+        jScrollPane_ImgPanels = new javax.swing.JScrollPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(32, 32, 32));
@@ -161,7 +198,7 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         jPanel_topBarLayout.setHorizontalGroup(
             jPanel_topBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel_topBarLayout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
+                .addGap(0, 823, Short.MAX_VALUE)
                 .addComponent(jPanel_exitButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         jPanel_topBarLayout.setVerticalGroup(
@@ -169,77 +206,46 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
             .addComponent(jPanel_exitButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
-        jTextArea1.setColumns(20);
-        jTextArea1.setRows(5);
-        jTextArea1.setBorder(null);
-        jScrollPane1.setViewportView(jTextArea1);
-
-        jButton1.setText("jButton1");
-        jButton1.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jButton1MouseClicked(evt);
-            }
-        });
-
-        javax.swing.GroupLayout jPanel_mainBkgdLayout = new javax.swing.GroupLayout(jPanel_mainBkgd);
-        jPanel_mainBkgd.setLayout(jPanel_mainBkgdLayout);
-        jPanel_mainBkgdLayout.setHorizontalGroup(
-            jPanel_mainBkgdLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel_topBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addGroup(jPanel_mainBkgdLayout.createSequentialGroup()
-                .addGroup(jPanel_mainBkgdLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel_mainBkgdLayout.createSequentialGroup()
-                        .addGap(43, 43, 43)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 766, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel_mainBkgdLayout.createSequentialGroup()
-                        .addGap(224, 224, 224)
-                        .addComponent(jButton1)))
-                .addContainerGap(37, Short.MAX_VALUE))
-        );
-        jPanel_mainBkgdLayout.setVerticalGroup(
-            jPanel_mainBkgdLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel_mainBkgdLayout.createSequentialGroup()
-                .addComponent(jPanel_topBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(143, 143, 143)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 198, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(172, 172, 172)
-                .addComponent(jButton1)
-                .addGap(0, 172, Short.MAX_VALUE))
-        );
+        jScrollPane_ImgPanels.setBorder(null);
+        jScrollPane_ImgPanels.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel_mainBkgd, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPanel_topBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jScrollPane_ImgPanels, javax.swing.GroupLayout.PREFERRED_SIZE, 710, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel_mainBkgd, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jPanel_topBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane_ImgPanels, javax.swing.GroupLayout.DEFAULT_SIZE, 689, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jPanel_exitButtonMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanel_exitButtonMouseReleased
-        this.dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
-    }//GEN-LAST:event_jPanel_exitButtonMouseReleased
-
-    private void jPanel_topBarMouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanel_topBarMouseDragged
-//        System.out.println(String.format("Dragging [getXYonScreen]: %d %d", evt.getXOnScreen(), evt.getYOnScreen()));
-        this.setLocation(evt.getLocationOnScreen().x - panelOffset.x,
-                         evt.getLocationOnScreen().y - panelOffset.y);
-    }//GEN-LAST:event_jPanel_topBarMouseDragged
-
     private void jPanel_topBarMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanel_topBarMousePressed
-//        System.out.println(String.format("Pressed: %d %d", evt.getX(), evt.getY()));
+        //        System.out.println(String.format("Pressed: %d %d", evt.getX(), evt.getY()));
         panelOffset.x = evt.getX();
         panelOffset.y = evt.getY();
     }//GEN-LAST:event_jPanel_topBarMousePressed
 
-    private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked
+    private void jPanel_topBarMouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanel_topBarMouseDragged
+        //        System.out.println(String.format("Dragging [getXYonScreen]: %d %d", evt.getXOnScreen(), evt.getYOnScreen()));
+        this.setLocation(evt.getLocationOnScreen().x - panelOffset.x,
+            evt.getLocationOnScreen().y - panelOffset.y);
+    }//GEN-LAST:event_jPanel_topBarMouseDragged
 
-    }//GEN-LAST:event_jButton1MouseClicked
+    private void jPanel_exitButtonMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanel_exitButtonMouseReleased
+        this.dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+    }//GEN-LAST:event_jPanel_exitButtonMouseReleased
     
     /**
      * @param args the command line arguments
@@ -274,11 +280,8 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
     
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
     private javax.swing.JPanel jPanel_exitButton;
-    private javax.swing.JPanel jPanel_mainBkgd;
     private javax.swing.JPanel jPanel_topBar;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextArea jTextArea1;
+    private javax.swing.JScrollPane jScrollPane_ImgPanels;
     // End of variables declaration//GEN-END:variables
 }

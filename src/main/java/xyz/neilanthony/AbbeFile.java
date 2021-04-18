@@ -11,6 +11,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -21,6 +22,9 @@ import loci.formats.IFormatReader;
 import loci.formats.ImageReader;
 
 import java.nio.file.Path;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import loci.common.services.DependencyException;
 import loci.common.services.ServiceException;
 import loci.common.services.ServiceFactory;
@@ -30,6 +34,9 @@ import loci.formats.meta.IMetadata;
 import loci.formats.meta.MetadataRetrieve;
 import loci.formats.meta.MetadataStore;
 import loci.formats.services.OMEXMLService;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 /**
  *
@@ -38,10 +45,14 @@ import loci.formats.services.OMEXMLService;
 public class AbbeFile {
     
     private String omexml = null;
+    private Document xmlDoc = null;
     private int index = -1;
     private Path fPath = null;
     
     private String[] folderNames = null;
+    
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    DocumentBuilder builder = null;
     
     AbbeFile() {
         // constructor
@@ -60,6 +71,18 @@ public class AbbeFile {
             this.pullOMEXMLRaw();
         }
         return this.omexml;
+    }
+    
+    public void createXMLDoc () throws ParserConfigurationException, SAXException, IOException {
+        if ( this.omexml == null ) {
+            this.pullOMEXMLRaw();
+        }
+        builder = factory.newDocumentBuilder();
+        xmlDoc = builder.parse(new InputSource(new StringReader(omexml)));
+    }
+    
+    public String testXMLDoc () {
+        return this.xmlDoc.getDocumentElement().getNodeName();
     }
     
     public String[] getOMEFolders () throws FormatException, IOException {
@@ -140,7 +163,7 @@ public class AbbeFile {
         buffer.position(offset-1);
         buffer.get(xmlBytes);
         
-        this.omexml = decodeUTF8(xmlBytes);
+        this.omexml = decodeUTF8(xmlBytes).replace("&quot;", "\"");;
         channel.close();
     }
         
