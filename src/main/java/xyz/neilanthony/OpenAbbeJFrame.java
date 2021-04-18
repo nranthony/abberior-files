@@ -51,10 +51,15 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
     
     // holds information about all files dragged on to GUI
     private final Vector<AbbeFile> abbeFilesVect = new Vector<>();
-    // cast to sychronized (vectorName)
+    // cast to sychronized (abbeFilesVect) when multithreading
     
     private Color colorBkgd = Color.getHSBColor(0.0f, 0.0f, 0.10f);
     private Color colorBkgdDark = Color.getHSBColor(0.0f, 0.0f, 0.06f);
+    private Color colorB4 = Color.getHSBColor(0.0f, 0.0f, 0.4f);
+    private Color colorB3 = Color.getHSBColor(0.0f, 0.0f, 0.3f);
+    private Color colorB2 = Color.getHSBColor(0.0f, 0.0f, 0.2f);
+    
+    
     
     private final List<JPanel> panelList = new ArrayList<JPanel>();
     
@@ -72,50 +77,45 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         
         jPanel_exitButton.setLayout(null);
         jPanel_exitButton.add(jLabel_exit);
-        
-        //jPanel_topBar.setBackground(Color.getHSBColor(0.0f, 0.0f, 0.06f));
         jPanel_topBar.setBackground(colorBkgdDark);
-        //jPanel_mainBkgd.setBackground(colorBkgd);
         
+        this.getContentPane().setBackground(colorBkgd);
+        
+        // scroll bar scroll speed
+        jScrollPane_ImgPanels.getVerticalScrollBar().setUnitIncrement(16);
         jScrollPane_ImgPanels.getViewport().setBackground(colorBkgd);
-        
-        // To change the background color of the scroll bar, you can do this:
-
-        jScrollPane_ImgPanels.getVerticalScrollBar().setBackground(colorBkgd);
-        jScrollPane_ImgPanels.getHorizontalScrollBar().setBackground(Color.BLACK);
-        
-        // To change the color of the scrollbar itself, use the following code:
-
+        // scroll bar color
+        jScrollPane_ImgPanels.getVerticalScrollBar().setBackground(colorB3);
+        // change scrollbar
         jScrollPane_ImgPanels.getVerticalScrollBar().setUI(new BasicScrollBarUI() {
             @Override
             protected void configureScrollBarColors() {
-                this.thumbColor = colorBkgdDark;
+                this.thumbColor = colorB4;
                 //this.incrButton.
             }
         });
         
         jPanel_topBar.setVisible(true);
         jPanel_exitButton.setVisible(true);
-        //jPanel_mainBkgd.setVisible(true);
         
         panelOffset.x = 0;
         panelOffset.y = 0;
         
-//        jPanel_mainBkgd.setDropTarget(new DropTarget() {
-//            public synchronized void drop(DropTargetDropEvent evt) {
-//                try {
-//                    evt.acceptDrop(DnDConstants.ACTION_COPY);
-//                    List<File> droppedFiles = (List<File>)
-//                        evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
-//                    for (File file : droppedFiles) {
-//                        todoQueue.add(file.toString());
-//                        jTextArea1.append(file.toString() + " added to todo queue." + System.lineSeparator());
-//                    }
-//                } catch (Exception ex) {
-//                    ex.printStackTrace();
-//                }
-//            }
-//        });
+        this.setDropTarget(new DropTarget() {
+            public synchronized void drop(DropTargetDropEvent evt) {
+                try {
+                    evt.acceptDrop(DnDConstants.ACTION_COPY);
+                    List<File> droppedFiles = (List<File>)
+                        evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+                    for (File file : droppedFiles) {
+                        todoQueue.add(file.toString());
+                        //jTextArea1.append(file.toString() + " added to todo queue." + System.lineSeparator());
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
         
         //xyz.neilanthony.AbbeFile abFile = new xyz.neilanthony.AbbeFile();
         AbbeFile abFile = new AbbeFile();
@@ -127,13 +127,11 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
 //        } catch (IOException ex) {
 //            Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
 //        }
-        JPanel imagesPanel = this.createImgPanels();
-        
+        JPanel imagesPanel = this.createImagesPanel();
         jScrollPane_ImgPanels.setViewportView(imagesPanel);
-        //jScrollPane_ImgPanels.setVisible(true);
     }
     
-    private JPanel createImgPanels() {
+    private JPanel createImagesPanel() {
         int N = 6;
         JPanel p = new JPanel(new GridLayout(N, 1));
         for (int i = 0; i < N; i++) {
@@ -146,7 +144,7 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         return p;
     }
     
-
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -198,7 +196,7 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         jPanel_topBarLayout.setHorizontalGroup(
             jPanel_topBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel_topBarLayout.createSequentialGroup()
-                .addGap(0, 823, Short.MAX_VALUE)
+                .addGap(0, 843, Short.MAX_VALUE)
                 .addComponent(jPanel_exitButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         jPanel_topBarLayout.setVerticalGroup(
@@ -215,17 +213,15 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel_topBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jScrollPane_ImgPanels, javax.swing.GroupLayout.PREFERRED_SIZE, 710, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(jScrollPane_ImgPanels, javax.swing.GroupLayout.PREFERRED_SIZE, 667, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jPanel_topBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane_ImgPanels, javax.swing.GroupLayout.DEFAULT_SIZE, 689, Short.MAX_VALUE)
-                .addContainerGap())
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane_ImgPanels, javax.swing.GroupLayout.DEFAULT_SIZE, 714, Short.MAX_VALUE))
         );
 
         pack();

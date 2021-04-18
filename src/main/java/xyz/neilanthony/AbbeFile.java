@@ -1,8 +1,7 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+Used to encapsulate all the information required for each Abberior file thats imported
+
+*/
 package xyz.neilanthony;
 
 import io.scif.gui.BufferedImageReader;
@@ -22,6 +21,7 @@ import loci.formats.IFormatReader;
 import loci.formats.ImageReader;
 
 import java.nio.file.Path;
+import java.util.Vector;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -44,25 +44,57 @@ import org.xml.sax.SAXException;
  */
 public class AbbeFile {
     
+    private OBFReader reader = new OBFReader();
+    private IMetadata omeMeta = MetadataTools.createOMEXMLMetadata();
+    
     private String omexml = null;
     private Document xmlDoc = null;
     private int index = -1;
     private Path fPath = null;
     
+    public final Vector<AbbeFolder> abbeFolderVect = new Vector<>();
+    // cast to sychronized (abbeFolderVect) when multithreading
     private String[] folderNames = null;
+    
+    private class AbbeFolder {
+        
+        public int id = 0;
+        // TODO - add subfolder count and list; add roi count and list
+        private final Vector<AbbeDataset> abbeDatasetVect = new Vector<>();
+        
+        AbbeFolder() {
+            // constructor
+        }
+    }
+    
+    private class AbbeDataset {
+        
+        public boolean tiled = false;
+
+        AbbeDataset() {
+            // constructor
+            
+        }
+    }
+    
     
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     DocumentBuilder builder = null;
     
-    AbbeFile() {
-        // constructor
+    AbbeFile(Path filePath) throws FormatException, IOException {
+        this.fPath = filePath;
+        //  start waiting thread
+        reader.setMetadataStore(omeMeta);
+        reader.setId(this.fPath.toString());
+        // end waiting thread
+        
     }
 
-    public void setIndex () {
-
+    public void setIndex (int index) {
+        this.index = index;
     }
 
-    public void setPath (Path filePath) {
+    public void updatePath (Path filePath) {
         fPath = filePath;
     }
     
@@ -92,31 +124,11 @@ public class AbbeFile {
         return this.folderNames;
     }
     
-    // below super slow and only gets the first line
-    public void pullOMEXML () throws DependencyException, ServiceException, FormatException, IOException {
-
-        OMEXMLService omexmlService = null;
-        ServiceFactory factory = new ServiceFactory();
-        omexmlService = factory.getInstance(OMEXMLService.class);
-
-        MetadataStore omexmlStore = null;
-        omexmlStore = omexmlService.createOMEXMLMetadata();
-        
-        IFormatReader reader = null;
-        reader = new ImageReader();
-        reader.setId(this.fPath.toString());
-                
-        MetadataStore readerMetaStore = reader.getMetadataStore();
-        MetadataRetrieve retrieve = omexmlService.asRetrieve(readerMetaStore);
-        this.omexml = omexmlService.getOMEXML(retrieve);
-        
-    }
-
     public void pullOMEFolders() throws FormatException, IOException {
-        OBFReader reader = new OBFReader();
-        IMetadata omeMeta = MetadataTools.createOMEXMLMetadata();
-        reader.setMetadataStore(omeMeta);
-        reader.setId(this.fPath.toString());
+//        OBFReader reader = new OBFReader();
+//        IMetadata omeMeta = MetadataTools.createOMEXMLMetadata();
+//        reader.setMetadataStore(omeMeta);
+//        reader.setId(this.fPath.toString());
 
         int folderCount = omeMeta.getFolderCount();
         this.folderNames = new String[folderCount];
