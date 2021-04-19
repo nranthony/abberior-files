@@ -46,11 +46,11 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
     private Point panelOffset = new Point();
     final private ImageJ ij;
     
-    final private LinkedBlockingQueue<String> todoQueue = new LinkedBlockingQueue<>();
+    final private LinkedBlockingQueue<File> todoQueue = new LinkedBlockingQueue<>();
     final private ExecutorService importPool = Executors.newFixedThreadPool(4);
     
     // holds information about all files dragged on to GUI
-    private final Vector<AbbeFile> abbeFilesVect = new Vector<>();
+    public final Vector<AbbeFile> abbeFilesVect = new Vector<>();
     // cast to sychronized (abbeFilesVect) when multithreading
     
     private Color colorBkgd = Color.getHSBColor(0.0f, 0.0f, 0.10f);
@@ -108,7 +108,8 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
                     List<File> droppedFiles = (List<File>)
                         evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
                     for (File file : droppedFiles) {
-                        todoQueue.add(file.toString());
+                        todoQueue.add(file);
+                        
                         //jTextArea1.append(file.toString() + " added to todo queue." + System.lineSeparator());
                     }
                 } catch (Exception ex) {
@@ -144,6 +145,22 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         return p;
     }
     
+    public class AddAbbeFile implements Runnable {
+        private File fname;
+
+        public AddAbbeFile(File f) {
+            this.fname = f;
+        }
+
+        public void run() {
+            try {
+                System.out.println("Adding : " + fname.toString());
+                
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
     
     /**
      * This method is called from within the constructor to initialize the form.

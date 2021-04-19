@@ -6,8 +6,6 @@ def get_bytes_from_file(filename):
 fname = r"C:\\ici-cloud-sections\\WBRB Abberior STED\\2021\\Neil\\2021-03-17\\Ab4C_02.obf"
 fbytes = get_bytes_from_file(fname)
 
-print(fbytes[-64:])
-
 i = 5
 with open(fname, 'rb') as f:
     

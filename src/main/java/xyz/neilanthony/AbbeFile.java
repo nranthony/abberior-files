@@ -81,6 +81,7 @@ public class AbbeFile {
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     DocumentBuilder builder = null;
     
+    // constructor
     AbbeFile(Path filePath) throws FormatException, IOException {
         this.fPath = filePath;
         //  start waiting thread
@@ -125,17 +126,11 @@ public class AbbeFile {
     }
     
     public void pullOMEFolders() throws FormatException, IOException {
-//        OBFReader reader = new OBFReader();
-//        IMetadata omeMeta = MetadataTools.createOMEXMLMetadata();
-//        reader.setMetadataStore(omeMeta);
-//        reader.setId(this.fPath.toString());
-
         int folderCount = omeMeta.getFolderCount();
         this.folderNames = new String[folderCount];
         for (int i = 0; i < folderCount; i++) {
             this.folderNames[i] = omeMeta.getFolderName(i);
         }
-        
     }
     
     public void pullOMEXMLRaw() throws FileNotFoundException, IOException {
