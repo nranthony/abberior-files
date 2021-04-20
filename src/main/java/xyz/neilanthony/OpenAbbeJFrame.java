@@ -19,11 +19,17 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
@@ -46,8 +52,9 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
     private Point panelOffset = new Point();
     final private ImageJ ij;
     
-    final private LinkedBlockingQueue<File> todoQueue = new LinkedBlockingQueue<>();
+    //final private LinkedBlockingQueue<File> todoQueue = new LinkedBlockingQueue<>();
     final private ExecutorService importPool = Executors.newFixedThreadPool(4);
+    private List<Future<AbbeFile>> futAbbeList = new ArrayList<Future<AbbeFile>>();
     
     // holds information about all files dragged on to GUI
     public final Vector<AbbeFile> abbeFilesVect = new Vector<>();
@@ -107,27 +114,21 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
                     evt.acceptDrop(DnDConstants.ACTION_COPY);
                     List<File> droppedFiles = (List<File>)
                         evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+                    
+                    futAbbeList.clear();
                     for (File file : droppedFiles) {
-                        todoQueue.add(file);
-                        
-                        //jTextArea1.append(file.toString() + " added to todo queue." + System.lineSeparator());
+                        Callable<AbbeFile> callable = new NewAbbeFile(file);
+                        System.out.println(String.format("Submitting %s to pool.", file.toString()));
+                        Future<AbbeFile> future = importPool.submit(callable);
+                        futAbbeList.add(future);
                     }
+                    Thread t = new Thread(new CheckLoadingAbbes());
+                    t.start();
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
             }
         });
-        
-        //xyz.neilanthony.AbbeFile abFile = new xyz.neilanthony.AbbeFile();
-        AbbeFile abFile = new AbbeFile();
-        Path fPath = Paths.get("C:/ici-cloud-sections/WBRB Abberior STED/2021/Neil/2021-03-17/Ab4C_02.obf");
-        //Path fPath = Paths.get("C:/temp-data/abberior_obf_examples/Ab4C_02.obf");
-//        abFile.setPath(fPath);
-//        try {
-//            jTextArea1.append(abFile.getOMEXML());            
-//        } catch (IOException ex) {
-//            Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
-//        }
         JPanel imagesPanel = this.createImagesPanel();
         jScrollPane_ImgPanels.setViewportView(imagesPanel);
     }
@@ -145,19 +146,60 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         return p;
     }
     
-    public class AddAbbeFile implements Runnable {
+    public class NewAbbeFile implements Callable {
         private File fname;
-
-        public AddAbbeFile(File f) {
-            this.fname = f;
+        public NewAbbeFile(File f) { this.fname = f; }
+        @Override
+        public Object call() throws Exception {
+            AbbeFile newAbbe = new AbbeFile(fname.toPath());
+            return newAbbe;
         }
-
+    }
+    
+    public class CheckLoadingAbbes implements Runnable {
+        
+        // CheckLoadingAbbes Constructor
+        public CheckLoadingAbbes () {   }
+        
         public void run() {
-            try {
-                System.out.println("Adding : " + fname.toString());
-                
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            int i = 0;
+            //String tDoneStrs;
+            boolean allStillRunning = true;
+            int abbeLen = futAbbeList.size();
+            Boolean done;
+            Boolean[] stillRunningLst = new Boolean[abbeLen];
+            for (i=0; i<abbeLen; i++) { stillRunningLst[i] = Boolean.TRUE; }
+            while (allStillRunning) {
+                //tDoneStrs = "";
+                for (i=0; i<futAbbeList.size(); i++) {
+                    if (stillRunningLst[i]) {
+                        done = futAbbeList.get(i).isDone();
+                        if (done) {
+                            stillRunningLst[i] = Boolean.FALSE;
+                            try {
+                                // pull AbbeFile instance and place into global vector
+                                abbeFilesVect.add(futAbbeList.get(i).get(10, TimeUnit.SECONDS));
+                            } catch (InterruptedException ex) {
+                                Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
+                            } catch (ExecutionException ex) {
+                                Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
+                            } catch (TimeoutException ex) {
+                                Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        }
+                    }
+                    //tDoneStrs += String.valueOf(i) + " " + stillRunningLst[i].toString() + " ";
+                }
+                //System.out.println(tDoneStrs);
+                try {
+                    
+                    Thread.sleep(700);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                if (Arrays.asList(stillRunningLst).contains(Boolean.FALSE)) {
+                    allStillRunning = false;
+                }
             }
         }
     }

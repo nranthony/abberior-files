@@ -81,7 +81,7 @@ public class AbbeFile {
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     DocumentBuilder builder = null;
     
-    // constructor
+    // AbbeFile Constructor
     AbbeFile(Path filePath) throws FormatException, IOException {
         this.fPath = filePath;
         //  start waiting thread
