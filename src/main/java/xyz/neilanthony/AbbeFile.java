@@ -58,12 +58,17 @@ public class AbbeFile {
     
     private class AbbeFolder {
         
+        public String folderName;
+        public int folderID;
         public int id = 0;
         // TODO - add subfolder count and list; add roi count and list
         private final Vector<AbbeDataset> abbeDatasetVect = new Vector<>();
+        private final Vector<AbbeImage> abbeImagesVect = new Vector<>();
         
         AbbeFolder() {
             // constructor
+//            this.folderName =
+//            this.folderID =
         }
     }
     
@@ -72,6 +77,16 @@ public class AbbeFile {
         public boolean tiled = false;
 
         AbbeDataset() {
+            // constructor
+            
+        }
+    }
+    
+    private class AbbeImage {
+        
+        public boolean tiled = false;
+
+        AbbeImage() {
             // constructor
             
         }
