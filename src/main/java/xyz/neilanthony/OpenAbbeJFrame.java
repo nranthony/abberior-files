@@ -88,13 +88,25 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         
         this.getContentPane().setBackground(colorBkgd);
         
+        // TODO - implement jScrollPane class with edits in place
         // scroll bar scroll speed
         jScrollPane_ImgPanels.getVerticalScrollBar().setUnitIncrement(16);
+        jScrollPane_FilePanels.getVerticalScrollBar().setUnitIncrement(16);
+        // set bkgd color
+        jScrollPane_FilePanels.getViewport().setBackground(colorBkgd);
         jScrollPane_ImgPanels.getViewport().setBackground(colorBkgd);
         // scroll bar color
         jScrollPane_ImgPanels.getVerticalScrollBar().setBackground(colorB3);
+        jScrollPane_FilePanels.getVerticalScrollBar().setBackground(colorB3);
         // change scrollbar
         jScrollPane_ImgPanels.getVerticalScrollBar().setUI(new BasicScrollBarUI() {
+            @Override
+            protected void configureScrollBarColors() {
+                this.thumbColor = colorB4;
+                //this.incrButton.
+            }
+        });
+        jScrollPane_FilePanels.getVerticalScrollBar().setUI(new BasicScrollBarUI() {
             @Override
             protected void configureScrollBarColors() {
                 this.thumbColor = colorB4;
@@ -216,6 +228,7 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         jPanel_topBar = new javax.swing.JPanel();
         jPanel_exitButton = new javax.swing.JPanel();
         jScrollPane_ImgPanels = new javax.swing.JScrollPane();
+        jScrollPane_FilePanels = new javax.swing.JScrollPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(32, 32, 32));
@@ -255,7 +268,7 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         jPanel_topBarLayout.setHorizontalGroup(
             jPanel_topBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel_topBarLayout.createSequentialGroup()
-                .addGap(0, 843, Short.MAX_VALUE)
+                .addGap(0, 883, Short.MAX_VALUE)
                 .addComponent(jPanel_exitButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         jPanel_topBarLayout.setVerticalGroup(
@@ -266,21 +279,27 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         jScrollPane_ImgPanels.setBorder(null);
         jScrollPane_ImgPanels.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
+        jScrollPane_FilePanels.setBorder(null);
+        jScrollPane_FilePanels.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel_topBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jScrollPane_FilePanels)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane_ImgPanels, javax.swing.GroupLayout.PREFERRED_SIZE, 667, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jPanel_topBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane_ImgPanels, javax.swing.GroupLayout.DEFAULT_SIZE, 714, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane_ImgPanels, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 865, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jScrollPane_FilePanels, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 895, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
 
         pack();
@@ -337,6 +356,7 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel jPanel_exitButton;
     private javax.swing.JPanel jPanel_topBar;
+    private javax.swing.JScrollPane jScrollPane_FilePanels;
     private javax.swing.JScrollPane jScrollPane_ImgPanels;
     // End of variables declaration//GEN-END:variables
 }
