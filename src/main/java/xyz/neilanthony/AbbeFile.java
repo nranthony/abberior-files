@@ -59,36 +59,65 @@ public class AbbeFile {
     private class AbbeFolder {
         
         public String folderName;
-        public int folderID;
-        public int id = 0;
+        public String folderID;
+        public int folderIndex = -1;
         // TODO - add subfolder count and list; add roi count and list
         private final Vector<AbbeDataset> abbeDatasetVect = new Vector<>();
         private final Vector<AbbeImage> abbeImagesVect = new Vector<>();
         
-        AbbeFolder() {
+        AbbeFolder(int fldrIndex, String fldrIDStr, String fldrName) {
             // constructor
-//            this.folderName =
-//            this.folderID =
+            this.folderName = fldrName;
+            this.folderID = fldrIDStr;
+            this.folderIndex = fldrIndex;
+            
+            int imgCount = omeMeta.getFolderImageRefCount(fldrIndex);
+            for (int i = 0; i < imgCount; i++) {
+                abbeImagesVect.add(i, new AbbeImage(omeMeta.getFolderImageRef(fldrIndex, i)));
+                
+            }
         }
     }
     
     private class AbbeDataset {
+
+        public String datasetName;
+        public String datasetID;
+        public int datasetIndex = -1;
         
         public boolean tiled = false;
-
-        AbbeDataset() {
+        public int imageCount = -1;
+        public int[] imgIndxs = null;
+        
+        AbbeDataset(int datIndex, String datIDStr, String datName) {
             // constructor
+            this.datasetName = datName;
+            this.datasetID = datIDStr;
+            this.datasetIndex = datIndex;
             
+            int imgCount = omeMeta.getDatasetImageRefCount(datIndex);
+            imgIndxs = new int[imgCount];
+            for (int i = 0; i < imgCount; i++) {
+                imgIndxs[i] = Integer.valueOf(omeMeta
+                                              .getDatasetImageRef(datIndex, i)
+                                              .replace("Image:", "")
+                                              );
+            }
         }
     }
     
     private class AbbeImage {
         
+        public String imageName;
+        public String imageID;
+        public int imageIndex = -1;
+        
         public boolean tiled = false;
 
-        AbbeImage() {
+        AbbeImage(String imgIDStr) {
             // constructor
-            
+            this.imageID = imgIDStr;
+            this.imageIndex = Integer.valueOf(imgIDStr.replace("Image:", ""));
         }
     }
     
@@ -133,7 +162,7 @@ public class AbbeFile {
         return this.xmlDoc.getDocumentElement().getNodeName();
     }
     
-    public String[] getOMEFolders () throws FormatException, IOException {
+    public String[] getOMEFolderNames () throws FormatException, IOException {
         if ( this.folderNames == null ) {
             this.pullOMEFolders();
         }
@@ -145,7 +174,25 @@ public class AbbeFile {
         this.folderNames = new String[folderCount];
         for (int i = 0; i < folderCount; i++) {
             this.folderNames[i] = omeMeta.getFolderName(i);
+            this.abbeFolderVect.add(i, new AbbeFolder(i, omeMeta.getFolderID(i), 
+                                                      this.folderNames[i])
+                                    );
         }
+    }
+    
+    public void pullOMEDatasets() {
+        int datasetCount = omeMeta.getDatasetCount();
+        for (int i = 0; i < datasetCount; i++) {
+             // TODO - either add Project list to AbbeFile class
+             // or
+             // add all Datasets vect to AbbeFile class
+             // question of all datasets vs datasets in each folder
+             // NEED to get images in each dataset and cross referecne
+             // with images in folders
+             // ...
+//             .add(i, new AbbeFolder(i, omeMeta.getFolderID(i), 
+//                                                      this.folderNames[i])
+//                                    );
     }
     
     public void pullOMEXMLRaw() throws FileNotFoundException, IOException {
