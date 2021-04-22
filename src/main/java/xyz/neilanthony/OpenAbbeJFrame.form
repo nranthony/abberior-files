@@ -31,7 +31,13 @@
           <Group type="102" attributes="0">
               <Component id="jScrollPane_FilePanels" max="32767" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="jScrollPane_ImgPanels" min="-2" pref="667" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                  <Component id="jScrollPane_ImgPanels" pref="667" max="32767" attributes="0"/>
+                  <Group type="102" attributes="0">
+                      <Component id="jLabel_Info" max="32767" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                  </Group>
+              </Group>
           </Group>
       </Group>
     </DimensionLayout>
@@ -40,8 +46,12 @@
           <Group type="102" alignment="0" attributes="0">
               <Component id="jPanel_topBar" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="32767" attributes="0"/>
-              <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="jScrollPane_ImgPanels" alignment="1" min="-2" pref="865" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                  <Group type="102" alignment="1" attributes="0">
+                      <Component id="jLabel_Info" max="32767" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="jScrollPane_ImgPanels" min="-2" pref="865" max="-2" attributes="0"/>
+                  </Group>
                   <Component id="jScrollPane_FilePanels" alignment="1" min="-2" pref="895" max="-2" attributes="0"/>
               </Group>
           </Group>
@@ -116,5 +126,16 @@
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
     </Container>
+    <Component class="javax.swing.JLabel" name="jLabel_Info">
+      <Properties>
+        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+          <Font name="Segoe UI Semilight" size="16" style="0"/>
+        </Property>
+        <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+          <Color blue="cc" green="cc" red="cc" type="rgb"/>
+        </Property>
+        <Property name="text" type="java.lang.String" value="Drag &apos;n&apos; drop *.obf or *.msr files."/>
+      </Properties>
+    </Component>
   </SubComponents>
 </Form>

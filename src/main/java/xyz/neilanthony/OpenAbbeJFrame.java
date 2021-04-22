@@ -67,7 +67,7 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
     private Color colorB2 = Color.getHSBColor(0.0f, 0.0f, 0.2f);
     
     
-    
+     
     private final List<JPanel> panelList = new ArrayList<JPanel>();
     
     /* Creates new form OpenAbbeJFrame */
@@ -121,6 +121,7 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         panelOffset.y = 0;
         
         this.setDropTarget(new DropTarget() {
+            @SuppressWarnings("empty-statement")
             public synchronized void drop(DropTargetDropEvent evt) {
                 try {
                     evt.acceptDrop(DnDConstants.ACTION_COPY);
@@ -129,10 +130,12 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
                     
                     futAbbeList.clear();
                     for (File file : droppedFiles) {
-                        Callable<AbbeFile> callable = new NewAbbeFile(file);
-                        System.out.println(String.format("Submitting %s to pool.", file.toString()));
-                        Future<AbbeFile> future = importPool.submit(callable);
-                        futAbbeList.add(future);
+                        if ( file.getPath().endsWith(".obf") | file.getPath().endsWith(".msr") ) { 
+                            Callable<AbbeFile> callable = new NewAbbeFile(file);
+                            System.out.println(String.format("Submitting %s to pool.", file.toString()));
+                            Future<AbbeFile> future = importPool.submit(callable);
+                            futAbbeList.add(future);
+                        } else { jLabel_Info.setText("Non Abberior files currently not supported.  Please drop .obf or .msr files."); }
                     }
                     Thread t = new Thread(new CheckLoadingAbbes());
                     t.start();
@@ -229,6 +232,7 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         jPanel_exitButton = new javax.swing.JPanel();
         jScrollPane_ImgPanels = new javax.swing.JScrollPane();
         jScrollPane_FilePanels = new javax.swing.JScrollPane();
+        jLabel_Info = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(32, 32, 32));
@@ -282,6 +286,10 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         jScrollPane_FilePanels.setBorder(null);
         jScrollPane_FilePanels.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
+        jLabel_Info.setFont(new java.awt.Font("Segoe UI Semilight", 0, 16)); // NOI18N
+        jLabel_Info.setForeground(new java.awt.Color(204, 204, 204));
+        jLabel_Info.setText("Drag 'n' drop *.obf or *.msr files.");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -290,15 +298,22 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jScrollPane_FilePanels)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane_ImgPanels, javax.swing.GroupLayout.PREFERRED_SIZE, 667, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jScrollPane_ImgPanels, javax.swing.GroupLayout.DEFAULT_SIZE, 667, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel_Info, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addContainerGap())))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jPanel_topBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane_ImgPanels, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 865, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(jLabel_Info, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane_ImgPanels, javax.swing.GroupLayout.PREFERRED_SIZE, 865, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jScrollPane_FilePanels, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 895, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
 
@@ -354,6 +369,7 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
     
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel jLabel_Info;
     private javax.swing.JPanel jPanel_exitButton;
     private javax.swing.JPanel jPanel_topBar;
     private javax.swing.JScrollPane jScrollPane_FilePanels;
