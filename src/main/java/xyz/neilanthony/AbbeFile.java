@@ -4,37 +4,24 @@ Used to encapsulate all the information required for each Abberior file thats im
 */
 package xyz.neilanthony;
 
-import io.scif.gui.BufferedImageReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import loci.formats.FormatException;
-import loci.formats.IFormatReader;
-import loci.formats.ImageReader;
 
 import java.nio.file.Path;
-import java.util.Set;
-import java.util.Vector;
+import java.util.ArrayList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import loci.common.services.DependencyException;
-import loci.common.services.ServiceException;
-import loci.common.services.ServiceFactory;
 import loci.formats.MetadataTools;
 import loci.formats.in.OBFReader;
 import loci.formats.meta.IMetadata;
-import loci.formats.meta.MetadataRetrieve;
-import loci.formats.meta.MetadataStore;
-import loci.formats.services.OMEXMLService;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -56,10 +43,20 @@ public class AbbeFile {
     private int index = -1;
     private Path fPath = null;
     
-    public final Vector<AbbeFolder> abbeFolderVect = new Vector<>();
+    public final ArrayList<AbbeFolder> abbeFolderVect = new ArrayList<>();
     // cast to sychronized (abbeFolderVect) when multithreading
     
     private String[] folderNames = null;
+    /* array of associated indxs
+    List<imageIndx>[datasetIndx]
+    An array of Lists, where each list contains the imageIdxs in that dataset
+    usage:
+    for each folder:
+        for each dataset:
+            if dataset image is in folder image list
+                add dataset to folder
+    */
+    private ArrayList<Integer>[] datImgLsts;
     
     // requires the images in each dataset be predetermined before
     // creating the datasets in each folder, which requires the overlap of images in
@@ -71,20 +68,21 @@ public class AbbeFile {
         public int folderIndex = -1;
         // TODO - add subfolder count and list; add roi count and list
         
-        public final Vector<AbbeDataset> abbeDatasetVect = new Vector<>();
-        public final Set<Integer> fldrImgIdxs = new HashSet;
+        public final ArrayList<AbbeDataset> abbeDatasetVect = new ArrayList<>();
+        public final ArrayList<Integer> fldrImgIndxs = new ArrayList<>();
         
         // constructor
         AbbeFolder(int fldrIndex, String fldrIDStr, String fldrName) {
             this.folderName = fldrName;
             this.folderID = fldrIDStr;
             this.folderIndex = fldrIndex;
-            
-//            int imgCount = omeMeta.getFolderImageRefCount(fldrIndex);
-//            for (int i = 0; i < imgCount; i++) {
-//                abbeImagesVect.add(i, new AbbeImage(omeMeta.getFolderImageRef(fldrIndex, i)));
-//                
-//            }
+            //  get the list of image indicies in the folder
+            String imgID;
+            int imgCount = omeMeta.getFolderImageRefCount(fldrIndex);
+            for (int i = 0; i < imgCount; i++) {
+                imgID = omeMeta.getFolderImageRef(fldrIndex, i);
+                fldrImgIndxs.add(i, Integer.valueOf(imgID.replace("Image:", "")));
+            }
         }
         
         public void pullOMEDatasets(int[] datasetIndxs, int[] imgIdxs) {
@@ -99,7 +97,7 @@ public class AbbeFile {
         
         public class AbbeDataset {
             
-            public final Vector<AbbeImage> abbeImagesVect = new Vector<>();
+            public final ArrayList<AbbeImage> abbeImagesVect = new ArrayList<>();
             
             public String datasetName;
             public String datasetID;
@@ -160,37 +158,32 @@ public class AbbeFile {
         this.index = index;
     }
 
-    public void updatePath (Path filePath) {
-        fPath = filePath;
-    }
-    
-    public String getOMEXML () throws IOException {
-        if ( this.omexml == null ) {
-            this.pullOMEXMLRaw();
+     /**
+     * Scans AbbeFile omeMeta for all Datasets and create Folders.
+     * Datasets are stored in datImgLsts, variable in AbbeFile
+     * Create AbbeFolders with basic information, which then populates it's
+     * variable fldrImgIndxs
+     * <p>
+     * After calling, fldrImgIndxs and each List in dataImgLsts are compared
+     * to determine which dataset groups of images are in each folder
+     * 
+     * @throws FormatException
+     * @throws IOException 
+     */
+    public void scanFoldersDatasets() throws FormatException, IOException {
+        // fill datImgLsts with image indicies for all datasets
+        int datasetCount = omeMeta.getDatasetCount();
+        int imgCount = -1;
+        String imgID;
+        datImgLsts = new ArrayList[datasetCount];
+        for (int i = 0; i < datasetCount; i++) {  //  for each dataset
+            imgCount = omeMeta.getDatasetImageRefCount(i);
+            for (int j = 0; j < imgCount; j++) {  //  for each image in each dataset
+                imgID = omeMeta.getDatasetImageRef(i, j);
+                datImgLsts[i].add(j, Integer.valueOf(imgID.replace("Image:", "")));
+            }
         }
-        return this.omexml;
-    }
-    
-    public void createXMLDoc () throws ParserConfigurationException, SAXException, IOException {
-        if ( this.omexml == null ) {
-            this.pullOMEXMLRaw();
-        }
-        builder = factory.newDocumentBuilder();
-        xmlDoc = builder.parse(new InputSource(new StringReader(omexml)));
-    }
-    
-    public String testXMLDoc () {
-        return this.xmlDoc.getDocumentElement().getNodeName();
-    }
-    
-    public String[] getOMEFolderNames () throws FormatException, IOException {
-        if ( this.folderNames == null ) {
-            this.pullOMEFolders();
-        }
-        return this.folderNames;
-    }
-    
-    public void pullOMEFolders() throws FormatException, IOException {
+        // create folder objects
         int folderCount = omeMeta.getFolderCount();
         this.folderNames = new String[folderCount];
         for (int i = 0; i < folderCount; i++) {
@@ -201,8 +194,53 @@ public class AbbeFile {
         }
     }
     
-
+    public void collateFolderImages() {
+        /*
+        private ArrayList<Integer>[] datImgLsts;
+        In AbbeFolder:
+        public final ArrayList<Integer> fldrImgIndxs = new ArrayList<>();
+        
+        for each folder:
+        for each dataset:
+            if dataset image is in folder image list
+                add dataset to folder
+        */
+        
+        for (AbbeFolder abF : abbeFolderVect ) {
+            
+        }
+    }
     
+    /**
+     * Used for working directly from raw xml data.
+     * May be needed to get finer details not available in omeMeta
+     * @throws ParserConfigurationException
+     * @throws SAXException
+     * @throws IOException 
+     */
+    public void createXMLDoc () throws ParserConfigurationException, SAXException, IOException {
+        if ( this.omexml == null ) {
+            this.pullOMEXMLRaw();
+        }
+        builder = factory.newDocumentBuilder();
+        xmlDoc = builder.parse(new InputSource(new StringReader(omexml)));
+    }
+        
+    public String[] getFolderNames () throws FormatException, IOException {
+        if ( this.folderNames == null ) {
+            this.scanFoldersDatasets();
+        }
+        return this.folderNames;
+    }
+    
+
+    public String getOMEXML () throws IOException {
+        if ( this.omexml == null ) {
+            this.pullOMEXMLRaw();
+        }
+        return this.omexml;
+    }
+        
     public void pullOMEXMLRaw() throws FileNotFoundException, IOException {
         
         // get memory mapped buffer of last ~2MB of obf file
@@ -243,10 +281,20 @@ public class AbbeFile {
         this.omexml = decodeUTF8(xmlBytes).replace("&quot;", "\"");;
         channel.close();
     }
-        
+
+    
+    
+    /* little functions */
+    
     private final Charset UTF8_CHARSET = Charset.forName("UTF-8");
     String decodeUTF8(byte[] bytes) {
         return new String(bytes, UTF8_CHARSET);
     }
+    
+    /* old functions - review for deletion */
+    
+    public void updatePath (Path filePath) {
+        fPath = filePath;
+    }    
 }
 
