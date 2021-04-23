@@ -16,6 +16,7 @@ import loci.formats.FormatException;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Set;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -47,20 +48,16 @@ public class AbbeFile {
     // cast to sychronized (abbeFolderVect) when multithreading
     
     private String[] folderNames = null;
-    /* array of associated indxs
-    List<imageIndx>[datasetIndx]
-    An array of Lists, where each list contains the imageIdxs in that dataset
-    usage:
-    for each folder:
-        for each dataset:
-            if dataset image is in folder image list
-                add dataset to folder
-    */
+    /* array of associated indxs  -  List<imageIndx>[datasetIndx]
+    An array of Lists, where each list contains the imageIdxs in that dataset */
     private ArrayList<Integer>[] datImgLsts;
     
-    // requires the images in each dataset be predetermined before
-    // creating the datasets in each folder, which requires the overlap of images in
-    // dataset and images in folders to be the first step
+
+    /**
+     * requires the images in each dataset be predetermined before
+     * creating the datasets in each folder, which requires the overlap of images in
+     * dataset and images in folders to be the first step
+     */
     private class AbbeFolder {
         
         public String folderName;
@@ -85,14 +82,10 @@ public class AbbeFile {
             }
         }
         
-        public void pullOMEDatasets(int[] datasetIndxs, int[] imgIdxs) {
-            for (int i = 0; i < datasetIndxs.length; i++) {
-                this.abbeDatasetVect.add(i, new AbbeDataset(datasetIndxs[i], 
-                                                            omeMeta.getDatasetID(i),
-                                                            omeMeta.getDatasetName(i),
-                                                            imgIdxs)
-                                        );
-            }
+        public void addDataset(int datasetIndx, Integer[] imgIdxs) {
+            this.abbeDatasetVect.add(
+                    new AbbeDataset(datasetIndx, omeMeta.getDatasetID(datasetIndx),
+                                    omeMeta.getDatasetName(datasetIndx), imgIdxs));
         }
         
         public class AbbeDataset {
@@ -105,12 +98,12 @@ public class AbbeFile {
 
             public boolean tiled = false;
             public int imageCount = -1;
-            public int[] imageIndxs = null;
+            public Integer[] imageIndxs = null;
 
             public int parentFolderIndex = -1;
             
             // constructor
-            AbbeDataset(int datIndex, String datIDStr, String datName, int[] imgIndxs) {
+            AbbeDataset(int datIndex, String datIDStr, String datName, Integer[] imgIndxs) {
                 this.datasetName = datName;
                 this.datasetID = datIDStr;
                 this.datasetIndex = datIndex;
@@ -152,6 +145,9 @@ public class AbbeFile {
         reader.setMetadataStore(omeMeta);
         reader.setId(this.fPath.toString());
         // end waiting thread
+//        System.out.println(omeMeta.getDatasetID(0));
+//        System.out.println(omeMeta.getImageName(0));
+//        System.out.println(omeMeta.getFolderName(0));
     }
 
     public void setIndex (int index) {
@@ -178,6 +174,7 @@ public class AbbeFile {
         datImgLsts = new ArrayList[datasetCount];
         for (int i = 0; i < datasetCount; i++) {  //  for each dataset
             imgCount = omeMeta.getDatasetImageRefCount(i);
+            datImgLsts[i] = new ArrayList<>();
             for (int j = 0; j < imgCount; j++) {  //  for each image in each dataset
                 imgID = omeMeta.getDatasetImageRef(i, j);
                 datImgLsts[i].add(j, Integer.valueOf(imgID.replace("Image:", "")));
@@ -205,8 +202,25 @@ public class AbbeFile {
             if dataset image is in folder image list
                 add dataset to folder
         */
+        //Set<Integer> datasetImages = null;
+        Set<Integer> folderImages = null;
         
         for (AbbeFolder abF : abbeFolderVect ) {
+            // check that all the dataset images are in the folder images
+            // if not, then one or both lists are incorrect or dataset corrupt
+            // if all dataset images in folder, create new dataset in folder
+            if (abF.abbeDatasetVect.size() > 0) {
+                folderImages.addAll(abF.fldrImgIndxs);
+                for (int ds = 0; ds < datImgLsts.length; ds++) {
+                    Integer[] imgIdxs = new Integer[datImgLsts[ds].size()];
+                    //  all the images in dataset ds are in the current folder
+                    if (folderImages.containsAll(datImgLsts[ds])) {
+                        imgIdxs = datImgLsts[ds].toArray(imgIdxs);
+                        abF.addDataset(ds, imgIdxs);
+                    }
+                }
+            }
+            
             
         }
     }

@@ -167,6 +167,8 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         @Override
         public Object call() throws Exception {
             AbbeFile newAbbe = new AbbeFile(fname.toPath());
+            newAbbe.scanFoldersDatasets();
+            newAbbe.collateFolderImages();
             return newAbbe;
         }
     }
