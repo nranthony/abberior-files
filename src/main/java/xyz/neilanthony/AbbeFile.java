@@ -4,6 +4,8 @@ Used to encapsulate all the information required for each Abberior file thats im
 */
 package xyz.neilanthony;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -17,12 +19,15 @@ import loci.formats.FormatException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
+import javax.imageio.ImageIO;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import loci.formats.MetadataTools;
+import loci.formats.gui.BufferedImageReader;
 import loci.formats.in.OBFReader;
 import loci.formats.meta.IMetadata;
 import net.imagej.ImageJ;
@@ -39,6 +44,7 @@ public class AbbeFile {
     
     private OBFReader reader = new OBFReader();
     private IMetadata omeMeta = MetadataTools.createOMEXMLMetadata();
+    private BufferedImageReader bufImgReader= new BufferedImageReader(reader);
 
     private DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     private DocumentBuilder builder = null;
@@ -57,7 +63,7 @@ public class AbbeFile {
     private ArrayList<Integer>[] datImgLsts;
     
 
-    /**
+    /** Nested classes AbbeFolder -> AbbeDataset -> AbbeImage
      * requires the images in each dataset be predetermined before
      * creating the datasets in each folder, which requires the overlap of images in
      * dataset and images in folders to be the first step
@@ -252,24 +258,6 @@ public class AbbeFile {
         return this.folderNames;
     }
     
-    public List<String> printFileDetails () {
-        
-        List<String> strList = new ArrayList<>();
-        strList.add(String.format("Check AbbeFile: %s", this.toString()));
-        
-        for (AbbeFolder abF : abbeFolderVect) {
-            for (AbbeFolder.AbbeDataset abDs : abF.abbeDatasetVect) {
-                for (AbbeFolder.AbbeDataset.AbbeImage abImg : abDs.abbeImagesVect) {
-                    
-                    strList.add(String.format("Folder %s; Dataset %s; Image %s",
-                                                                abF.folderName,
-                                                                abDs.datasetName,
-                                                                abImg.imageName));
-                }
-            }
-        }
-        return strList;
-    }
 
     public String getOMEXML () throws IOException {
         if ( this.omexml == null ) {
@@ -319,8 +307,57 @@ public class AbbeFile {
         channel.close();
     }
 
+    /** Testing Functions
+    * Includes testing of:
+    * local AbbeFile - AbbeFolder - AbbeDataset - AbbeImage
+    * OME Bioformats readers and the such
+    */
     
+    public List<String> printFileDetails () {
+        
+        List<String> strList = new ArrayList<>();
+        strList.add(String.format("Check AbbeFile: %s", this.toString()));
+        
+        for (AbbeFolder abF : abbeFolderVect) {
+            for (AbbeFolder.AbbeDataset abDs : abF.abbeDatasetVect) {
+                for (AbbeFolder.AbbeDataset.AbbeImage abImg : abDs.abbeImagesVect) {
+                    
+                    strList.add(String.format("Folder %s; Dataset %s; Image %s",
+                                                                abF.folderName,
+                                                                abDs.datasetName,
+                                                                abImg.imageName));
+                }
+            }
+        }
+        return strList;
+    }
     
+    public List<String> printSeriesInfo () {
+        
+        List<String> strList = new ArrayList<>();
+        strList.add(String.format("Checking reader.series info."));
+        int seriesCount = reader.getSeriesCount();
+        for (int i=0; i<seriesCount; i++) {
+            reader.setSeries(i);
+            strList.add(String.format("pixels (x,y): (%s,%s)",
+                        reader.getSizeX(), reader.getSizeY())
+                        );
+        }
+        //Hashtable seriesHash = reader.getSeriesMetadata();
+        //strList.add(seriesHash.toString());
+        return strList;
+    }
+    
+    public BufferedImage getThumbBufImg (int s) throws IOException, FormatException {
+        
+//        reader.setSeries(s);
+//        byte[] thumbBytes = reader.openThumbBytes(0);
+//        ByteArrayInputStream bis = new ByteArrayInputStream(thumbBytes);
+//        BufferedImage bImage = ImageIO.read(bis);
+        BufferedImage bImage = bufImgReader.openThumbImage(s);
+        return bImage;
+        
+    }
     /* little functions */
     
     private final Charset UTF8_CHARSET = Charset.forName("UTF-8");

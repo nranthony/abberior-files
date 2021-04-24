@@ -6,6 +6,8 @@
 package xyz.neilanthony;
 
 import java.awt.Color;
+import java.awt.Graphics;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
 /**
@@ -18,15 +20,24 @@ public class AbbeImageJPanel extends javax.swing.JPanel {
     private Color colorBkgdPanel = Color.getHSBColor(0.0f, 0.0f, 0.13f);
     private Color colorThumb = Color.getHSBColor(0.0f, 0.0f, 0.08f);
     private final Color colorChnText = Color.getHSBColor(0.54f, 0.46f, 0.66f);
+    private AbbeImagePanelParams p = null;
+    private JLabel thumbLabel = null;
     
-    public AbbeImageJPanel() {
+    // Constructor
+    public AbbeImageJPanel(AbbeImagePanelParams params) {
         initComponents();
+        this.p = params;
         
+        //Graphics gThumb = null;
         this.setBackground(colorBkgdPanel);
-        this.jPanel_Thumb.setBackground(colorThumb);
-        
+        if (this.p.bufImg != null) {
+            thumbLabel = new JLabel(new ImageIcon(p.bufImg));
+            this.jPanel_Thumb.add(thumbLabel);
+            this.jPanel_Thumb.repaint();
+        } else {
+            this.jPanel_Thumb.setBackground(colorThumb);
+        }
         this.jLabel_ChnName_1.setForeground(colorChnText);
-        
     }
     
     private JLabel chnLabel (String labelStr) {

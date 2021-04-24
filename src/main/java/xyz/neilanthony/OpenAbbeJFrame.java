@@ -157,11 +157,12 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
     
     private JPanel createImagesPanel() {
         int N = 6;
+        AbbeImagePanelParams params = new AbbeImagePanelParams();
         JPanel p = new JPanel(new GridLayout(N, 1));
         for (int i = 0; i < N; i++) {
             int row = i;
             int col = 1;
-            JPanel imgPanel = new AbbeImageJPanel();
+            JPanel imgPanel = new AbbeImageJPanel(params);
             panelList.add(imgPanel);
             p.add(imgPanel);
         }
@@ -384,15 +385,35 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jPanel_exitButtonMouseReleased
 
     private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked
-        List<String> sLst = new ArrayList<>();
-        for (AbbeFile abF : abbeFilesVect){
-            sLst = abF.printFileDetails();
-            for (String s : sLst) {
-                jTextArea1.append(s + System.lineSeparator());
+//        List<String> sLst = new ArrayList<>();
+//        for (AbbeFile abF : abbeFilesVect){
+//            //sLst = abF.printFileDetails();
+//            sLst = abF.printSeriesInfo();
+//            for (String s : sLst) {
+//                jTextArea1.append(s + System.lineSeparator());
+//            }
+//        }
+//        jScrollPane_ImgPanels.setViewportView(jTextArea1);
+        //AbbeImageJPanel 
+        AbbeImagePanelParams params = new AbbeImagePanelParams();
+        AbbeFile abF = abbeFilesVect.elementAt(0);
+        int N = 3;
+        JPanel p = new JPanel(new GridLayout(N, 1));
+        try {
+            for (int i = 0; i < N; i++) {
+
+                int row = i;
+                int col = 1;
+                params.bufImg = abF.getThumbBufImg(i);
+                JPanel imgPanel = new AbbeImageJPanel(params);
+                panelList.add(imgPanel);
+                p.add(imgPanel);
             }
+        } catch (IOException | FormatException ex) {
+                Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
-        jScrollPane_ImgPanels.setViewportView(jTextArea1);
-        
+        jScrollPane_ImgPanels.getViewport().removeAll();
+        jScrollPane_ImgPanels.setViewportView(p);
     }//GEN-LAST:event_jButton1MouseClicked
     
     /**
