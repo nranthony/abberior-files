@@ -8,11 +8,6 @@
 
 package xyz.neilanthony;
 
-import loci.formats.ClassList;
-import loci.formats.FormatException;
-import loci.formats.IFormatReader;
-import loci.formats.ImageReader;
-import loci.formats.in.OBFReader;
 import net.imagej.Dataset;
 import net.imagej.ImageJ;
 import net.imagej.ops.OpService;
@@ -24,11 +19,10 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.ui.UIService;
 
-import java.io.File;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.WindowConstants;
+import org.scijava.log.LogService;
 
 /**
  * This example illustrates how to create an ImageJ {@link Command} plugin.
@@ -45,7 +39,10 @@ public class OpenAbberior<T extends RealType<T>> implements Command {
     //
     // Feel free to add more parameters here...
     //
-
+    
+    @Parameter
+    private LogService logService;
+    
     @Parameter
     private Dataset currentData;
 
@@ -85,11 +82,12 @@ public class OpenAbberior<T extends RealType<T>> implements Command {
      */
     public static void main(final String... args) throws Exception {
         // create the ImageJ application context with all available services
+        System.setProperty("scijava.log.level", "info");
         final ImageJ ij = new ImageJ();
         ij.ui().showUI();
         // invoke the plugin
         //ij.command().run(OpenAbberior.class, true);
-        
+
         // open GUI window
         OpenAbbeJFrame AbbeFrame = new OpenAbbeJFrame(ij);
         AbbeFrame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);

@@ -16,6 +16,8 @@ import loci.formats.FormatException;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -23,6 +25,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import loci.formats.MetadataTools;
 import loci.formats.in.OBFReader;
 import loci.formats.meta.IMetadata;
+import net.imagej.ImageJ;
+import org.scijava.log.LogService;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -203,13 +207,14 @@ public class AbbeFile {
                 add dataset to folder
         */
         //Set<Integer> datasetImages = null;
-        Set<Integer> folderImages = null;
+        Set<Integer> folderImages = new HashSet<>();
         
         for (AbbeFolder abF : abbeFolderVect ) {
             // check that all the dataset images are in the folder images
             // if not, then one or both lists are incorrect or dataset corrupt
             // if all dataset images in folder, create new dataset in folder
-            if (abF.abbeDatasetVect.size() > 0) {
+            folderImages.clear();
+            if (abF.fldrImgIndxs.size() > 0) {
                 folderImages.addAll(abF.fldrImgIndxs);
                 for (int ds = 0; ds < datImgLsts.length; ds++) {
                     Integer[] imgIdxs = new Integer[datImgLsts[ds].size()];
@@ -247,6 +252,24 @@ public class AbbeFile {
         return this.folderNames;
     }
     
+    public List<String> printFileDetails () {
+        
+        List<String> strList = new ArrayList<>();
+        strList.add(String.format("Check AbbeFile: %s", this.toString()));
+        
+        for (AbbeFolder abF : abbeFolderVect) {
+            for (AbbeFolder.AbbeDataset abDs : abF.abbeDatasetVect) {
+                for (AbbeFolder.AbbeDataset.AbbeImage abImg : abDs.abbeImagesVect) {
+                    
+                    strList.add(String.format("Folder %s; Dataset %s; Image %s",
+                                                                abF.folderName,
+                                                                abDs.datasetName,
+                                                                abImg.imageName));
+                }
+            }
+        }
+        return strList;
+    }
 
     public String getOMEXML () throws IOException {
         if ( this.omexml == null ) {
