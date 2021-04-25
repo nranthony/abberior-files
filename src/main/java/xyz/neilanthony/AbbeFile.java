@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
@@ -31,6 +32,12 @@ import loci.formats.gui.BufferedImageReader;
 import loci.formats.in.OBFReader;
 import loci.formats.meta.IMetadata;
 import net.imagej.ImageJ;
+import net.imglib2.img.array.ArrayImg;
+import net.imglib2.img.array.ArrayImgs;
+import net.imglib2.img.basictypeaccess.array.ShortArray;
+import net.imglib2.type.numeric.integer.UnsignedShortType;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
 import org.scijava.log.LogService;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
@@ -350,14 +357,83 @@ public class AbbeFile {
     
     public BufferedImage getThumbBufImg (int s) throws IOException, FormatException {
         
-//        reader.setSeries(s);
-//        byte[] thumbBytes = reader.openThumbBytes(0);
+        reader.setSeries(s);
 //        ByteArrayInputStream bis = new ByteArrayInputStream(thumbBytes);
 //        BufferedImage bImage = ImageIO.read(bis);
         BufferedImage bImage = bufImgReader.openThumbImage(s);
+        
         return bImage;
         
     }
+    
+    public short[] getImageShorts (int s, int z) throws FormatException, IOException {
+        reader.setSeries(s);
+        int sc, st, sx, sy, sz;
+        sc = reader.getSizeC();
+        st = reader.getSizeT();
+        sx = reader.getSizeX();
+        sy = reader.getSizeY();
+        sz = reader.getSizeZ();
+        byte[] imgBytes = new byte[sc*sx*sy*2];
+        imgBytes = reader.openBytes(z, imgBytes);
+        
+        short[] imgShorts = new short[sc*sx*sy];
+        ByteBuffer.wrap(imgBytes).asShortBuffer().get(imgShorts);
+        short max = 0;
+        for (int i=0; i<imgShorts.length; i++){
+            if (imgShorts[i] > max) { max = imgShorts[i]; }
+        }
+        for (int i=0; i<imgShorts.length; i++){
+            imgShorts[i] = (short) (Short.MAX_VALUE * ( imgShorts[i] / max ));
+        }
+        
+        return imgShorts;
+    }
+    
+    public Mat GetImageBytes (int s, int z) throws FormatException, IOException {
+        int sx, sy;
+        sx = reader.getSizeX();
+        sy = reader.getSizeY();      
+        Mat m = new Mat(sx,sy, CvType.CV_16UC1);
+        m.put(0,0,getImageShorts(s, z));
+        return m;
+//        openBytes(int no, byte[] buf)
+//Obtains the specified image plane from the current file into a pre-allocated byte array of (sizeX * sizeY * bytesPerPixel * RGB channel count).
+    }
+    
+    public BufferedImage getBufImg (int s, int z) throws FormatException, IOException {
+        int sx, sy;
+        sx = reader.getSizeX();
+        sy = reader.getSizeY();  
+        short[] imgShort = getImageShorts(s, z);
+        BufferedImage buf = new BufferedImage(sx, sy, BufferedImage.TYPE_USHORT_GRAY);
+        return buf;
+    }
+    
+    public ArrayImg getArrayImg (int s) throws FormatException, IOException {
+        reader.setSeries(s);
+        Object data = reader.openPlane(0, 0, 0, reader.getSizeX(), reader.getSizeY());
+        byte[] bytes = (byte[])data;
+        short[] shorts = new short[bytes.length/2];
+        ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(shorts);
+        ArrayImg<UnsignedShortType, ShortArray> img = ArrayImgs.unsignedShorts(shorts, reader.getSizeX(), reader.getSizeY());
+        //ij.ui().show(img);
+        return img;
+    }
+    public BufferedImage getArrayBuf (int s) throws FormatException, IOException {
+        reader.setSeries(s);
+        int sx, sy;
+        sx = reader.getSizeX();
+        sy = reader.getSizeY(); 
+        Object data = reader.openPlane(0, 0, 0, sx, sy);
+        byte[] bytes = (byte[])data;
+        short[] shorts = new short[bytes.length/2];
+        ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(shorts);
+        BufferedImage buf = new BufferedImage(sx, sy, BufferedImage.TYPE_USHORT_GRAY);
+        return buf;
+    }
+    
+    
     /* little functions */
     
     private final Charset UTF8_CHARSET = Charset.forName("UTF-8");

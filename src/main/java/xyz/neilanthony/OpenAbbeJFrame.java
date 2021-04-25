@@ -44,6 +44,11 @@ import loci.common.services.DependencyException;
 import loci.common.services.ServiceException;
 import loci.formats.FormatException;
 import net.imagej.ImageJ;
+import net.imglib2.img.array.ArrayImg;
+import net.imglib2.img.basictypeaccess.array.ShortArray;
+import net.imglib2.type.numeric.integer.UnsignedShortType;
+import org.bytedeco.javacv.OpenCVFrameConverter;
+import org.bytedeco.opencv.opencv_core.Mat;
 import org.scijava.log.LogService;
 import org.xml.sax.SAXException;
 
@@ -155,7 +160,7 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         jScrollPane_ImgPanels.setViewportView(imagesPanel);
     }
     
-    private JPanel createImagesPanel() {
+    private JPanel createImagesPanel() throws IOException {
         int N = 6;
         AbbeImagePanelParams params = new AbbeImagePanelParams();
         JPanel p = new JPanel(new GridLayout(N, 1));
@@ -395,6 +400,9 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
 //        }
 //        jScrollPane_ImgPanels.setViewportView(jTextArea1);
         //AbbeImageJPanel 
+        
+        //final OpenCVFrameConverter<Mat> converter = new OpenCVFrameConverter.ToMat();
+        ArrayImg<UnsignedShortType, ShortArray> img;
         AbbeImagePanelParams params = new AbbeImagePanelParams();
         AbbeFile abF = abbeFilesVect.elementAt(0);
         int N = 3;
@@ -404,7 +412,12 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
 
                 int row = i;
                 int col = 1;
-                params.bufImg = abF.getThumbBufImg(i);
+                //params.bufImg = abF.getThumbBufImg(i);
+                //params.bufImg = converter.convert(abF.GetImageBytes(0, 0));
+                //params.bufImg = abF.getBufImg(i, 0);
+                //params.bufImg = abF.getArrayBuf(i);
+                img = abF.getArrayImg(i);
+                ij.ui().show(img);
                 JPanel imgPanel = new AbbeImageJPanel(params);
                 panelList.add(imgPanel);
                 p.add(imgPanel);

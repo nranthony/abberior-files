@@ -6,6 +6,7 @@
 package xyz.neilanthony;
 
 import java.awt.image.BufferedImage;
+import net.imglib2.img.array.ArrayImg;
 
 /**
  *
@@ -13,6 +14,7 @@ import java.awt.image.BufferedImage;
  */
 public class AbbeImagePanelParams {
     public BufferedImage bufImg;
+    public ArrayImg arrImg;
     
     
 }
