@@ -406,20 +406,21 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         AbbeImagePanelParams params = new AbbeImagePanelParams();
         AbbeFile abF = abbeFilesVect.elementAt(0);
         int N = 3;
+        int offset = 66;
         JPanel p = new JPanel(new GridLayout(N, 1));
         try {
-            for (int i = 0; i < N; i++) {
+            for (int i = offset; i < (offset+N); i++) {
 
                 int row = i;
                 int col = 1;
                 //params.bufImg = abF.getThumbBufImg(i);
-                //params.bufImg = converter.convert(abF.GetImageBytes(0, 0));
+                //params.bufImg = converter.convert(abF.GetCVMat(0, 0));
                 //params.bufImg = abF.getBufImg(i, 0);
                 //params.bufImg = abF.getArrayBuf(i);
                 //img = abF.getArrayImg(i);
                 //ij.ui().show(img);
-                //params.bufImg = abF.getArrayBuf(i);
-                params.bufImg = abF.getFirstByteBuf(i, 0);
+                params.bufImg = abF.getArrayBuf(i);
+                //params.bufImg = abF.getFirstByteBuf(i, 0);
                 JPanel imgPanel = new AbbeImageJPanel(params);
                 panelList.add(imgPanel);
                 p.add(imgPanel);

@@ -375,7 +375,7 @@ public class AbbeFile {
         
     }
     
-    public short[] getImageShorts (int s, int z) throws FormatException, IOException {
+    public short[] getScaledShorts (int s, int z) throws FormatException, IOException {
         reader.setSeries(s);
         int sc, st, sx, sy, sz;
         sc = reader.getSizeC();
@@ -383,36 +383,29 @@ public class AbbeFile {
         sx = reader.getSizeX();
         sy = reader.getSizeY();
         sz = reader.getSizeZ();
-        byte[] imgBytes = new byte[sc*sx*sy*2];
-        imgBytes = reader.openBytes(z, imgBytes);
+
+        Object data = reader.openPlane(0, 0, 0, sx, sy);
+        byte[] bytes = (byte[])data;
+        short[] shorts = new short[bytes.length/2];
+        ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(shorts);
         
-        short[] imgShorts = new short[sc*sx*sy];
-        ShortBuffer sb = ShortBuffer.allocate(sc*sx*sy);
-        ByteBuffer bb = ByteBuffer.allocate(imgBytes.length);
-        bb.put(imgBytes);
-        sb = bb.asShortBuffer();
-        
-        imgShorts = sb.array();
-        //ByteBuffer.wrap(imgBytes).asShortBuffer().get(imgShorts);
         short max = 0;
-        for (int i=0; i<imgShorts.length; i++){
-            if (imgShorts[i] > max) { max = imgShorts[i]; }
+        for (int i=0; i<shorts.length; i++){
+            if (shorts[i] > max) { max = shorts[i]; }
         }
-        for (int i=0; i<imgShorts.length; i++){
-            imgShorts[i] = (short) (Short.MAX_VALUE * ( imgShorts[i] / max ));
+        for (int i=0; i<shorts.length; i++){
+            shorts[i] = (short) (Short.MAX_VALUE * ( shorts[i] / max ));
         }
         
-        //RealMatrix mat = createRealMatrix(imgShorts);
-        
-        return imgShorts;
+        return shorts;
     }
     
-    public Mat GetImageBytes (int s, int z) throws FormatException, IOException {
+    public Mat GetCVMat (int s, int z) throws FormatException, IOException {
         int sx, sy;
         sx = reader.getSizeX();
         sy = reader.getSizeY();      
         Mat m = new Mat(sx,sy, CvType.CV_16UC1);
-        m.put(0,0,getImageShorts(s, z));
+        m.put(0,0,getScaledShorts(s, z));
         return m;
 //        openBytes(int no, byte[] buf)
 //Obtains the specified image plane from the current file into a pre-allocated byte array of (sizeX * sizeY * bytesPerPixel * RGB channel count).
@@ -422,7 +415,7 @@ public class AbbeFile {
         int sx, sy;
         sx = reader.getSizeX();
         sy = reader.getSizeY();  
-        short[] imgShort = getImageShorts(s, z);
+        short[] imgShort = getScaledShorts(s, z);
         //ShortArrayInputStream in = new ShortArrayInputStream(imgShort);
         BufferedImage buf = new BufferedImage(sx, sy, BufferedImage.TYPE_USHORT_GRAY);
 //        ShortBuffer sb = ShortBuffer.allocate(sx*sy);
@@ -464,9 +457,10 @@ public class AbbeFile {
         short[] shorts = new short[bytes.length/2];
         ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(shorts);
         ArrayImg<UnsignedShortType, ShortArray> img = ArrayImgs.unsignedShorts(shorts, reader.getSizeX(), reader.getSizeY());
-        //ij.ui().show(img);
+        //this.ij.ui().show(img);
         return img;
     }
+    
     public BufferedImage getArrayBuf (int s) throws FormatException, IOException {
         reader.setSeries(s);
         int sx, sy;
@@ -476,8 +470,9 @@ public class AbbeFile {
         byte[] bytes = (byte[])data;
         short[] shorts = new short[bytes.length/2];
         ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(shorts);
-        BufferedImage buf = new BufferedImage(sx, sy, BufferedImage.TYPE_USHORT_GRAY);
-        return buf;
+        BufferedImage convertedGrayscale = new BufferedImage(sx, sy, BufferedImage.TYPE_USHORT_GRAY);
+        convertedGrayscale.getRaster().setDataElements(0, 0, sx, sy, shorts);
+        return convertedGrayscale;
     }
     
     
