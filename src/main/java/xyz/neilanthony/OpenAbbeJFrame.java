@@ -416,8 +416,10 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
                 //params.bufImg = converter.convert(abF.GetImageBytes(0, 0));
                 //params.bufImg = abF.getBufImg(i, 0);
                 //params.bufImg = abF.getArrayBuf(i);
-                img = abF.getArrayImg(i);
-                ij.ui().show(img);
+                //img = abF.getArrayImg(i);
+                //ij.ui().show(img);
+                //params.bufImg = abF.getArrayBuf(i);
+                params.bufImg = abF.getFirstByteBuf(i, 0);
                 JPanel imgPanel = new AbbeImageJPanel(params);
                 panelList.add(imgPanel);
                 p.add(imgPanel);

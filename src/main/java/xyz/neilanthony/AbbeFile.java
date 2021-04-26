@@ -4,7 +4,13 @@ Used to encapsulate all the information required for each Abberior file thats im
 */
 package xyz.neilanthony;
 
+import io.scif.formats.ImageIOFormat;
+import java.awt.Point;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferShort;
+import java.awt.image.Raster;
+import java.awt.image.SampleModel;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -13,6 +19,7 @@ import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
+import java.nio.ShortBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import loci.formats.FormatException;
@@ -36,6 +43,8 @@ import net.imglib2.img.array.ArrayImg;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.img.basictypeaccess.array.ShortArray;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
+import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.commons.math3.linear.MatrixUtils;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.scijava.log.LogService;
@@ -378,7 +387,13 @@ public class AbbeFile {
         imgBytes = reader.openBytes(z, imgBytes);
         
         short[] imgShorts = new short[sc*sx*sy];
-        ByteBuffer.wrap(imgBytes).asShortBuffer().get(imgShorts);
+        ShortBuffer sb = ShortBuffer.allocate(sc*sx*sy);
+        ByteBuffer bb = ByteBuffer.allocate(imgBytes.length);
+        bb.put(imgBytes);
+        sb = bb.asShortBuffer();
+        
+        imgShorts = sb.array();
+        //ByteBuffer.wrap(imgBytes).asShortBuffer().get(imgShorts);
         short max = 0;
         for (int i=0; i<imgShorts.length; i++){
             if (imgShorts[i] > max) { max = imgShorts[i]; }
@@ -386,6 +401,8 @@ public class AbbeFile {
         for (int i=0; i<imgShorts.length; i++){
             imgShorts[i] = (short) (Short.MAX_VALUE * ( imgShorts[i] / max ));
         }
+        
+        //RealMatrix mat = createRealMatrix(imgShorts);
         
         return imgShorts;
     }
@@ -406,7 +423,37 @@ public class AbbeFile {
         sx = reader.getSizeX();
         sy = reader.getSizeY();  
         short[] imgShort = getImageShorts(s, z);
+        //ShortArrayInputStream in = new ShortArrayInputStream(imgShort);
         BufferedImage buf = new BufferedImage(sx, sy, BufferedImage.TYPE_USHORT_GRAY);
+//        ShortBuffer sb = ShortBuffer.allocate(sx*sy);
+//        sb.put(imgShort);
+        DataBuffer sb = new DataBufferShort(imgShort, (sx*sy));
+
+        int[] bos = new int[1];
+        bos[0] = 0;
+        Point pnt = new Point();
+        Raster ras = Raster.createInterleavedRaster(sb,sx,sy,sx,1,bos,pnt);
+        buf.setData(ras);
+//        ShortBuffer sb = null;
+//        sb.put(imgShort);
+//        BufferedImage buf = new ImageIO.read(sb);
+        
+        return buf;
+    }
+    
+    public BufferedImage getFirstByteBuf (int s, int z) throws FormatException, IOException {
+        reader.setSeries(s);
+        int sx, sy;
+        sx = reader.getSizeX();
+        sy = reader.getSizeY();
+        byte[] imgBytes = new byte[sx*sy*2];
+        imgBytes = reader.openBytes(z, imgBytes);
+        
+        byte[] firstBytes = new byte[sx*sy];
+        for (int i=0; i<firstBytes.length; i++) {
+            firstBytes[i] = imgBytes[i << 1];
+        }
+        BufferedImage buf = new BufferedImage(sx, sy, BufferedImage.TYPE_BYTE_GRAY);
         return buf;
     }
     

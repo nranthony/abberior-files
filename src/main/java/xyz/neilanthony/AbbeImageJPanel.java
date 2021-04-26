@@ -5,12 +5,18 @@
  */
 package xyz.neilanthony;
 
+import com.google.common.primitives.Bytes;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.image.BufferedImage;
+import java.awt.image.RescaleOp;
 import java.io.IOException;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import net.coobird.thumbnailator.Thumbnails;
+import org.bytedeco.javacpp.BytePointer;
+import org.bytedeco.opencv.opencv_core.Mat;
 
 /**
  *
@@ -24,42 +30,62 @@ public class AbbeImageJPanel extends javax.swing.JPanel {
     private final Color colorChnText = Color.getHSBColor(0.54f, 0.46f, 0.66f);
     private AbbeImagePanelParams p = null;
     private JLabel thumbLabel = null;
+    private JPanel jPanel_Thumb = new JPanel();
     
     // Constructor
     public AbbeImageJPanel(AbbeImagePanelParams params) throws IOException {
         initComponents();
         
         this.p = params;
-                
-        //Graphics gThumb = null;
+        
         this.setBackground(colorBkgdPanel);
+        
+        int sx, sy;
+        sx = 256;
+        sy = 256;
+        
+        //  create new panel
+        
+        jPanel_Thumb.setBounds(0, 0, sx, sy);
+        
+        
         if (this.p.bufImg != null) {
-            int newWid, newHght;
-            float aspectRatio = p.bufImg.getWidth() / p.bufImg.getHeight();
-            newWid = jPanel_Thumb.getPreferredSize().width;
-            newHght = Math.round(newWid/aspectRatio);
             
-            thumbLabel = new JLabel(new ImageIcon(
-                    Thumbnails.of(p.bufImg)
-                            .size(newWid,newHght)
-                            .asBufferedImage()));
-            this.jPanel_Thumb.add(thumbLabel);
-            //this.jPanel_Thumb.repaint();
-            this.jPanel_Thumb.revalidate();
+            //RescaleOp rescaleOp = new RescaleOp(25f, 0, null);
+            //rescaleOp.filter(this.p.bufImg, this.p.bufImg);  // Source and destination are the same.
             
-            this.canvas1.setBackground(colorThumb);
-            Graphics g = this.p.bufImg.getGraphics();
-            this.canvas1.paint(g);
-            this.canvas1.validate();
+            JLabel picLabel = new JLabel(new ImageIcon(this.p.bufImg));
+            jPanel_Thumb.add(picLabel);
+            
+            //this.validate();
+
+//            int newWid, newHght;
+//            float aspectRatio = p.bufImg.getWidth() / p.bufImg.getHeight();
+//            newWid = jPanel_Thumb.getPreferredSize().width;
+//            newHght = Math.round(newWid/aspectRatio);
+//            
+//            thumbLabel = new JLabel(new ImageIcon(
+//                    Thumbnails.of(p.bufImg)
+//                            .size(newWid,newHght)
+//                            .asBufferedImage()));
+//            this.jPanel_Thumb.add(thumbLabel);
+//            //this.jPanel_Thumb.repaint();
+//            this.jPanel_Thumb.revalidate();
+            
+//            this.canvas1.setBackground(colorThumb);
+//            Graphics g = this.p.bufImg.getGraphics();
+//            this.canvas1.paint(g);
+//            this.canvas1.validate();
            
             this.jLabel_ChnName_1.setText(Integer.toString(p.bufImg.getWidth()));
             this.jLabel_ChnName_2.setText(Integer.toString(p.bufImg.getHeight()));
         } else {
-            this.jPanel_Thumb.setBackground(colorThumb);
+            jPanel_Thumb.setBackground(colorThumb);
         }
         this.jLabel_ChnName_1.setForeground(colorChnText);
         this.jLabel_ChnName_2.setForeground(colorChnText);
         
+        this.add(jPanel_Thumb);
 
         
     }
@@ -79,24 +105,9 @@ public class AbbeImageJPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jPanel_Thumb = new javax.swing.JPanel();
         jLabel_ImageName = new javax.swing.JLabel();
         jLabel_ChnName_1 = new javax.swing.JLabel();
         jLabel_ChnName_2 = new javax.swing.JLabel();
-        canvas1 = new java.awt.Canvas();
-
-        jPanel_Thumb.setPreferredSize(new java.awt.Dimension(174, 96));
-
-        javax.swing.GroupLayout jPanel_ThumbLayout = new javax.swing.GroupLayout(jPanel_Thumb);
-        jPanel_Thumb.setLayout(jPanel_ThumbLayout);
-        jPanel_ThumbLayout.setHorizontalGroup(
-            jPanel_ThumbLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 174, Short.MAX_VALUE)
-        );
-        jPanel_ThumbLayout.setVerticalGroup(
-            jPanel_ThumbLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
-        );
 
         jLabel_ImageName.setFont(new java.awt.Font("Segoe UI Light", 1, 18)); // NOI18N
         jLabel_ImageName.setText("Image Name Goes Here");
@@ -112,9 +123,7 @@ public class AbbeImageJPanel extends javax.swing.JPanel {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jPanel_Thumb, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
+                .addGap(198, 198, 198)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel_ImageName)
@@ -123,39 +132,25 @@ public class AbbeImageJPanel extends javax.swing.JPanel {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel_ChnName_1)
                             .addComponent(jLabel_ChnName_2))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(canvas1, javax.swing.GroupLayout.PREFERRED_SIZE, 148, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(20, 20, 20))))
+                        .addGap(20, 208, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jPanel_Thumb, javax.swing.GroupLayout.DEFAULT_SIZE, 126, Short.MAX_VALUE)
-                        .addContainerGap())
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel_ImageName)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel_ChnName_1)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel_ChnName_2)
-                                .addGap(0, 0, Short.MAX_VALUE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(canvas1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addContainerGap())))))
+                .addComponent(jLabel_ImageName)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel_ChnName_1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel_ChnName_2)
+                .addGap(0, 45, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private java.awt.Canvas canvas1;
     private javax.swing.JLabel jLabel_ChnName_1;
     private javax.swing.JLabel jLabel_ChnName_2;
     private javax.swing.JLabel jLabel_ImageName;
-    private javax.swing.JPanel jPanel_Thumb;
     // End of variables declaration//GEN-END:variables
 }
