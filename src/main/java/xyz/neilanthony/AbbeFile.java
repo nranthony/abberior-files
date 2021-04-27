@@ -23,7 +23,12 @@ import java.nio.ShortBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import loci.formats.FormatException;
-
+import java.awt.Color;
+import java.io.IOException;
+import net.imagej.lut.DefaultLUTService;
+import net.imagej.lut.LUTService;
+import net.imglib2.display.ColorTable;
+import org.scijava.plugin.Parameter;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -31,6 +36,9 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
 import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -461,7 +469,7 @@ public class AbbeFile {
         return img;
     }
     
-    public BufferedImage getArrayBuf (int s) throws FormatException, IOException {
+    public BufferedImage getUShortGrayBuf (int s) throws FormatException, IOException {
         reader.setSeries(s);
         int sx, sy;
         sx = reader.getSizeX();
@@ -477,6 +485,87 @@ public class AbbeFile {
     
     
     /* little functions */
+    
+    /**
+    * @author alex.vergara
+    */
+    /** options to think about using
+    * Yellow.lut
+    * HiLo.lut
+    * Cyan.lut
+    * Grays.lut
+    * Green.lut
+    * Yellow Hot.lut
+    * Red Hot.lut
+    * Magenta Hot.lut
+    * Ice.lut
+    * Red.lut
+    * Orange Hot.lut
+    * Fire.lut
+    * Blue.lut
+    * Magenta.lut
+    * Green Fire Blue.lut
+    * Cyan Hot.lut
+    */
+    public class Color_Table {
+
+        private final Color[] CT;
+        private final int size;
+
+        @Parameter
+        private final LUTService ls = new DefaultLUTService();
+
+        public Color_Table(String colormap) throws IOException {
+            ColorTable ct = ls.loadLUT(ls.findLUTs().get(colormap));
+            size = ct.getLength();
+            CT = new Color[size];
+            for (int i = 0; i < size; i++) {
+                CT[i] = new Color(ct.get(ColorTable.RED, i), ct.get(ColorTable.GREEN, i), ct.get(ColorTable.BLUE, i));
+            }
+        }
+
+        public int getSize() {
+            return size;
+        }
+
+        public Color getColor(int index){
+            return CT[index];
+        }
+
+
+        
+        
+    }
+    
+    public JPanel getColorTable () throws IOException {
+        Color_Table ct = new Color_Table("Yellow.lut");
+        Color myColor = null;
+        
+        int sx, sy;
+        sx = 255;
+        sy = 255;
+        JPanel jPanel_New = new JPanel();
+        jPanel_New.setBounds(0, 0, sx, sy);
+        
+        BufferedImage bufImg = new BufferedImage(sx, sy, BufferedImage.TYPE_INT_RGB);
+        
+//        for (int i = 0; i < ct.getSize(); i++) {
+//            myColor = ct.getColor(i);
+//            
+//        }
+        
+        for (int i = 0; i < sx; i++) {
+            for (int j = 0; j < sy; j++) {
+                bufImg.setRGB(i, j, ct.getColor(i).getRGB());
+            }
+        }
+        
+        ImageIcon icon = new ImageIcon(bufImg);
+        JLabel picLabel = new JLabel(icon);
+        jPanel_New.add(picLabel);
+        return jPanel_New;
+    }
+    
     
     private final Charset UTF8_CHARSET = Charset.forName("UTF-8");
     String decodeUTF8(byte[] bytes) {
