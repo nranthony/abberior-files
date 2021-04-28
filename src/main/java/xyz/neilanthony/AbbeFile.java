@@ -538,7 +538,7 @@ public class AbbeFile {
     }
     
     public JPanel getColorTable () throws IOException {
-        Color_Table ct = new Color_Table("Yellow.lut");
+        Color_Table ct = new Color_Table("Orange Hot.lut");
         Color myColor = null;
         
         int sx, sy;

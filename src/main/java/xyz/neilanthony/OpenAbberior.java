@@ -8,21 +8,23 @@
 
 package xyz.neilanthony;
 
-import net.imagej.Dataset;
+import java.io.IOException;
 import net.imagej.ImageJ;
 import net.imagej.ops.OpService;
-import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.img.Img;
 import net.imglib2.type.numeric.RealType;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.ui.UIService;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.WindowConstants;
+import javax.xml.parsers.ParserConfigurationException;
+import loci.formats.FormatException;
 import org.scijava.log.LogService;
+import org.scijava.ui.UserInterface;
+import org.xml.sax.SAXException;
 
 /**
  * This example illustrates how to create an ImageJ {@link Command} plugin.
@@ -43,8 +45,8 @@ public class OpenAbberior<T extends RealType<T>> implements Command {
     @Parameter
     private LogService logService;
     
-    @Parameter
-    private Dataset currentData;
+//    @Parameter
+//    private Dataset currentData;
 
     @Parameter
     private UIService uiService;
@@ -54,22 +56,20 @@ public class OpenAbberior<T extends RealType<T>> implements Command {
 
     @Override
     public void run() {
-        //  copy code below to add images to ImageJ UI once collated and selected
         
-        final Img<T> image = (Img<T>)currentData.getImgPlus();
-
-        final double[] sigmas = {1.0, 3.0, 5.0};
-
-        List<RandomAccessibleInterval<T>> results = new ArrayList<>();
-
-        for (double sigma : sigmas) {
-            results.add(opService.filter().gauss(image, sigma));
+        final UserInterface ui = uiService.getDefaultUI();
+        // open GUI window
+        OpenAbbeJFrame AbbeFrame = null;
+        try {
+            AbbeFrame = new OpenAbbeJFrame(ui);
+        } catch (IOException | FormatException | ParserConfigurationException | SAXException ex) {
+            Logger.getLogger(OpenAbberior.class.getName()).log(Level.SEVERE, null, ex);
         }
-
-        // display result
-        for (RandomAccessibleInterval<T> elem : results) {
-            uiService.show(elem);
-        }
+        AbbeFrame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+        AbbeFrame.setLocation(64, 64);
+        AbbeFrame.invalidate();
+        AbbeFrame.repaint();
+        AbbeFrame.setVisible(true);
     }
 
     /**
@@ -86,30 +86,8 @@ public class OpenAbberior<T extends RealType<T>> implements Command {
         final ImageJ ij = new ImageJ();
         ij.ui().showUI();
         // invoke the plugin
-        //ij.command().run(OpenAbberior.class, true);
+        ij.command().run(OpenAbberior.class, true);
 
-        // open GUI window
-        OpenAbbeJFrame AbbeFrame = new OpenAbbeJFrame(ij);
-        AbbeFrame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-        AbbeFrame.setLocation(64, 64);
-        AbbeFrame.invalidate();
-        AbbeFrame.repaint();
-        AbbeFrame.setVisible(true);
-        
-        
-        // ask the user for a file to open
-        //final File file = ij.ui().chooseFile(null, "open");
-
-//        if (file != null) {
-//            // load the dataset
-//            final Dataset dataset = ij.scifio().datasetIO().open(file.getPath());
-//
-//            // show the image
-//            ij.ui().show(dataset);
-//
-//            // invoke the plugin
-//            ij.command().run(OpenAbberior.class, true);
-//        }
     }
 
 }

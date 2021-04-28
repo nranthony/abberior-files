@@ -19,8 +19,6 @@ import javax.swing.plaf.basic.BasicScrollBarUI;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,26 +28,20 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.xml.parsers.ParserConfigurationException;
-import loci.common.services.DependencyException;
-import loci.common.services.ServiceException;
 import loci.formats.FormatException;
-import net.imagej.ImageJ;
 import net.imglib2.img.array.ArrayImg;
 import net.imglib2.img.basictypeaccess.array.ShortArray;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
-import org.bytedeco.javacv.OpenCVFrameConverter;
-import org.bytedeco.opencv.opencv_core.Mat;
-import org.scijava.log.LogService;
+import org.scijava.ui.UIService;
+import org.scijava.ui.UserInterface;
 import org.xml.sax.SAXException;
 
 /**
@@ -59,7 +51,7 @@ import org.xml.sax.SAXException;
 public class OpenAbbeJFrame extends javax.swing.JFrame {
 
     private Point panelOffset = new Point();
-    private final ImageJ ij;
+    final UserInterface ui;
     
     //final private LinkedBlockingQueue<File> todoQueue = new LinkedBlockingQueue<>();
     final private ExecutorService importPool = Executors.newFixedThreadPool(4);
@@ -77,15 +69,12 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
     private Color greyLevel (float level) {
         Color col; return col = Color.getHSBColor(0.0f, 0.0f, (level * 0.01f));
     }
-    
-    
      
     private final List<JPanel> panelList = new ArrayList<JPanel>();
     
     /* Creates new form OpenAbbeJFrame */
-    public OpenAbbeJFrame(ImageJ ij) throws IOException, FormatException, ParserConfigurationException, SAXException {
-        
-        this.ij = ij;
+    public OpenAbbeJFrame(UserInterface ui) throws IOException, FormatException, ParserConfigurationException, SAXException {
+        this.ui = ui;
         
         initComponents();
         
@@ -428,8 +417,10 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
                 //params.bufImg = converter.convert(abF.GetCVMat(0, 0));
                 //params.bufImg = abF.getBufImg(i, 0);
                 //params.bufImg = abF.getUShortGrayBuf(i);
-                //img = abF.getArrayImg(i);
-                //ij.ui().show(img);
+                //params.bufImg = abF.getArrayImg(i);
+
+                img = abF.getArrayImg(i);
+                ui.show(img);
                 params.bufImg = abF.getUShortGrayBuf(i);
                 //params.bufImg = abF.getFirstByteBuf(i, 0);
                 JPanel imgPanel = new AbbeImageJPanel(params);
