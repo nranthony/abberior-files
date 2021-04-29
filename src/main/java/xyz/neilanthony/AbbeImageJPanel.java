@@ -28,12 +28,12 @@ public class AbbeImageJPanel extends javax.swing.JPanel {
     private Color colorBkgdPanel = Color.getHSBColor(0.0f, 0.0f, 0.13f);
     private Color colorThumb = Color.getHSBColor(0.0f, 0.0f, 0.08f);
     private final Color colorChnText = Color.getHSBColor(0.54f, 0.46f, 0.66f);
-    private AbbeImagePanelParams p = null;
+    private Params.PanelParams p = null;
     private JLabel thumbLabel = null;
     private JPanel jPanel_Thumb = new JPanel();
     
     // Constructor
-    public AbbeImageJPanel(AbbeImagePanelParams params) throws IOException {
+    public AbbeImageJPanel(Params.PanelParams params) throws IOException {
         initComponents();
         
         this.p = params;

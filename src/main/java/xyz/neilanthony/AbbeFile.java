@@ -57,6 +57,8 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.scijava.log.LogService;
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -86,6 +88,13 @@ public class AbbeFile {
     An array of Lists, where each list contains the imageIdxs in that dataset */
     private ArrayList<Integer>[] datImgLsts;
     
+    private class ImageInfo {
+        public String name = "";
+        public int sx, sy, sz, st;
+        public double dx, dy, dz, dt;
+        
+    }
+    
 
     /** Nested classes AbbeFolder -> AbbeDataset -> AbbeImage
      * requires the images in each dataset be predetermined before
@@ -97,6 +106,7 @@ public class AbbeFile {
         public String folderName;
         public String folderID;
         public int folderIndex = -1;
+        public int timeStampCounter = 0;
         // TODO - add subfolder count and list; add roi count and list
         
         public final ArrayList<AbbeDataset> abbeDatasetVect = new ArrayList<>();
@@ -117,9 +127,11 @@ public class AbbeFile {
         }
         
         public void addDataset(int datasetIndx, Integer[] imgIdxs) {
+            this.timeStampCounter++;
             this.abbeDatasetVect.add(
                     new AbbeDataset(datasetIndx, omeMeta.getDatasetID(datasetIndx),
-                                    omeMeta.getDatasetName(datasetIndx), imgIdxs));
+                                    omeMeta.getDatasetName(datasetIndx), imgIdxs,
+                                    this.timeStampCounter));
         }
         
         public class AbbeDataset {
@@ -131,17 +143,20 @@ public class AbbeFile {
             public int datasetIndex = -1;
 
             public boolean tiled = false;
+            public int timeStampIdx;
             public int imageCount = -1;
             public Integer[] imageIndxs = null;
 
             public int parentFolderIndex = -1;
             
             // constructor
-            AbbeDataset(int datIndex, String datIDStr, String datName, Integer[] imgIndxs) {
+            AbbeDataset(int datIndex, String datIDStr,
+                    String datName, Integer[] imgIndxs, int timeStamp) {
                 this.datasetName = datName;
                 this.datasetID = datIDStr;
                 this.datasetIndex = datIndex;
                 this.imageIndxs = imgIndxs;
+                this.timeStampIdx = timeStamp;
 
                 for (int i = 0; i < imgIndxs.length; i++) {
                     this.abbeImagesVect.add(i, new AbbeImage(imgIndxs[i]));
@@ -153,19 +168,20 @@ public class AbbeFile {
                 public String imageName;
                 public String imageID;
                 public int imageIndex = -1;
+                
+                public ImageInfo imgInfo = null;
+                
+                public boolean addToComposite;  // for excluding DyMIN and RESCue from display
+                
 
                 public boolean tiled = false;
                 
-                // constructors
-//                AbbeImage(String imgIDStr) {
-//                    this.imageID = imgIDStr;
-//                    this.imageIndex = Integer.valueOf(imgIDStr.replace("Image:", ""));
-//                }
+                // constructor
                 AbbeImage(int imgIdx) {
                     this.imageIndex = imgIdx;
                     this.imageID = String.format("Image:%d", imgIdx);
+                    
                 }
-                
             }
         }
         
@@ -173,15 +189,12 @@ public class AbbeFile {
     }    
 
     // AbbeFile Constructor
-    AbbeFile(Path filePath) throws FormatException, IOException {
+    AbbeFile(Path filePath) throws FormatException, IOException, ParserConfigurationException, SAXException {
         this.fPath = filePath;
         //  start waiting thread
         reader.setMetadataStore(omeMeta);
         reader.setId(this.fPath.toString());
         // end waiting thread
-//        System.out.println(omeMeta.getDatasetID(0));
-//        System.out.println(omeMeta.getImageName(0));
-//        System.out.println(omeMeta.getFolderName(0));
     }
 
     public void setIndex (int index) {
@@ -189,8 +202,8 @@ public class AbbeFile {
     }
 
      /**
-     * Scans AbbeFile omeMeta for all Datasets and create Folders.
-     * Datasets are stored in datImgLsts, variable in AbbeFile
+     * Scans AbbeFile omeMeta for all Datasets and creates Folders.
+     * Datasets are stored in datImgLsts variable in AbbeFile class
      * Create AbbeFolders with basic information, which then populates it's
      * variable fldrImgIndxs
      * <p>
@@ -232,9 +245,9 @@ public class AbbeFile {
         public final ArrayList<Integer> fldrImgIndxs = new ArrayList<>();
         
         for each folder:
-        for each dataset:
-            if dataset image is in folder image list
-                add dataset to folder
+            for each dataset:
+                if dataset image is in folder image list
+                    add dataset to folder
         */
         //Set<Integer> datasetImages = null;
         Set<Integer> folderImages = new HashSet<>();
@@ -255,8 +268,6 @@ public class AbbeFile {
                     }
                 }
             }
-            
-            
         }
     }
     
@@ -271,8 +282,39 @@ public class AbbeFile {
         if ( this.omexml == null ) {
             this.pullOMEXMLRaw();
         }
+        factory.setNamespaceAware(true);
         builder = factory.newDocumentBuilder();
         xmlDoc = builder.parse(new InputSource(new StringReader(omexml)));
+        NodeList imageNodeList = xmlDoc.getElementsByTagName("Image");
+        Node imgNode;
+        for (int n=0; n<imageNodeList.getLength(); n++) {
+            imgNode = imageNodeList.item(n);
+            System.out.println(imgNode.toString());
+        }
+    }
+    
+    /**
+     * for each image in dataset
+     *      pull data
+     *      resize for thumb
+     *      get color and LUT
+     *      
+     * for each dataset
+     *      overlay/blend colors into RGB for display
+     *      get image info for making ImagePlus
+     *      fill params and create panel
+     * 
+     */
+    
+    public void pullImageInfo () {
+//        reader.	getChannelEmissionWavelength(int imageIndex, int channelIndex)
+//        reader.getChannelFluor(int imageIndex, int channelIndex)
+//        reader.	getChannelColor(int imageIndex, int channelIndex)
+//        
+//        	getPixelsDimensionOrder(int imageIndex)
+//                	getPixelsPhysicalSizeX(int imageIndex)
+//                        Y & Z
+                                
     }
         
     public String[] getFolderNames () throws FormatException, IOException {
@@ -327,10 +369,16 @@ public class AbbeFile {
         buffer.position(offset-1);
         buffer.get(xmlBytes);
         
-        this.omexml = decodeUTF8(xmlBytes).replace("&quot;", "\"");;
+        this.omexml = decodeUTF8(xmlBytes).replace("&quot;", "\"");
+        // above could be adjsted to not capture non-UTF-8 chars; below removes from start and end
+        this.omexml = this.omexml.trim().replaceFirst("^([\\W]+)<","<");
+        this.omexml = this.omexml.replaceFirst(">([\\W]+)$", ">");
         channel.close();
     }
 
+    
+    
+    
     /** Testing Functions
     * Includes testing of:
     * local AbbeFile - AbbeFolder - AbbeDataset - AbbeImage
@@ -484,11 +532,9 @@ public class AbbeFile {
     }
     
     
+    
     /* little functions */
     
-    /**
-    * @author alex.vergara
-    */
     /** options to think about using
     * Yellow.lut
     * HiLo.lut
@@ -506,6 +552,7 @@ public class AbbeFile {
     * Magenta.lut
     * Green Fire Blue.lut
     * Cyan Hot.lut
+    * @author alex.vergara
     */
     public class Color_Table {
 
@@ -523,18 +570,12 @@ public class AbbeFile {
                 CT[i] = new Color(ct.get(ColorTable.RED, i), ct.get(ColorTable.GREEN, i), ct.get(ColorTable.BLUE, i));
             }
         }
-
         public int getSize() {
             return size;
         }
-
         public Color getColor(int index){
             return CT[index];
         }
-
-
-        
-        
     }
     
     public JPanel getColorTable () throws IOException {
@@ -565,7 +606,6 @@ public class AbbeFile {
         jPanel_New.add(picLabel);
         return jPanel_New;
     }
-    
     
     private final Charset UTF8_CHARSET = Charset.forName("UTF-8");
     String decodeUTF8(byte[] bytes) {
