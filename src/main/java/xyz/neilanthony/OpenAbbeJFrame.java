@@ -190,10 +190,14 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         public NewAbbeFile(File f) { this.fname = f; }
         @Override
         public Object call() throws Exception {
+            System.out.println("NewAbbeFile Callable; creating new AbbeFile");
             AbbeFile newAbbe = new AbbeFile(fname.toPath());
+            System.out.println("NewAbbeFile Callable; scanFoldersDatasets");
             newAbbe.scanFoldersDatasets();
+            System.out.println("NewAbbeFile Callable; collateFolderImages");
             newAbbe.collateFolderImages();
             //newAbbe.createXMLDoc();
+            System.out.println("NewAbbeFile Callable; returning newAbbe");
             return newAbbe;
         }
     }
@@ -205,37 +209,37 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         
         public void run() {
             int i = 0;
-            //String tDoneStrs;
+            String tDoneStrs;
             boolean allStillRunning = true;
             int abbeLen = futAbbeList.size();
             Boolean done;
             Boolean[] stillRunningLst = new Boolean[abbeLen];
             for (i=0; i<abbeLen; i++) { stillRunningLst[i] = Boolean.TRUE; }
             while (allStillRunning) {
-                //tDoneStrs = "";
+                tDoneStrs = "";
                 for (i=0; i<futAbbeList.size(); i++) {
                     if (stillRunningLst[i]) {
+                        System.out.println(String.format("File %d Still Running: %s", i, stillRunningLst[i].toString()));
                         done = futAbbeList.get(i).isDone();
                         if (done) {
+                            System.out.println(String.format("File %d Done", i, done.toString()));
                             stillRunningLst[i] = Boolean.FALSE;
                             try {
                                 // pull AbbeFile instance and place into global vector
+                               synchronized (abbeFilesVect) {
                                 abbeFilesVect.add(futAbbeList.get(i).get(10, TimeUnit.SECONDS));
-                            } catch (InterruptedException ex) {
-                                Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
-                            } catch (ExecutionException ex) {
-                                Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
-                            } catch (TimeoutException ex) {
+                               }
+                            } catch (InterruptedException | ExecutionException | TimeoutException ex) {
                                 Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
                             }
                         }
                     }
-                    //tDoneStrs += String.valueOf(i) + " " + stillRunningLst[i].toString() + " ";
+                    tDoneStrs += String.valueOf(i) + " " + stillRunningLst[i].toString() + " ";
                 }
-                //System.out.println(tDoneStrs);
+                System.out.println("CheckLoadingAbbes: " + tDoneStrs);
                 try {
                     
-                    Thread.sleep(700);
+                    Thread.sleep(1000);
                 } catch (InterruptedException ex) {
                     Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -452,7 +456,7 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         AbbeFile abF = abbeFilesVect.elementAt(0);
         JPanel jPnew = null;
         try {
-            jPnew = abF.getColorTable();
+            jPnew = abF.useColorTable();
         } catch (IOException ex) {
             Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }

@@ -108,6 +108,7 @@ public class AbbeImageJPanel extends javax.swing.JPanel {
         jLabel_ImageName = new javax.swing.JLabel();
         jLabel_ChnName_1 = new javax.swing.JLabel();
         jLabel_ChnName_2 = new javax.swing.JLabel();
+        jPanel_PlaceHolder = new javax.swing.JPanel();
 
         jLabel_ImageName.setFont(new java.awt.Font("Segoe UI Light", 1, 18)); // NOI18N
         jLabel_ImageName.setText("Image Name Goes Here");
@@ -118,32 +119,46 @@ public class AbbeImageJPanel extends javax.swing.JPanel {
         jLabel_ChnName_2.setFont(new java.awt.Font("Segoe UI Semilight", 0, 18)); // NOI18N
         jLabel_ChnName_2.setText("CHN 2 NAME");
 
+        javax.swing.GroupLayout jPanel_PlaceHolderLayout = new javax.swing.GroupLayout(jPanel_PlaceHolder);
+        jPanel_PlaceHolder.setLayout(jPanel_PlaceHolderLayout);
+        jPanel_PlaceHolderLayout.setHorizontalGroup(
+            jPanel_PlaceHolderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 186, Short.MAX_VALUE)
+        );
+        jPanel_PlaceHolderLayout.setVerticalGroup(
+            jPanel_PlaceHolderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 126, Short.MAX_VALUE)
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(198, 198, 198)
+                .addContainerGap()
+                .addComponent(jPanel_PlaceHolder, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel_ImageName)
-                        .addContainerGap(110, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel_ChnName_1)
-                            .addComponent(jLabel_ChnName_2))
-                        .addGap(20, 208, Short.MAX_VALUE))))
+                    .addComponent(jLabel_ImageName)
+                    .addComponent(jLabel_ChnName_1)
+                    .addComponent(jLabel_ChnName_2))
+                .addContainerGap(110, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel_ImageName)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel_ChnName_1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel_ChnName_2)
-                .addGap(0, 45, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jPanel_PlaceHolder, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel_ImageName)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel_ChnName_1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel_ChnName_2)
+                        .addGap(0, 0, Short.MAX_VALUE))))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -152,5 +167,6 @@ public class AbbeImageJPanel extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel_ChnName_1;
     private javax.swing.JLabel jLabel_ChnName_2;
     private javax.swing.JLabel jLabel_ImageName;
+    private javax.swing.JPanel jPanel_PlaceHolder;
     // End of variables declaration//GEN-END:variables
 }
