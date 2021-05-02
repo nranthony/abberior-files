@@ -163,6 +163,8 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         }
         return p;
     }
+    
+    
     /* TODO
     create class that extends JLabel
     has text area that holds previous label text

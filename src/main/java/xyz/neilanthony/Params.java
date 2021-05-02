@@ -13,6 +13,9 @@ public class Params {
         public ArrayImg arrImg;
         public int psx = 186;
         public int psy = 126;
+        public int nx;
+        public int ny;
+        
         //public 
     }
     

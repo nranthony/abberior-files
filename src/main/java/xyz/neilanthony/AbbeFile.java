@@ -159,18 +159,14 @@ public class AbbeFile {
         public class AbbeDataset {
             
             public final ArrayList<AbbeImage> abbeImagesVect = new ArrayList<>();
-            
             public String datasetName;
             public String datasetID;
             public int datasetIndex = -1;
-
             public boolean tiled = false;
             public int timeStampIdx;
             public int imageCount = -1;
             public Integer[] imageIndxs = null;
-
             public int parentFolderIndex = -1;
-            
             public Params.PanelParams pParams = new Params.PanelParams();
             
             // constructor
@@ -182,6 +178,7 @@ public class AbbeFile {
                 this.datasetIndex = datIndex;
                 this.imageIndxs = imgIndxs;
                 this.timeStampIdx = timeStamp;
+                this.imageCount = imgIndxs.length;
 
                 for (int i = 0; i < imgIndxs.length; i++) {
                     this.abbeImagesVect.add(i, new AbbeImage(imgIndxs[i]));
@@ -193,11 +190,12 @@ public class AbbeFile {
                 public String imageName;
                 public String imageID;
                 public int imageIndex = -1;
+                public Color_Table ct = null;
                 public short[] data = null;
                 public short[] mask = null; // note data is uint8, but Java only has int8; storing in short[] 
                 public int[] thumbData = null;
-                public BufferedImage thumbImgBuf = null; 
                 public Params.ImageParams imgParams = new Params.ImageParams();
+                String lutName = "Grays.lut"; // 
 
                 public boolean addToComposite;  // for excluding DyMIN and RESCue from display
 
@@ -217,6 +215,7 @@ public class AbbeFile {
                         this.addToComposite = true;
                         pullImageData(imgIdx);
                         resizeForThumb();
+                        rescaleThumbRange();
                         setColorTable();
                     }
                 }
@@ -269,22 +268,129 @@ public class AbbeFile {
                             imgParams.sx, imgParams.sy, BufferedImage.TYPE_USHORT_GRAY);
                     origGrayBuf.getRaster().setDataElements(0, 0, imgParams.sx, imgParams.sy, this.data);
                     
-                    this.thumbImgBuf = new BufferedImage(nx, ny, origGrayBuf.getType());
-                    Graphics2D g = this.thumbImgBuf.createGraphics();
+                    BufferedImage imgBuf = new BufferedImage(nx, ny, origGrayBuf.getType());
+                    Graphics2D g = imgBuf.createGraphics();
                     g.setRenderingHints(renderingHints);
                     g.drawImage(origGrayBuf, 0, 0, nx, ny, null);
                     g.dispose();
                     this.thumbData = new int[nx * ny];
-                    thumbImgBuf.getRaster().getPixels(0, 0, nx, ny, this.thumbData);
+                    imgBuf.getRaster().getPixels(0, 0, nx, ny, this.thumbData);
+                    AbbeDataset.this.pParams.nx = nx;
+                    AbbeDataset.this.pParams.ny = ny;
                 }
-                
-                private void setColorTable () {
+                private void rescaleThumbRange () {
+                    
+                    int[] scaledThumb = new int[this.thumbData.length];
+                    int max = 0;
+                    for (int i=0; i<this.thumbData.length; i++){
+                        if (this.thumbData[i] > max) { max = this.thumbData[i]; }
+                    }
+                    for (int i=0; i<this.thumbData.length; i++){
+                        scaledThumb[i] = (int) (255 * ( this.thumbData[i] / max ));
+                    }
+                    this.thumbData = scaledThumb;
+                }
+                private void setColorTable () throws IOException {
                     Length emis = omeMeta.getChannelEmissionWavelength(this.imageIndex, 0);
                     Number lambda = emis.value();
-                    // pull emission wavelength
-                    // create function with nm bounds for blue, green, yellow, orange, and red
-                    // set .lut option
+                    short nm = (short)(lambda.doubleValue()*1e9);
+                    if (nm < 454) { this.lutName = "Blue.lut"; }
+                    else if (nm < 490) { this.lutName = "Cyan.lut"; }
+                    else if (nm < 535) { this.lutName = "Green.lut"; }
+                    else if (nm < 580) { this.lutName = "Yellow.lut"; }
+                    else if (nm < 640) { this.lutName = "Orange Hot.lut"; }
+                    else { this.lutName = "Red.lut"; }
+                    this.ct = new Color_Table(this.lutName);
+                    
+                    /*        
+                    * Yellow.lut
+                    * HiLo.lut
+                    * Cyan.lut
+                    * Grays.lut
+                    * Green.lut
+                    * Yellow Hot.lut
+                    * Red Hot.lut
+                    * Magenta Hot.lut
+                    * Ice.lut
+                    * Red.lut
+                    * Orange Hot.lut
+                    * Fire.lut
+                    * Blue.lut
+                    * Magenta.lut
+                    * Green Fire Blue.lut
+                    * Cyan Hot.lut */
                 }
+            }
+            
+            private int inv (int a) {
+                int b = 255 - a;
+                if (b < 0) { return 0; }
+                else if (b > 255) { return 255; }
+                else { return b; }
+            }
+            // screen will need to be adapted for more than 2 channels
+            private int screen (int[] a) {
+                if (a.length == 1) { return a[0]; } // for single image dataset
+                int na0 = inv(a[0]);
+                for (int i = 1; i < a.length; i++) {
+                    na0 *= inv(a[i]);
+                }
+                return inv(na0);
+            }
+            private int mean (int[] a) {
+                int b = 0;
+                for (int i = 0; i < a.length; i++) {
+                    b += a[i];
+                }
+                return (int)(1.0 * b / a.length);
+            }
+            private void createThumb () {
+                
+                ArrayList<Integer> incChns = new ArrayList<>();
+                ArrayList<Integer> ctSizes = new ArrayList<>();
+                for (int k = 0; k < imageCount; k++) {
+                    if (abbeImagesVect.get(k).addToComposite) {
+                        ctSizes.add(abbeImagesVect.get(k).ct.size);
+                        incChns.add(k);
+                    }
+                }
+                
+                this.pParams.bufImg = new BufferedImage(pParams.nx, pParams.ny,
+                        BufferedImage.TYPE_INT_RGB);
+                
+                int nx = pParams.nx;
+                int ny = pParams.ny;
+                int nlen = nx * ny;
+                int incChnLength = incChns.size();
+                
+                int[] r = new int[incChnLength];
+                int[] g = new int[incChnLength];
+                int[] b = new int[incChnLength];
+                int tr, tg, tb;
+                
+                int[] thumbImageArr = new int[nlen];
+                Color clr = null;
+                int value = 0;
+                
+                for (int i = 0; i < nlen; i++) {
+                    //  create Color(r, g, b).getRGB() for each i
+                    //  r, g, b for each i is combination/blend of
+                    //  each r, g, b from included image channels
+                    for (int k = 0; k < incChnLength; k++) {
+                        value = abbeImagesVect.get(incChns.get(k)).thumbData[i];
+                        //  assumes that thumbData is normalized to max 255
+                        clr = abbeImagesVect.get(incChns.get(k)).
+                                ct.CT[(int)(1.0 * value * ctSizes.get(k) / 255)];
+                        r[k] = clr.getRed();
+                        g[k] = clr.getGreen();
+                        b[k] = clr.getBlue();
+                    }
+                    tr = mean(r);
+                    tg = mean(g);
+                    tb = mean(b);
+                    thumbImageArr[i] = new Color(tr,tg,tb).getRGB();
+                }
+                this.pParams.bufImg.setRGB(0,0,nx,ny,thumbImageArr, 0, nx);
             }
         }
     }
