@@ -198,7 +198,8 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
             newAbbe.scanFoldersDatasets();
             System.out.println("NewAbbeFile Callable; collateFolderImages");
             newAbbe.collateFolderImages();
-            //newAbbe.createXMLDoc();
+            System.out.println("NewAbbeFile Callable; fillPanels");
+            newAbbe.fillPanels();
             System.out.println("NewAbbeFile Callable; returning newAbbe");
             return newAbbe;
         }

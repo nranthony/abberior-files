@@ -16,6 +16,7 @@ import java.nio.charset.Charset;
 import loci.formats.FormatException;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.GridLayout;
 import java.awt.RenderingHints;
 import java.io.IOException;
 import net.imagej.lut.DefaultLUTService;
@@ -51,7 +52,7 @@ import org.xml.sax.SAXException;
 public class AbbeFile {
     
     public JPanel abbeFilePanel = null;
-    
+    public int panelCount = 0;
     
     private OBFReader reader = new OBFReader();
     private IMetadata omeMeta = MetadataTools.createOMEXMLMetadata();
@@ -73,9 +74,21 @@ public class AbbeFile {
     An array of Lists, where each list contains the imageIdxs in that dataset */
     private ArrayList<Integer>[] datImgLsts;
     
-    private void fillPanels () {
+    public void fillPanels () throws IOException {
         //  for each dataset
         //  create AbbeImageJPanel and add to abbeFilePanel
+        abbeFilePanel = new JPanel(new GridLayout(panelCount, 1));
+        Params.PanelParams p = null;
+        
+        int col = 1;
+        int row = 0;
+        for (AbbeFolder abF : abbeFolderVect) {
+            for (AbbeFolder.AbbeDataset abDs : abF.abbeDatasetVect) {
+                p = abDs.pParams;
+                JPanel dsPanel = new AbbeImageJPanel(p);
+                abbeFilePanel.add(dsPanel);
+            }
+        }
     }
     
     /**
@@ -374,6 +387,9 @@ public class AbbeFile {
                     thumbImageArr[i] = new Color(tr,tg,tb).getRGB();
                 }
                 this.pParams.bufImg.setRGB(0,0,nx,ny,thumbImageArr, 0, nx);
+                
+                panelCount++;
+                
             }
         }
     }
