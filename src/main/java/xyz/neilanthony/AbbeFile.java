@@ -18,7 +18,10 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.RenderingHints;
+import java.io.DataInputStream;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import net.imagej.lut.DefaultLUTService;
 import net.imagej.lut.LUTService;
 import net.imglib2.display.ColorTable;
@@ -51,7 +54,7 @@ import org.xml.sax.SAXException;
  */
 public class AbbeFile {
     
-    public JPanel abbeFilePanel = null;
+    public JPanel abbeDatasetPanels = null;
     public int panelCount = 0;
     
     private OBFReader reader = new OBFReader();
@@ -76,8 +79,8 @@ public class AbbeFile {
     
     public void fillPanels () throws IOException {
         //  for each dataset
-        //  create AbbeImageJPanel and add to abbeFilePanel
-        abbeFilePanel = new JPanel(new GridLayout(panelCount, 1));
+        //  create AbbeImageJPanel and add to abbeDatasetPanels
+        abbeDatasetPanels = new JPanel(new GridLayout(panelCount, 1));
         Params.PanelParams p = null;
         
         int col = 1;
@@ -86,7 +89,7 @@ public class AbbeFile {
             for (AbbeFolder.AbbeDataset abDs : abF.abbeDatasetVect) {
                 p = abDs.pParams;
                 JPanel dsPanel = new AbbeImageJPanel(p);
-                abbeFilePanel.add(dsPanel);
+                abbeDatasetPanels.add(dsPanel);
             }
         }
     }
@@ -154,6 +157,7 @@ public class AbbeFile {
         public class AbbeDataset {
             
             public final ArrayList<AbbeImage> abbeImagesVect = new ArrayList<>();
+            ArrayList<Integer> incChns = null;
             public String datasetName;
             public String datasetID;
             public int datasetIndex = -1;
@@ -174,11 +178,12 @@ public class AbbeFile {
                 this.imageIndxs = imgIndxs;
                 this.timeStampIdx = timeStamp;
                 this.imageCount = imgIndxs.length;
-
+                
                 for (int i = 0; i < imgIndxs.length; i++) {
                     this.abbeImagesVect.add(i, new AbbeImage(imgIndxs[i]));
                 }
-                createThumb();
+                createThumbEtc();
+                fillParams();
             }
             
             private class AbbeImage {
@@ -186,13 +191,18 @@ public class AbbeFile {
                 public String imageName;
                 public String imageID;
                 public int imageIndex = -1;
-                public Color_Table ct = null;
                 public short[] data = null;
                 public short[] mask = null; // note data is uint8, but Java only has int8; storing in short[] 
                 public int[] thumbData = null;
+                public short[] shortThumbData = null;
                 public Params.ImageParams imgParams = new Params.ImageParams();
+                
+                @Parameter
+                private final LUTService ls = new DefaultLUTService();
                 String lutName = "Grays.lut"; // 
-
+                private Color[] colorTable;
+                private int ctSize;
+                
                 public boolean addToComposite;  // for excluding DyMIN and RESCue from display
 
                 public boolean tiled = false;
@@ -203,6 +213,7 @@ public class AbbeFile {
                     this.imageID = String.format("Image:%d", imgIdx);
                     this.imageName = omeMeta.getImageName(imgIdx);
                     this.imgParams.pxType = omeMeta.getPixelsType(imgIdx);
+                    this.imgParams.chnName = omeMeta.getChannelName(imgIdx, 0);
                     //if (this.imageName.contains("DyMIN") | this.imageName.contains("rescue")){
                     if (this.imgParams.pxType == PixelType.UINT8){
                         this.addToComposite = false;
@@ -216,7 +227,7 @@ public class AbbeFile {
                     }
                 }
 
-                private void pullImageData (int imgIdx) throws IOException, FormatException {
+                public void pullImageData (int imgIdx) throws IOException, FormatException {
                     reader.setSeries(imgIdx);
                     imgParams.sx = reader.getSizeX();
                     imgParams.sy = reader.getSizeY();
@@ -226,7 +237,7 @@ public class AbbeFile {
                     this.data = new short[bytes.length/2];
                     ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(this.data);
                 }
-                private void pullMaskData (int imgIdx) throws IOException, FormatException {
+                public void pullMaskData (int imgIdx) throws IOException, FormatException {
                     reader.setSeries(imgIdx);
                     imgParams.sx = reader.getSizeX();
                     imgParams.sy = reader.getSizeY();
@@ -239,7 +250,7 @@ public class AbbeFile {
                         this.mask[i] = (short)(bytes[i]+128);
                     }
                 }
-                private void resizeForThumb () {
+                public void resizeForThumb () {
                     /*
                     retain aspect ratio and ensure both:
                     tsx <= JPanel width
@@ -264,29 +275,34 @@ public class AbbeFile {
                             imgParams.sx, imgParams.sy, BufferedImage.TYPE_USHORT_GRAY);
                     origGrayBuf.getRaster().setDataElements(0, 0, imgParams.sx, imgParams.sy, this.data);
                     
-                    BufferedImage imgBuf = new BufferedImage(nx, ny, origGrayBuf.getType());
+                    BufferedImage imgBuf = new BufferedImage(nx, ny, BufferedImage.TYPE_USHORT_GRAY);
                     Graphics2D g = imgBuf.createGraphics();
                     g.setRenderingHints(renderingHints);
                     g.drawImage(origGrayBuf, 0, 0, nx, ny, null);
                     g.dispose();
-                    this.thumbData = new int[nx * ny];
-                    imgBuf.getRaster().getPixels(0, 0, nx, ny, this.thumbData);
+                    this.shortThumbData = new short[nx * ny];
+//                    this.thumbData = new int[nx * ny];
+                    imgBuf.getRaster().getDataElements(0, 0, nx, ny, this.shortThumbData);
+                    //imgBuf.getRaster().getPixels(0, 0, nx, ny, this.thumbData);
+//                    for (int i = 0; i < (nx * ny); i++ ) {
+//                        this.thumbData[i] = (int)this.shortThumbData[i];
+//                    }
                     AbbeDataset.this.pParams.nx = nx;
                     AbbeDataset.this.pParams.ny = ny;
                 }
-                private void rescaleThumbRange () {
+                public void rescaleThumbRange () {
                     
-                    int[] scaledThumb = new int[this.thumbData.length];
+                    short[] scaledThumb = new short[this.shortThumbData.length];
                     int max = 0;
-                    for (int i=0; i<this.thumbData.length; i++){
-                        if (this.thumbData[i] > max) { max = this.thumbData[i]; }
+                    for (int i=0; i<this.shortThumbData.length; i++){
+                        if (this.shortThumbData[i] > max) { max = this.shortThumbData[i]; }
                     }
-                    for (int i=0; i<this.thumbData.length; i++){
-                        scaledThumb[i] = (int) (255 * ( this.thumbData[i] / max ));
+                    for (int i=0; i<this.shortThumbData.length; i++){
+                        scaledThumb[i] = (short) (255.0 * this.shortThumbData[i] / max );
                     }
-                    this.thumbData = scaledThumb;
+                    this.shortThumbData = scaledThumb;
                 }
-                private void setColorTable () throws IOException {
+                public void setColorTable () throws IOException {
                     Length emis = omeMeta.getChannelEmissionWavelength(this.imageIndex, 0);
                     Number lambda = emis.value();
                     short nm = (short)(lambda.doubleValue()*1e9);
@@ -296,7 +312,7 @@ public class AbbeFile {
                     else if (nm < 580) { this.lutName = "Yellow.lut"; }
                     else if (nm < 640) { this.lutName = "Orange Hot.lut"; }
                     else { this.lutName = "Red.lut"; }
-                    this.ct = new Color_Table(this.lutName);
+                    getColorTable(this.lutName);
                     
                     /*        
                     * Yellow.lut
@@ -316,6 +332,18 @@ public class AbbeFile {
                     * Green Fire Blue.lut
                     * Cyan Hot.lut */
                 }
+                public void getColorTable(String colormap) throws IOException {
+                    String lutPath = "/luts/" + colormap;
+                    InputStream lutStream = getClass().getResourceAsStream(lutPath);
+                    ColorTable ct = ls.loadLUT(lutStream);
+                    //ColorTable ct = ls.loadLUT(ls.findLUTs().get(colormap));
+                    this.ctSize = ct.getLength();
+                    this.colorTable = new Color[this.ctSize];
+                    for (int i = 0; i < this.ctSize; i++) {
+                        this.colorTable[i] = new Color(ct.get(ColorTable.RED, i), ct.get(ColorTable.GREEN, i), ct.get(ColorTable.BLUE, i));
+                    }
+                }
+                
             }
             
             private int inv (int a) {
@@ -340,14 +368,22 @@ public class AbbeFile {
                 }
                 return (int)(1.0 * b / a.length);
             }
-            private void createThumb () {
+            private int sum (int[] a) {
+                int b = 0;
+                for (int i = 0; i < a.length; i++) {
+                    b += a[i];
+                }
+                if (b < 256) { return b; }
+                else { return (int) 255; }
+            }
+            private void createThumbEtc () {
                 
-                ArrayList<Integer> incChns = new ArrayList<>();
+                this.incChns = new ArrayList<>();
                 ArrayList<Integer> ctSizes = new ArrayList<>();
                 for (int k = 0; k < imageCount; k++) {
                     if (abbeImagesVect.get(k).addToComposite) {
-                        ctSizes.add(abbeImagesVect.get(k).ct.size);
-                        incChns.add(k);
+                        ctSizes.add(abbeImagesVect.get(k).ctSize);
+                        this.incChns.add(k);
                     }
                 }
                 
@@ -357,7 +393,7 @@ public class AbbeFile {
                 int nx = pParams.nx;
                 int ny = pParams.ny;
                 int nlen = nx * ny;
-                int incChnLength = incChns.size();
+                int incChnLength = this.incChns.size();
                 
                 int[] r = new int[incChnLength];
                 int[] g = new int[incChnLength];
@@ -373,23 +409,31 @@ public class AbbeFile {
                     //  r, g, b for each i is combination/blend of
                     //  each r, g, b from included image channels
                     for (int k = 0; k < incChnLength; k++) {
-                        value = abbeImagesVect.get(incChns.get(k)).thumbData[i];
-                        //  assumes that thumbData is normalized to max 255
-                        clr = abbeImagesVect.get(incChns.get(k)).
-                                ct.CT[(int)(1.0 * value * ctSizes.get(k) / 255)];
+                        value = abbeImagesVect.get(this.incChns.get(k)).shortThumbData[i];
+                        //  assumes that shortThumbData is normalized to max 255
+                        clr = abbeImagesVect.get(this.incChns.get(k)).
+                                colorTable[(int)(1.0 * value * (ctSizes.get(k)-1) / 255)];
                         r[k] = clr.getRed();
                         g[k] = clr.getGreen();
                         b[k] = clr.getBlue();
                     }
-                    tr = mean(r);
-                    tg = mean(g);
-                    tb = mean(b);
+                    tr = sum(r);
+                    tg = sum(g);
+                    tb = sum(b);
                     thumbImageArr[i] = new Color(tr,tg,tb).getRGB();
                 }
                 this.pParams.bufImg.setRGB(0,0,nx,ny,thumbImageArr, 0, nx);
                 
                 panelCount++;
                 
+            }
+            private void fillParams () {
+                
+                int incChnLength = this.incChns.size();
+                this.pParams.chnNames = new String[incChnLength];
+                for (int i = 0; i < incChnLength; i++) {
+                    this.pParams.chnNames[i] = abbeImagesVect.get(this.incChns.get(i)).imgParams.chnName;
+                }
             }
         }
     }
@@ -507,7 +551,6 @@ public class AbbeFile {
         return this.folderNames;
     }
     
-
     public String getOMEXML () throws IOException {
         if ( this.omexml == null ) {
             this.pullOMEXMLRaw();
@@ -559,74 +602,10 @@ public class AbbeFile {
         channel.close();
     }
     
+    
+    
     /* little functions */
-    
-    /** options to think about using
-    * Yellow.lut
-    * HiLo.lut
-    * Cyan.lut
-    * Grays.lut
-    * Green.lut
-    * Yellow Hot.lut
-    * Red Hot.lut
-    * Magenta Hot.lut
-    * Ice.lut
-    * Red.lut
-    * Orange Hot.lut
-    * Fire.lut
-    * Blue.lut
-    * Magenta.lut
-    * Green Fire Blue.lut
-    * Cyan Hot.lut
-    * @author alex.vergara
-    */
-    public class Color_Table {
-
-        private final Color[] CT;
-        private final int size;
-
-        @Parameter
-        private final LUTService ls = new DefaultLUTService();
-
-        public Color_Table(String colormap) throws IOException {
-            ColorTable ct = ls.loadLUT(ls.findLUTs().get(colormap));
-            size = ct.getLength();
-            CT = new Color[size];
-            for (int i = 0; i < size; i++) {
-                CT[i] = new Color(ct.get(ColorTable.RED, i), ct.get(ColorTable.GREEN, i), ct.get(ColorTable.BLUE, i));
-            }
-        }
-        public int getSize() {
-            return size;
-        }
-        public Color getColor(int index){
-            return CT[index];
-        }
-    }
-    
-    public JPanel useColorTable () throws IOException {
-        Color_Table ct = new Color_Table("Orange Hot.lut");
         
-        int sx, sy;
-        sx = 255;
-        sy = 255;
-        JPanel jPanel_New = new JPanel();
-        jPanel_New.setBounds(0, 0, sx, sy);
-        
-        BufferedImage bufImg = new BufferedImage(sx, sy, BufferedImage.TYPE_INT_RGB);
-        
-        for (int i = 0; i < sx; i++) {
-            for (int j = 0; j < sy; j++) {
-                bufImg.setRGB(i, j, ct.getColor(i).getRGB());
-            }
-        }
-        
-        ImageIcon icon = new ImageIcon(bufImg);
-        JLabel picLabel = new JLabel(icon);
-        jPanel_New.add(picLabel);
-        return jPanel_New;
-    }
-    
     private final Charset UTF8_CHARSET = Charset.forName("UTF-8");
     String decodeUTF8(byte[] bytes) {
         return new String(bytes, UTF8_CHARSET);

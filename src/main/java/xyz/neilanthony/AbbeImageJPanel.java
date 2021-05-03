@@ -21,18 +21,18 @@ public class AbbeImageJPanel extends javax.swing.JPanel {
     public AbbeImageJPanel(Params.PanelParams params) throws IOException {
         initComponents();
         
-        this.p = params;
+        this.jPanel_PlaceHolder.setBackground(new Color(0,0,0,0));
         
+        this.p = params;
         this.setBackground(colorBkgdPanel);
         
         //  create new panel
         jPanel_Thumb.setBounds(0, 0, p.psx, p.psy);
-        
         if (this.p.bufImg != null) {
-            
             JLabel picLabel = new JLabel(new ImageIcon(this.p.bufImg));
+            picLabel.setBackground(colorThumb);
             jPanel_Thumb.add(picLabel);
-           
+            jPanel_Thumb.setBackground(colorThumb);
             this.jLabel_ChnName_1.setText(Integer.toString(p.bufImg.getWidth()));
             this.jLabel_ChnName_2.setText(Integer.toString(p.bufImg.getHeight()));
         } else {
@@ -40,8 +40,10 @@ public class AbbeImageJPanel extends javax.swing.JPanel {
         }
         this.jLabel_ChnName_1.setForeground(colorChnText);
         this.jLabel_ChnName_2.setForeground(colorChnText);
-        
         this.add(jPanel_Thumb);
+        
+        // update lables
+        //this.jLabel_ImageName.setText(p.);
     }
     
     private JLabel chnLabel (String labelStr) {

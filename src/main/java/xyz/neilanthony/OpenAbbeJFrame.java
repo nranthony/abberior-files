@@ -78,8 +78,9 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         this.ui = ui;
         
         initComponents();
-        
-        ImageIcon imgIcon_exit = new ImageIcon("src/main/resources/close.png");
+        String closeIconPath = "close.png";
+        ImageIcon imgIcon_exit = new ImageIcon(
+                getClass().getClassLoader().getResource(closeIconPath));
         JLabel jLabel_exit = new JLabel();
         jLabel_exit.setBounds(0,0,imgIcon_exit.getIconWidth(),imgIcon_exit.getIconHeight());
         jLabel_exit.setIcon(imgIcon_exit);
@@ -146,8 +147,8 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
                 }
             }
         });
-        JPanel imagesPanel = this.createImagesPanel();
-        jScrollPane_ImgPanels.setViewportView(imagesPanel);
+        //JPanel imagesPanel = this.createImagesPanel();
+        //jScrollPane_ImgPanels.setViewportView(imagesPanel);
     }
     
     private JPanel createImagesPanel() throws IOException {
@@ -201,6 +202,7 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
             System.out.println("NewAbbeFile Callable; fillPanels");
             newAbbe.fillPanels();
             System.out.println("NewAbbeFile Callable; returning newAbbe");
+            jScrollPane_ImgPanels.setViewportView(newAbbe.abbeDatasetPanels);
             return newAbbe;
         }
     }

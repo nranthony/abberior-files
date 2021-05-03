@@ -15,10 +15,14 @@ public class Params {
         public int psy = 126;
         public int nx;
         public int ny;
+        
+        public String dsName;
+        public String[] chnNames;
     }
     
     public static class ImageParams {
         public String name = "";
+        public String chnName = "";
         public int sx, sy, sz, st;
         public double dx, dy, dz, dt;
         public PixelType pxType;
