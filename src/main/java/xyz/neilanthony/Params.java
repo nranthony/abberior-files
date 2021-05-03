@@ -15,8 +15,6 @@ public class Params {
         public int psy = 126;
         public int nx;
         public int ny;
-        
-        //public 
     }
     
     public static class ImageParams {
@@ -28,7 +26,7 @@ public class Params {
     
     public static class DatasetParams {
         
-        
+
     }
     
 }
