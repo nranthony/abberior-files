@@ -267,9 +267,6 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         jTextArea1 = new javax.swing.JTextArea();
         jScrollPane_FilePanels = new javax.swing.JScrollPane();
         jLabel_Info = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(32, 32, 32));
@@ -331,27 +328,6 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         jLabel_Info.setForeground(new java.awt.Color(204, 204, 204));
         jLabel_Info.setText("Drag 'n' drop *.obf or *.msr files.");
 
-        jButton1.setText("jButton1");
-        jButton1.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jButton1MouseClicked(evt);
-            }
-        });
-
-        jButton2.setText("jButton2");
-        jButton2.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jButton2MouseClicked(evt);
-            }
-        });
-
-        jButton3.setText("jButton3");
-        jButton3.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jButton3MouseClicked(evt);
-            }
-        });
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -360,16 +336,10 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jScrollPane_FilePanels)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jScrollPane_ImgPanels, javax.swing.GroupLayout.DEFAULT_SIZE, 667, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane_ImgPanels, javax.swing.GroupLayout.PREFERRED_SIZE, 667, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel_Info, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton3)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton1)
+                        .addComponent(jLabel_Info, javax.swing.GroupLayout.PREFERRED_SIZE, 661, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addContainerGap())))
         );
         layout.setVerticalGroup(
@@ -379,11 +349,7 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel_Info, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jButton1)
-                            .addComponent(jButton2)
-                            .addComponent(jButton3))
+                        .addComponent(jLabel_Info, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jScrollPane_ImgPanels, javax.swing.GroupLayout.PREFERRED_SIZE, 865, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jScrollPane_FilePanels, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 895, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -407,76 +373,6 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
     private void jPanel_exitButtonMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanel_exitButtonMouseReleased
         this.dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
     }//GEN-LAST:event_jPanel_exitButtonMouseReleased
-
-    private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked
-//        List<String> sLst = new ArrayList<>();
-//        for (AbbeFile abF : abbeFilesVect){
-//            //sLst = abF.printFileDetails();
-//            sLst = abF.printSeriesInfo();
-//            for (String s : sLst) {
-//                jTextArea1.append(s + System.lineSeparator());
-//            }
-//        }
-//        jScrollPane_ImgPanels.setViewportView(jTextArea1);
-        //AbbeImageJPanel 
-        
-        //final OpenCVFrameConverter<Mat> converter = new OpenCVFrameConverter.ToMat();
-        ArrayImg<UnsignedShortType, ShortArray> img;
-        Params.PanelParams pParams = new Params.PanelParams();
-        
-        AbbeFile abF = abbeFilesVect.elementAt(0);
-        int N = 3;
-        int offset = 66;
-        JPanel p = new JPanel(new GridLayout(N, 1));
-        try {
-            for (int i = offset; i < (offset+N); i++) {
-
-                int row = i;
-                int col = 1;
-                //params.bufImg = abF.getThumbBufImg(i);
-                //params.bufImg = converter.convert(abF.GetCVMat(0, 0));
-                //params.bufImg = abF.getBufImg(i, 0);
-                //params.bufImg = abF.getUShortGrayBuf(i);
-                //params.bufImg = abF.getArrayImg(i);
-
-                img = abF.getArrayImg(i);
-                ui.show(img);
-                pParams.bufImg = abF.getUShortGrayBuf(i);
-                //params.bufImg = abF.getFirstByteBuf(i, 0);
-                JPanel imgPanel = new AbbeImageJPanel(pParams);
-                panelList.add(imgPanel);
-                p.add(imgPanel);
-            }
-        } catch (IOException | FormatException ex) {
-                Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        jScrollPane_ImgPanels.getViewport().removeAll();
-        jScrollPane_ImgPanels.setViewportView(p);
-    }//GEN-LAST:event_jButton1MouseClicked
-
-    private void jButton2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton2MouseClicked
-        AbbeFile abF = abbeFilesVect.elementAt(0);
-        JPanel jPnew = null;
-        try {
-            jPnew = abF.useColorTable();
-        } catch (IOException ex) {
-            Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        jScrollPane_FilePanels.setViewportView(jPnew);
-    }//GEN-LAST:event_jButton2MouseClicked
-
-    private void jButton3MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton3MouseClicked
-        AbbeFile abF = abbeFilesVect.elementAt(0);
-        try {
-            
-            try (PrintWriter out = new PrintWriter("raw-string-omexml.xml")) {
-                out.println(abF.getOMEXML());
-            }
-            abF.createXMLDoc();
-        } catch (ParserConfigurationException | SAXException | IOException ex) {
-            Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }//GEN-LAST:event_jButton3MouseClicked
     
     /**
      * @param args the command line arguments
@@ -511,9 +407,6 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
     
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
     private javax.swing.JLabel jLabel_Info;
     private javax.swing.JPanel jPanel_exitButton;
     private javax.swing.JPanel jPanel_topBar;

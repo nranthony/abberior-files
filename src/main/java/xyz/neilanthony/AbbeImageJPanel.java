@@ -1,30 +1,15 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package xyz.neilanthony;
 
-import com.google.common.primitives.Bytes;
 import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.image.BufferedImage;
-import java.awt.image.RescaleOp;
 import java.io.IOException;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import net.coobird.thumbnailator.Thumbnails;
-import org.bytedeco.javacpp.BytePointer;
-import org.bytedeco.opencv.opencv_core.Mat;
 
-/**
- *
- * @author nelly
- */
+
 public class AbbeImageJPanel extends javax.swing.JPanel {
 
-    
     private Color colorBkgdPanel = Color.getHSBColor(0.0f, 0.0f, 0.13f);
     private Color colorThumb = Color.getHSBColor(0.0f, 0.0f, 0.08f);
     private final Color colorChnText = Color.getHSBColor(0.54f, 0.46f, 0.66f);
@@ -40,42 +25,13 @@ public class AbbeImageJPanel extends javax.swing.JPanel {
         
         this.setBackground(colorBkgdPanel);
         
-        int sx, sy;
-        sx = 256;
-        sy = 256;
-        
         //  create new panel
-        
-        jPanel_Thumb.setBounds(0, 0, sx, sy);
-        
+        jPanel_Thumb.setBounds(0, 0, p.psx, p.psy);
         
         if (this.p.bufImg != null) {
             
-            //RescaleOp rescaleOp = new RescaleOp(25f, 0, null);
-            //rescaleOp.filter(this.p.bufImg, this.p.bufImg);  // Source and destination are the same.
-            
             JLabel picLabel = new JLabel(new ImageIcon(this.p.bufImg));
             jPanel_Thumb.add(picLabel);
-            
-            //this.validate();
-
-//            int newWid, newHght;
-//            float aspectRatio = p.bufImg.getWidth() / p.bufImg.getHeight();
-//            newWid = jPanel_Thumb.getPreferredSize().width;
-//            newHght = Math.round(newWid/aspectRatio);
-//            
-//            thumbLabel = new JLabel(new ImageIcon(
-//                    Thumbnails.of(p.bufImg)
-//                            .size(newWid,newHght)
-//                            .asBufferedImage()));
-//            this.jPanel_Thumb.add(thumbLabel);
-//            //this.jPanel_Thumb.repaint();
-//            this.jPanel_Thumb.revalidate();
-            
-//            this.canvas1.setBackground(colorThumb);
-//            Graphics g = this.p.bufImg.getGraphics();
-//            this.canvas1.paint(g);
-//            this.canvas1.validate();
            
             this.jLabel_ChnName_1.setText(Integer.toString(p.bufImg.getWidth()));
             this.jLabel_ChnName_2.setText(Integer.toString(p.bufImg.getHeight()));
@@ -86,8 +42,6 @@ public class AbbeImageJPanel extends javax.swing.JPanel {
         this.jLabel_ChnName_2.setForeground(colorChnText);
         
         this.add(jPanel_Thumb);
-
-        
     }
     
     private JLabel chnLabel (String labelStr) {
