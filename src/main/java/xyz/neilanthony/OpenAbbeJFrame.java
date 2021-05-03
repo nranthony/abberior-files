@@ -241,7 +241,7 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
                 System.out.println("CheckLoadingAbbes: " + tDoneStrs);
                 try {
                     
-                    Thread.sleep(1000);
+                    Thread.sleep(500);
                 } catch (InterruptedException ex) {
                     Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
                 }

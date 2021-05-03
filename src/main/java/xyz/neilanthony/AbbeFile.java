@@ -50,6 +50,9 @@ import org.xml.sax.SAXException;
  */
 public class AbbeFile {
     
+    public JPanel abbeFilePanel = null;
+    
+    
     private OBFReader reader = new OBFReader();
     private IMetadata omeMeta = MetadataTools.createOMEXMLMetadata();
     private BufferedImageReader bufImgReader= new BufferedImageReader(reader);
@@ -70,6 +73,10 @@ public class AbbeFile {
     An array of Lists, where each list contains the imageIdxs in that dataset */
     private ArrayList<Integer>[] datImgLsts;
     
+    private void fillPanels () {
+        //  for each dataset
+        //  create AbbeImageJPanel and add to abbeFilePanel
+    }
     
     /**
      * for each image in dataset
@@ -158,6 +165,7 @@ public class AbbeFile {
                 for (int i = 0; i < imgIndxs.length; i++) {
                     this.abbeImagesVect.add(i, new AbbeImage(imgIndxs[i]));
                 }
+                createThumb();
             }
             
             private class AbbeImage {
