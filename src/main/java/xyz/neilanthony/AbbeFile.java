@@ -4,6 +4,7 @@ Used to encapsulate all the information required for each Abberior file thats im
 */
 package xyz.neilanthony;
 
+import static com.google.common.primitives.Shorts.max;
 import java.awt.image.BufferedImage;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -28,6 +29,7 @@ import net.imglib2.display.ColorTable;
 import org.scijava.plugin.Parameter;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import javax.swing.ImageIcon;
@@ -80,6 +82,7 @@ public class AbbeFile {
     public void fillPanels () throws IOException {
         //  for each dataset
         //  create AbbeImageJPanel and add to abbeDatasetPanels
+        // panelCount++ currently in AbbeDataset.checkImgComplete
         abbeDatasetPanels = new JPanel(new GridLayout(panelCount, 1));
         Params.PanelParams p = null;
         
@@ -167,7 +170,7 @@ public class AbbeFile {
             public Integer[] imageIndxs = null;
             public int parentFolderIndex = -1;
             public Params.PanelParams pParams = new Params.PanelParams();
-            public boolean addPanel = true;
+            public boolean addToPanel = true;
             
             // constructor
             AbbeDataset(int datIndex, String datIDStr,
@@ -185,7 +188,7 @@ public class AbbeFile {
                 }
                 createThumbEtc();
                 fillParams();
-                
+                checkImgComplete();
             }
             
             private class AbbeImage {
@@ -200,6 +203,8 @@ public class AbbeFile {
                 public Params.ImageParams imgParams = new Params.ImageParams();
                 public boolean addToComposite;  // for excluding DyMIN and RESCue from display
                 public boolean tiled = false;
+                private short minimumMax = 35; // to stop channels of mostly noise 'swamping' thumbnail
+                private short offset = 2; // chops the lower values to remove a little noise
                 
                 @Parameter
                 private final LUTService ls = new DefaultLUTService();
@@ -224,12 +229,7 @@ public class AbbeFile {
                         resizeForThumb();
                         rescaleThumbRange();
                         setColorTable();
-                        //  MOVE to dataset/folder
-                        //    check for images that stopped half way through
-                        //    omit from panels
                         
-                        //  add limit to normalizing; minimum max value of ~30 counts
-                        //  add offset to remove salt noise
                         //  add channel labels in loop
                         //  function to pull color of channel text
                         //  icons for zstack, timelapse etc
@@ -241,6 +241,8 @@ public class AbbeFile {
                         //    swap between on selection
                         //  add panel highlight on click
                         //  
+                        // debug image 32 in Ab4C_02.obf; null data and thmub etc.
+                        // null ptr in checkImgComplete ()
                     }
                 }
 
@@ -310,12 +312,14 @@ public class AbbeFile {
                 public void rescaleThumbRange () {
                     
                     short[] scaledThumb = new short[this.shortThumbData.length];
-                    int max = 0;
+                    short max = minimumMax;
+                    short value = 0;
                     for (int i=0; i<this.shortThumbData.length; i++){
                         if (this.shortThumbData[i] > max) { max = this.shortThumbData[i]; }
                     }
                     for (int i=0; i<this.shortThumbData.length; i++){
-                        scaledThumb[i] = (short) (255.0 * this.shortThumbData[i] / max );
+                        value = (short) ((this.shortThumbData[i] - offset < 0) ? 0 : this.shortThumbData[i] - offset);
+                        scaledThumb[i] = (short) (255.0 * value / max );
                     }
                     this.shortThumbData = scaledThumb;
                 }
@@ -439,9 +443,6 @@ public class AbbeFile {
                     thumbImageArr[i] = new Color(tr,tg,tb).getRGB();
                 }
                 this.pParams.bufImg.setRGB(0,0,nx,ny,thumbImageArr, 0, nx);
-                
-                panelCount++;
-                
             }
             private void fillParams () {
                 
@@ -453,16 +454,33 @@ public class AbbeFile {
             }
             private void checkImgComplete () {
                 // get image thumbdata
-                // if more than 3 lines are all zeros mark as addPanel = false;
+                // if more than 3 lines are all zeros mark as addToPanel = false;
+                int rows, cols, empties;
+                rows = this.pParams.ny;
+                cols = this.pParams.nx;
+                
                 short[] imgThumbData = null;
-                start coding here
+                short[] line = new short[cols];
+                AbbeImage abImg = null;
                 for (int k = 0; k < imageCount; k++) {
-                    imgThumbData = abbeImagesVect.get(k).shortThumbData;
-                    for (int j = 0; j < abbeImagesVect.get)
+                    abImg = abbeImagesVect.get(k);
+                    imgThumbData = abImg.shortThumbData;
+                    empties = 0;
+                    for (int j = 0; j < rows; j++) {
+                        line = Arrays.copyOfRange(imgThumbData, j*cols, ((j+1)*cols)-1);
+                        if (max(line) == 0) { empties++; }
+                        else { empties = 0; }
+                        if (empties == 3) {
+                            this.addToPanel = false;
+                            return;
+                        }
+                        } 
+                    }
+                panelCount++;
                 }
             }
         }
-    }
+    
 
     // AbbeFile Constructor
     AbbeFile(Path filePath) throws FormatException, IOException, ParserConfigurationException, SAXException {
@@ -636,6 +654,14 @@ public class AbbeFile {
     String decodeUTF8(byte[] bytes) {
         return new String(bytes, UTF8_CHARSET);
     }
+    
+//    static short maxShort (short[] sArr) {
+//        short max = 0;
+//        for (int i=0; i<sArr.length; i++){
+//            if (sArr[i] > max) { max = sArr[i]; }
+//        }
+//        return max;
+//    }
     
     /* old functions - review for deletion */
     
