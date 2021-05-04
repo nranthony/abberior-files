@@ -167,6 +167,7 @@ public class AbbeFile {
             public Integer[] imageIndxs = null;
             public int parentFolderIndex = -1;
             public Params.PanelParams pParams = new Params.PanelParams();
+            public boolean addPanel = true;
             
             // constructor
             AbbeDataset(int datIndex, String datIDStr,
@@ -184,6 +185,7 @@ public class AbbeFile {
                 }
                 createThumbEtc();
                 fillParams();
+                
             }
             
             private class AbbeImage {
@@ -193,19 +195,17 @@ public class AbbeFile {
                 public int imageIndex = -1;
                 public short[] data = null;
                 public short[] mask = null; // note data is uint8, but Java only has int8; storing in short[] 
-                public int[] thumbData = null;
+                //public int[] thumbData = null;
                 public short[] shortThumbData = null;
                 public Params.ImageParams imgParams = new Params.ImageParams();
+                public boolean addToComposite;  // for excluding DyMIN and RESCue from display
+                public boolean tiled = false;
                 
                 @Parameter
                 private final LUTService ls = new DefaultLUTService();
                 String lutName = "Grays.lut"; // 
                 private Color[] colorTable;
                 private int ctSize;
-                
-                public boolean addToComposite;  // for excluding DyMIN and RESCue from display
-
-                public boolean tiled = false;
 
                 // constructor
                 AbbeImage(int imgIdx) throws IOException, FormatException {
@@ -224,6 +224,23 @@ public class AbbeFile {
                         resizeForThumb();
                         rescaleThumbRange();
                         setColorTable();
+                        //  MOVE to dataset/folder
+                        //    check for images that stopped half way through
+                        //    omit from panels
+                        
+                        //  add limit to normalizing; minimum max value of ~30 counts
+                        //  add offset to remove salt noise
+                        //  add channel labels in loop
+                        //  function to pull color of channel text
+                        //  icons for zstack, timelapse etc
+                        //  icons for dymin and rescue
+                        //  icons for 2d vs 3d sted
+                        //  image name / folder name + timestamp
+                        //  pull zstack mid point for thumb
+                        //  add files panels for multiple abbefiles
+                        //    swap between on selection
+                        //  add panel highlight on click
+                        //  
                     }
                 }
 
@@ -343,7 +360,6 @@ public class AbbeFile {
                         this.colorTable[i] = new Color(ct.get(ColorTable.RED, i), ct.get(ColorTable.GREEN, i), ct.get(ColorTable.BLUE, i));
                     }
                 }
-                
             }
             
             private int inv (int a) {
@@ -433,6 +449,16 @@ public class AbbeFile {
                 this.pParams.chnNames = new String[incChnLength];
                 for (int i = 0; i < incChnLength; i++) {
                     this.pParams.chnNames[i] = abbeImagesVect.get(this.incChns.get(i)).imgParams.chnName;
+                }
+            }
+            private void checkImgComplete () {
+                // get image thumbdata
+                // if more than 3 lines are all zeros mark as addPanel = false;
+                short[] imgThumbData = null;
+                start coding here
+                for (int k = 0; k < imageCount; k++) {
+                    imgThumbData = abbeImagesVect.get(k).shortThumbData;
+                    for (int j = 0; j < abbeImagesVect.get)
                 }
             }
         }
