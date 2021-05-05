@@ -34,3 +34,29 @@ public class Params {
     }
     
 }
+
+/** TODO List:
+ *                         
+ *  add channel labels in loop
+ *  function to pull color of channel text
+ *  icons for zstack, timelapse etc
+ *  icons for dymin and rescue
+ *  icons for 2d vs 3d sted
+ *  image name / folder name + timestamp
+ *  pull zstack mid point for thumb
+ *    or maybe max project
+ *  add files panels for multiple abbefiles
+ *    swap between on selection
+ *  add panel highlight on click
+ *  tile images
+ *  histograms or min/max counts
+ *  centralize thumbs in panel
+ *  offset subpanel in panel
+ *  check drag and drop new while cooking
+ *  add file panels
+ *  add working gif plus update text on loading
+ *  add load selected on file panels
+ *  add load all selected at top
+ * 
+ *  
+ */

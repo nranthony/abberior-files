@@ -90,9 +90,12 @@ public class AbbeFile {
         int row = 0;
         for (AbbeFolder abF : abbeFolderVect) {
             for (AbbeFolder.AbbeDataset abDs : abF.abbeDatasetVect) {
-                p = abDs.pParams;
-                JPanel dsPanel = new AbbeImageJPanel(p);
-                abbeDatasetPanels.add(dsPanel);
+                if (abDs.addToPanel) {
+                    p = abDs.pParams;
+                    JPanel dsPanel = new AbbeImageJPanel(p);
+                    abbeDatasetPanels.add(dsPanel);
+                }
+                
             }
         }
     }
@@ -124,7 +127,7 @@ public class AbbeFile {
      * creating the datasets in each folder, which requires the overlap of images in
      * dataset and images in folders to be the first step
      */
-    private class AbbeFolder {
+    public class AbbeFolder {
         
         public String folderName;
         public String folderID;
@@ -186,12 +189,15 @@ public class AbbeFile {
                 for (int i = 0; i < imgIndxs.length; i++) {
                     this.abbeImagesVect.add(i, new AbbeImage(imgIndxs[i]));
                 }
-                createThumbEtc();
+                
+                checkIncludedChannels();
+                // below require incChns to be detemined in checkIncludedChannels();
                 fillParams();
+                createThumbEtc();
                 checkImgComplete();
             }
             
-            private class AbbeImage {
+            public class AbbeImage {
 
                 public String imageName;
                 public String imageID;
@@ -229,20 +235,6 @@ public class AbbeFile {
                         resizeForThumb();
                         rescaleThumbRange();
                         setColorTable();
-                        
-                        //  add channel labels in loop
-                        //  function to pull color of channel text
-                        //  icons for zstack, timelapse etc
-                        //  icons for dymin and rescue
-                        //  icons for 2d vs 3d sted
-                        //  image name / folder name + timestamp
-                        //  pull zstack mid point for thumb
-                        //  add files panels for multiple abbefiles
-                        //    swap between on selection
-                        //  add panel highlight on click
-                        //  
-                        // debug image 32 in Ab4C_02.obf; null data and thmub etc.
-                        // null ptr in checkImgComplete ()
                     }
                 }
 
@@ -396,16 +388,15 @@ public class AbbeFile {
                 if (b < 256) { return b; }
                 else { return (int) 255; }
             }
-            private void createThumbEtc () {
-                
+            private void checkIncludedChannels () {
                 this.incChns = new ArrayList<>();
-                ArrayList<Integer> ctSizes = new ArrayList<>();
                 for (int k = 0; k < imageCount; k++) {
                     if (abbeImagesVect.get(k).addToComposite) {
-                        ctSizes.add(abbeImagesVect.get(k).ctSize);
                         this.incChns.add(k);
                     }
                 }
+            }
+            private void createThumbEtc () {
                 
                 this.pParams.bufImg = new BufferedImage(pParams.nx, pParams.ny,
                         BufferedImage.TYPE_INT_RGB);
@@ -431,8 +422,8 @@ public class AbbeFile {
                     for (int k = 0; k < incChnLength; k++) {
                         value = abbeImagesVect.get(this.incChns.get(k)).shortThumbData[i];
                         //  assumes that shortThumbData is normalized to max 255
-                        clr = abbeImagesVect.get(this.incChns.get(k)).
-                                colorTable[(int)(1.0 * value * (ctSizes.get(k)-1) / 255)];
+                        //  also assumes that color table has 255 elements
+                        clr = abbeImagesVect.get(this.incChns.get(k)).colorTable[value];
                         r[k] = clr.getRed();
                         g[k] = clr.getGreen();
                         b[k] = clr.getBlue();
@@ -445,7 +436,6 @@ public class AbbeFile {
                 this.pParams.bufImg.setRGB(0,0,nx,ny,thumbImageArr, 0, nx);
             }
             private void fillParams () {
-                
                 int incChnLength = this.incChns.size();
                 this.pParams.chnNames = new String[incChnLength];
                 for (int i = 0; i < incChnLength; i++) {
@@ -453,24 +443,28 @@ public class AbbeFile {
                 }
             }
             private void checkImgComplete () {
-                // get image thumbdata
-                // if more than 3 lines are all zeros mark as addToPanel = false;
-                int rows, cols, empties;
-                rows = this.pParams.ny;
-                cols = this.pParams.nx;
+                // get image data
+                // if more than 5 lines are all zeros mark as addToPanel = false;
+                int rows = 0;
+                int cols = 0;
+                int empties = 0;
                 
-                short[] imgThumbData = null;
-                short[] line = new short[cols];
+                int incChnLength = this.incChns.size();
+                
+                short[] imgData = null;
+                short[] line = null;
                 AbbeImage abImg = null;
-                for (int k = 0; k < imageCount; k++) {
-                    abImg = abbeImagesVect.get(k);
-                    imgThumbData = abImg.shortThumbData;
+                for (int k = 0; k < incChnLength; k++) {
+                    abImg = abbeImagesVect.get(this.incChns.get(k));
+                    rows = abImg.imgParams.sy;
+                    cols = abImg.imgParams.sx;
+                    imgData = abImg.data;
                     empties = 0;
                     for (int j = 0; j < rows; j++) {
-                        line = Arrays.copyOfRange(imgThumbData, j*cols, ((j+1)*cols)-1);
+                        line = Arrays.copyOfRange(imgData, j*cols, ((j+1)*cols)-1);
                         if (max(line) == 0) { empties++; }
                         else { empties = 0; }
-                        if (empties == 3) {
+                        if (empties == 5) {
                             this.addToPanel = false;
                             return;
                         }
