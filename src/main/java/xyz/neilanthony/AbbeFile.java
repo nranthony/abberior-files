@@ -30,6 +30,7 @@ import org.scijava.plugin.Parameter;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import javax.swing.ImageIcon;
@@ -55,7 +56,7 @@ import org.xml.sax.SAXException;
  * @author nelly
  */
 public class AbbeFile {
-    
+       
     public JPanel abbeDatasetPanels = null;
     public int panelCount = 0;
     
@@ -68,8 +69,9 @@ public class AbbeFile {
     
     private String omexml = null;
     private Document xmlDoc = null;
-    private int index = -1;
+    public int index = -1;
     private Path fPath = null;
+    public Params.FileParams fParams = new Params.FileParams();
     
     public final ArrayList<AbbeFolder> abbeFolderVect = new ArrayList<>();
     // cast to sychronized (abbeFolderVect) when multithreading
@@ -244,8 +246,12 @@ public class AbbeFile {
                     reader.setSeries(imgIdx);
                     imgParams.sx = reader.getSizeX();
                     imgParams.sy = reader.getSizeY();
+                    imgParams.sz = reader.getSizeZ();
+                    imgParams.st = reader.getSizeT();
+                    
                     // TODO - consider z-stacks and time-lapses here
-                    Object dat = reader.openPlane(0, 0, 0, imgParams.sx, imgParams.sy);
+                    int zPlane = (imgParams.sz + 1) / 2;
+                    Object dat = reader.openPlane(zPlane, 0, 0, imgParams.sx, imgParams.sy);
                     byte[] bytes = (byte[])dat;
                     this.data = new short[bytes.length/2];
                     ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(this.data);
@@ -254,14 +260,21 @@ public class AbbeFile {
                     reader.setSeries(imgIdx);
                     imgParams.sx = reader.getSizeX();
                     imgParams.sy = reader.getSizeY();
+                    imgParams.sz = reader.getSizeZ();
+                    imgParams.st = reader.getSizeT();
                     // TODO - consider z-stacks and time-lapses here
                     Object dat = reader.openPlane(0, 0, 0, imgParams.sx, imgParams.sy);
                     byte[] bytes = (byte[])dat;
-                    this.mask = new short[bytes.length];
-                    //ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(this.mask);
-                    for (int i=0;i<bytes.length;i++){
-                        this.mask[i] = (short)(bytes[i]+128);
+                    if (reader.getBitsPerPixel()==1) { // unsigned 8 bit data
+                        this.mask = new short[bytes.length];
+                        for (int i=0;i<bytes.length;i++){
+                            this.mask[i] = (short)(bytes[i]+128);
+                        }
+                    } else { // signed 16 bit data
+                        this.mask = new short[bytes.length/2];
+                        ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(this.mask);
                     }
+                    
                 }
                 public void resizeForThumb () {
                     /*
@@ -319,6 +332,7 @@ public class AbbeFile {
                 }
                 public void setColorTable () throws IOException {
                     Length emis = omeMeta.getChannelEmissionWavelength(this.imageIndex, 0);
+                    fParams.labelsUsed.add(omeMeta.getChannelFluor(this.imageIndex, 0));
                     Number lambda = emis.value();
                     short nm = (short)(lambda.doubleValue()*1e9);
                     this.imgParams.emissionLambda = nm;
@@ -440,6 +454,7 @@ public class AbbeFile {
             }
             private void fillParams () {
                 int incChnLength = this.incChns.size();
+                this.pParams.dsIndex = this.datasetIndex;
                 this.pParams.dsTimeStamp = this.timeStampIdx;
                 this.pParams.chnNames = new String[incChnLength];
                 this.pParams.lambdas = new short[incChnLength];
@@ -483,8 +498,11 @@ public class AbbeFile {
     
 
     // AbbeFile Constructor
-    AbbeFile(Path filePath) throws FormatException, IOException, ParserConfigurationException, SAXException {
+    AbbeFile(Path filePath, int panelIndex) throws FormatException, IOException, ParserConfigurationException, SAXException {
         this.fPath = filePath;
+        this.fParams.labelsUsed = (Set) new HashSet();
+        this.fParams.fileName = filePath.getFileName().toString();
+        this.index = panelIndex;
         //  start waiting thread
         reader.setMetadataStore(omeMeta);
         reader.setId(this.fPath.toString());

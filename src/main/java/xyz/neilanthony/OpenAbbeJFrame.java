@@ -55,10 +55,12 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
     private Point panelOffset = new Point();
     final UserInterface ui;
     
+    public JPanel abbeFilesPanel = null;
+    private final List<JPanel> panelList = new ArrayList<JPanel>();    
+    
     //final private LinkedBlockingQueue<File> todoQueue = new LinkedBlockingQueue<>();
     final private ExecutorService importPool = Executors.newFixedThreadPool(4);
     private List<Future<AbbeFile>> futAbbeList = new ArrayList<Future<AbbeFile>>();
-    
     // holds information about all files dragged on to GUI
     public final Vector<AbbeFile> abbeFilesVect = new Vector<>();
     // cast to sychronized (abbeFilesVect) when multithreading
@@ -72,18 +74,18 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         Color col; return col = Color.getHSBColor(0.0f, 0.0f, (level * 0.01f));
     }
      
-    private final List<JPanel> panelList = new ArrayList<JPanel>();
+
     
     /* Creates new form OpenAbbeJFrame */
     public OpenAbbeJFrame(UserInterface ui) throws IOException, FormatException, ParserConfigurationException, SAXException {
         this.ui = ui;
-        
-        initComponents();
         //  TODO - make icon images of all sizes
         //this.setIconImages(icons);
-//        URL iconURL = getClass().getResource("icon.png");
-//        ImageIcon icon = new ImageIcon(iconURL);
-//        this.setIconImage(icon.getImage());
+        ImageIcon icon = new ImageIcon(getClass().getResource("icon.png"));
+        this.setIconImage(icon.getImage());
+
+        initComponents();
+
         
         String closeIconPath = "close.png";
         ImageIcon imgIcon_exit = new ImageIcon(
@@ -137,15 +139,28 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
                     evt.acceptDrop(DnDConstants.ACTION_COPY);
                     List<File> droppedFiles = (List<File>)
                         evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
-                    
+                    boolean newAdded = false;
                     futAbbeList.clear();
+                    int panelCount = panelList.size();
+                    System.out.println(String.format("panelList size: %d", panelCount));
                     for (File file : droppedFiles) {
                         if ( file.getPath().endsWith(".obf") | file.getPath().endsWith(".msr") ) { 
-                            Callable<AbbeFile> callable = new NewAbbeFile(file);
+                            Params.FileParams fP = new Params.FileParams();
+                            fP.fileName = file.toPath().getFileName().toString();
+                            System.out.println("NewAbbeFile Callable; creating new AbbeFilePanel");
+                            panelList.add(new AbbeFileJPanel(fP));
+                            
+                            Callable<AbbeFile> callable = new NewAbbeFile(file, panelCount);
+                            panelCount++;
                             System.out.println(String.format("Submitting %s to pool.", file.toString()));
                             Future<AbbeFile> future = importPool.submit(callable);
                             futAbbeList.add(future);
+                            newAdded = true;
                         } else { jLabel_Info.setText("Non Abberior files currently not supported.  Please drop .obf or .msr files."); }
+                    }
+                    if (newAdded) {
+                        abbeFilesPanel = createFilesPanel();
+                        jScrollPane_FilePanels.setViewportView(abbeFilesPanel);
                     }
                     Thread t = new Thread(new CheckLoadingAbbes());
                     t.start();
@@ -154,25 +169,17 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
                 }
             }
         });
-        //JPanel imagesPanel = this.createImagesPanel();
-        //jScrollPane_ImgPanels.setViewportView(imagesPanel);
+
     }
     
-    private JPanel createImagesPanel() throws IOException {
-        int N = 6;
-        Params.PanelParams pParams = new Params.PanelParams();
+    private JPanel createFilesPanel() throws IOException {
+        int N = panelList.size();
         JPanel p = new JPanel(new GridLayout(N, 1));
-        for (int i = 0; i < N; i++) {
-            int row = i;
-            int col = 1;
-            JPanel imgPanel = new AbbeImageJPanel(pParams);
-            panelList.add(imgPanel);
-            p.add(imgPanel);
-        }
+        for (int i = 0; i < N; i++) { p.add(panelList.get(i)); }
         return p;
     }
     
-    
+
     /* TODO
     create class that extends JLabel
     has text area that holds previous label text
@@ -197,11 +204,13 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         
     public class NewAbbeFile implements Callable {
         private File fname;
-        public NewAbbeFile(File f) { this.fname = f; }
+        private int index;
+        public NewAbbeFile(File f, int idx) { this.fname = f; this.index = idx; }
         @Override
         public Object call() throws Exception {
+            
             System.out.println("NewAbbeFile Callable; creating new AbbeFile");
-            AbbeFile newAbbe = new AbbeFile(fname.toPath());
+            AbbeFile newAbbe = new AbbeFile(fname.toPath(),index);
             System.out.println("NewAbbeFile Callable; scanFoldersDatasets");
             newAbbe.scanFoldersDatasets();
             System.out.println("NewAbbeFile Callable; collateFolderImages");
@@ -210,6 +219,10 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
             newAbbe.fillPanels();
             System.out.println("NewAbbeFile Callable; returning newAbbe");
             jScrollPane_ImgPanels.setViewportView(newAbbe.abbeDatasetPanels);
+            System.out.println("NewAbbeFile Callable; stopping loading thread");
+            AbbeFileJPanel abFP = (AbbeFileJPanel) (panelList.get(index));
+            abFP.loadingRunnable.stopThread();
+            
             return newAbbe;
         }
     }

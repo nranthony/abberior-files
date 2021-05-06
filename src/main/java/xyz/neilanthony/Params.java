@@ -2,6 +2,7 @@
 package xyz.neilanthony;
 
 import java.awt.image.BufferedImage;
+import java.util.Set;
 import net.imglib2.img.array.ArrayImg;
 import ome.xml.model.enums.PixelType;
 
@@ -9,6 +10,9 @@ import ome.xml.model.enums.PixelType;
 public class Params {
     
     public static class PanelParams {
+        public String dsName;
+        public int dsTimeStamp;
+        public int dsIndex;
         public BufferedImage bufImg;
         public ArrayImg arrImg;
         public int psx = 186;
@@ -16,13 +20,12 @@ public class Params {
         public int nx;
         public int ny;
         public short[] lambdas;
-        public String dsName;
-        public int dsTimeStamp;
         public String[] chnNames;
         public boolean dymin;
         public boolean rescue;
         public boolean stack;
         public boolean timeLapse;
+        public boolean panelSelected = false;
     }
     
     public static class ImageParams {
@@ -39,11 +42,17 @@ public class Params {
 
     }
     
+    public static class FileParams {
+        public String fileName;
+        public int numDatasets;
+        public Set labelsUsed;
+        
+    }
+    
 }
 
 /** TODO List:
  *                         
- *  add channel labels in loop
  *  function to pull color of channel text
  *  icons for zstack, timelapse etc
  *  icons for dymin and rescue

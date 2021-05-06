@@ -15,12 +15,14 @@ import javax.swing.JPanel;
 
 public class AbbeImageJPanel extends javax.swing.JPanel {
 
-    private Color colorBkgdPanel = Color.getHSBColor(0.0f, 0.0f, 0.13f);
-    private Color colorThumb = Color.getHSBColor(0.0f, 0.0f, 0.08f);
+    private final Color colorBkgdPanel = Color.getHSBColor(0.0f, 0.0f, 0.13f);
+    private final Color colorBkgdMouseOver = Color.getHSBColor(0.0f, 0.0f, 0.15f);
+    private final Color colorBkgdSelected = Color.getHSBColor(198f, 0.6f, 0.1f);
+    private final Color colorThumb = Color.getHSBColor(0.0f, 0.0f, 0.08f);
     private final Color colorChnText = Color.getHSBColor(0.54f, 0.46f, 0.66f);
     private Params.PanelParams p = null;
-    private JLabel thumbLabel = null;
-    private JPanel jPanel_Thumb = new JPanel();
+    private final JLabel thumbLabel = null;
+    private final JPanel jPanel_Thumb = new JPanel();
     
     // Constructor
     public AbbeImageJPanel(Params.PanelParams params) throws IOException {
@@ -71,6 +73,7 @@ public class AbbeImageJPanel extends javax.swing.JPanel {
             lab.setText(p.chnNames[i]);
             lab.setBackground(null);
             lab.setForeground(spectral_color((double) p.lambdas[i]));
+            System.out.println(String.format("Added %s - %dnm to panel", p.chnNames[i], p.lambdas[i]));
             lab.setOpaque(true);
             lab.setFont(new Font("Segoe UI Light", Font.PLAIN, 16));
             lab.setBounds(p.psx+36, 25 + (i*22), 555-p.psx-12, 22);
@@ -102,6 +105,9 @@ public class AbbeImageJPanel extends javax.swing.JPanel {
         setAlignmentX(0.0F);
         setAlignmentY(0.0F);
         addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                formMouseClicked(evt);
+            }
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 formMouseEntered(evt);
             }
@@ -154,22 +160,32 @@ public class AbbeImageJPanel extends javax.swing.JPanel {
 
     private void jPanel_PlaceHolderMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanel_PlaceHolderMouseClicked
         evt.getComponent().getParent().setBackground(Color.YELLOW);
+        //evt.getComponent().
+        // TODO - add a flag for selected or not here
     }//GEN-LAST:event_jPanel_PlaceHolderMouseClicked
 
     private void formMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseEntered
-        evt.getComponent().setBackground(Color.RED);
+        if (!p.panelSelected) {
+        evt.getComponent().setBackground(colorBkgdMouseOver);
+        }
     }//GEN-LAST:event_formMouseEntered
 
     private void formMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseExited
-        evt.getComponent().setBackground(colorBkgdPanel);
+        if (!p.panelSelected) {
+            evt.getComponent().setBackground(colorBkgdPanel);
+        }
     }//GEN-LAST:event_formMouseExited
 
-    class MyAdapter extends MouseAdapter {
-        public void mouseClicked(MouseEvent event) {
-
-            System.out.println(event.getComponent());
+    private void formMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseClicked
+        if (p.panelSelected) {
+            p.panelSelected = false;
+            evt.getComponent().setBackground(colorBkgdPanel);
+        } else {
+            p.panelSelected = true;
+            evt.getComponent().setBackground(colorBkgdSelected);
         }
-    }
+    }//GEN-LAST:event_formMouseClicked
+
     
     //  https://stackoverflow.com/a/22681410/5824166
     private Color spectral_color(double l) // RGB <0,1> <- lambda l <400,700> [nm]
