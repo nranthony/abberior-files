@@ -12,12 +12,17 @@ public class Params {
         public BufferedImage bufImg;
         public ArrayImg arrImg;
         public int psx = 186;
-        public int psy = 126;
+        public int psy = 142;
         public int nx;
         public int ny;
-        
+        public short[] lambdas;
         public String dsName;
+        public int dsTimeStamp;
         public String[] chnNames;
+        public boolean dymin;
+        public boolean rescue;
+        public boolean stack;
+        public boolean timeLapse;
     }
     
     public static class ImageParams {
@@ -26,6 +31,7 @@ public class Params {
         public int sx, sy, sz, st;
         public double dx, dy, dz, dt;
         public PixelType pxType;
+        public short emissionLambda;
     }
     
     public static class DatasetParams {

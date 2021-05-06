@@ -20,6 +20,7 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -78,6 +79,12 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         this.ui = ui;
         
         initComponents();
+        //  TODO - make icon images of all sizes
+        //this.setIconImages(icons);
+//        URL iconURL = getClass().getResource("icon.png");
+//        ImageIcon icon = new ImageIcon(iconURL);
+//        this.setIconImage(icon.getImage());
+        
         String closeIconPath = "close.png";
         ImageIcon imgIcon_exit = new ImageIcon(
                 getClass().getClassLoader().getResource(closeIconPath));

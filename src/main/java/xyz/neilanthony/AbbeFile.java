@@ -92,6 +92,8 @@ public class AbbeFile {
             for (AbbeFolder.AbbeDataset abDs : abF.abbeDatasetVect) {
                 if (abDs.addToPanel) {
                     p = abDs.pParams;
+                    p.dsName = abF.folderName;
+                    
                     JPanel dsPanel = new AbbeImageJPanel(p);
                     abbeDatasetPanels.add(dsPanel);
                 }
@@ -225,8 +227,8 @@ public class AbbeFile {
                     this.imageName = omeMeta.getImageName(imgIdx);
                     this.imgParams.pxType = omeMeta.getPixelsType(imgIdx);
                     this.imgParams.chnName = omeMeta.getChannelName(imgIdx, 0);
-                    //if (this.imageName.contains("DyMIN") | this.imageName.contains("rescue")){
-                    if (this.imgParams.pxType == PixelType.UINT8){
+                    if (this.imageName.contains("DyMIN") | this.imageName.contains("rescue")){
+                    //if (this.imgParams.pxType == PixelType.UINT8){
                         this.addToComposite = false;
                         pullMaskData(imgIdx);
                     } else {
@@ -319,6 +321,7 @@ public class AbbeFile {
                     Length emis = omeMeta.getChannelEmissionWavelength(this.imageIndex, 0);
                     Number lambda = emis.value();
                     short nm = (short)(lambda.doubleValue()*1e9);
+                    this.imgParams.emissionLambda = nm;
                     if (nm < 454) { this.lutName = "Blue.lut"; }
                     else if (nm < 490) { this.lutName = "Cyan.lut"; }
                     else if (nm < 535) { this.lutName = "Green.lut"; }
@@ -437,9 +440,12 @@ public class AbbeFile {
             }
             private void fillParams () {
                 int incChnLength = this.incChns.size();
+                this.pParams.dsTimeStamp = this.timeStampIdx;
                 this.pParams.chnNames = new String[incChnLength];
+                this.pParams.lambdas = new short[incChnLength];
                 for (int i = 0; i < incChnLength; i++) {
                     this.pParams.chnNames[i] = abbeImagesVect.get(this.incChns.get(i)).imgParams.chnName;
+                    this.pParams.lambdas[i] = abbeImagesVect.get(i).imgParams.emissionLambda;
                 }
             }
             private void checkImgComplete () {
