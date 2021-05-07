@@ -2,6 +2,8 @@
 package xyz.neilanthony;
 
 import java.awt.image.BufferedImage;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import net.imglib2.img.array.ArrayImg;
 import ome.xml.model.enums.PixelType;
@@ -9,6 +11,7 @@ import ome.xml.model.enums.PixelType;
 
 public class Params {
     
+    // parameters to pass to each dataset panel
     public static class PanelParams {
         public String dsName;
         public int dsTimeStamp;
@@ -26,8 +29,10 @@ public class Params {
         public boolean stack;
         public boolean timeLapse;
         public boolean panelSelected = false;
+        
     }
     
+    // parameters for creating ImagePlus 
     public static class ImageParams {
         public String name = "";
         public String chnName = "";
@@ -42,11 +47,13 @@ public class Params {
 
     }
     
+    // pareameters to pass to each image file panel
     public static class FileParams {
         public String fileName;
         public int numDatasets;
-        public Set labelsUsed;
-        
+        public Map<Integer,String> labelsUsed;
+        public boolean panelSelected = false;
+        public int abbeFilesVectIndex = -1;
     }
     
 }

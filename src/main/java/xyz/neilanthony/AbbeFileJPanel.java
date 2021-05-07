@@ -7,9 +7,16 @@ package xyz.neilanthony;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JLabel;
 
 /**
  *
@@ -17,30 +24,26 @@ import java.util.logging.Logger;
  */
 public class AbbeFileJPanel extends javax.swing.JPanel {
 
-    public Params.FileParams fParams = new Params.FileParams();
+    public Params.FileParams fP = new Params.FileParams();
     public LoadingRunnable loadingRunnable = new LoadingRunnable();
     public Thread loadingThread = new Thread(loadingRunnable);
-    
-    private final Color colorBkgdPanel = Color.getHSBColor(0.0f, 0.0f, 0.13f);
-    private final Color colorBkgdMouseOver = Color.getHSBColor(0.0f, 0.0f, 0.15f);
-    private final Color colorBkgdSelected = Color.getHSBColor(198f, 0.6f, 0.1f);
     
     /**
      * Creates new form AbbeFileJPanel
      */
-    public AbbeFileJPanel(Params.FileParams fP) {
+    public AbbeFileJPanel(Params.FileParams params) {
         initComponents();
 
         Dimension dim = new Dimension(198,97);
         //this.setPreferredSize(dim);
         //this.setSize(dim);
-        this.setBounds(0, 0, 198, 97);
+        //this.setBounds(0, 0, 198, 97);
         
-        this.fParams = fP;
-        this.jLabel_Filename.setText(fP.fileName);
+        this.fP = params;
+        this.jLabel_Filename.setText(params.fileName);
         this.jLabel_Filename.setForeground(Color.CYAN);
         this.jLabel_Loading.setForeground(Color.pink);
-        this.setBackground(colorBkgdPanel);
+        this.setBackground(UIColors.colorBkgdPanel);
         this.loadingThread.start();
     }
     
@@ -51,26 +54,30 @@ public class AbbeFileJPanel extends javax.swing.JPanel {
         private double timeCounter = 0.0;
         private char[] dots = new char[dotMax];
         private String[] dotStrs = new String[dotMax];
-
-//        {
-//            for (char c : dots) { c = '.'; }
-//        }
         
         private boolean stopThreadNow = false;
-        public synchronized void stopThread() { this.stopThreadNow = true; }
+        public synchronized void stopThread(Map labelHashMap) {
+            this.stopThreadNow = true;
+            jLabel_Loading.setText("Done");
+            try { Thread.sleep(300);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(AbbeFileJPanel.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            displayLabelsUsed(labelHashMap);
+        }
         private synchronized boolean keepRunning() { return this.stopThreadNow == false; }
-        
-//        public LoadingRunnable() {
-//            for (char c : dots) { c = '.'; }
-//        }
-        
+
         private void updateLoadingLabel () {
+            if (this.stopThreadNow) {
+                jLabel_Loading.setText("Complete");
+                return;
+            }
             double dotFraction;
             dotFraction = Math.round ( Math.abs(
-                                Math.sin(timeCounter) * Double.valueOf(dotMax) ));
+                                Math.sin(timeCounter) * Double.valueOf(dotMax-1) ));
 //            jLabel_Loading.setText(String.format("Loading%s",
 //                    String.valueOf(Arrays.copyOfRange(dots, 0, (int)dotFraction))));
-            jLabel_Loading.setText(String.format("Loading%s",dotStrs[((int)dotFraction)-1]));
+            jLabel_Loading.setText(String.format("Loading%s",dotStrs[((int)dotFraction)]));
             timeCounter += 0.2;
         }
         
@@ -90,6 +97,7 @@ public class AbbeFileJPanel extends javax.swing.JPanel {
             dotStrs[10] = "..........";
             dotStrs[11] = "...........";
            
+//            for (char c : dots) { c = '.'; }
             while (keepRunning()) {
                 updateLoadingLabel();
                 
@@ -114,8 +122,14 @@ public class AbbeFileJPanel extends javax.swing.JPanel {
 
         setMaximumSize(new java.awt.Dimension(198, 97));
         addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                formMouseClicked(evt);
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                formMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                formMouseExited(evt);
+            }
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                formMousePressed(evt);
             }
         });
 
@@ -134,7 +148,7 @@ public class AbbeFileJPanel extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel_Filename)
                     .addComponent(jLabel_Loading))
-                .addContainerGap(19, Short.MAX_VALUE))
+                .addContainerGap(97, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -143,13 +157,57 @@ public class AbbeFileJPanel extends javax.swing.JPanel {
                 .addComponent(jLabel_Filename)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel_Loading)
-                .addContainerGap(35, Short.MAX_VALUE))
+                .addContainerGap(50, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private void formMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseClicked
-        //
-    }//GEN-LAST:event_formMouseClicked
+    public boolean fileSelected() {
+        return fP.panelSelected;
+    }
+    
+    private void testParent() {
+        
+    }
+    
+    private void displayLabelsUsed (Map labelHashMap) {
+//        List<JLabel> labels;
+//        labels = new ArrayList<JLabel>();
+        //Map.Entry eSet = labelHashMap.entrySet();
+        this.remove(jLabel_Loading);
+        
+        int i = 0;
+        for(Object key : labelHashMap.keySet() ) {
+            JLabel lab = new JLabel();
+            lab.setText((String) labelHashMap.get((Integer)key));
+            lab.setBackground(null);
+            lab.setForeground(Spectral.spectral_color(((Integer)key).doubleValue()));
+            lab.setOpaque(true);
+            lab.setFont(new Font("Segoe UI Light", Font.PLAIN, 16));
+            lab.setBounds(40, 45 + (i*22), 200, 22);
+            i++;
+//            labels.add(lab);
+            this.add(lab);
+        }
+        this.getParent().revalidate();
+    }
+    
+    private void formMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMousePressed
+        if (fP.panelSelected) {
+            fP.panelSelected = false;
+            evt.getComponent().setBackground(UIColors.colorBkgdPanel);
+        } else {
+            fP.panelSelected = true;
+            evt.getComponent().setBackground(UIColors.colorBkgdSelected);
+        }
+    }//GEN-LAST:event_formMousePressed
+
+    private void formMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseEntered
+        // TODO add your handling code here:
+    }//GEN-LAST:event_formMouseEntered
+
+    private void formMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseExited
+        // TODO add your handling code here:
+    }//GEN-LAST:event_formMouseExited
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

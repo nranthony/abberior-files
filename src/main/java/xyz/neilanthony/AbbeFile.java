@@ -69,7 +69,6 @@ public class AbbeFile {
     
     private String omexml = null;
     private Document xmlDoc = null;
-    public int index = -1;
     private Path fPath = null;
     public Params.FileParams fParams = new Params.FileParams();
     
@@ -81,50 +80,18 @@ public class AbbeFile {
     An array of Lists, where each list contains the imageIdxs in that dataset */
     private ArrayList<Integer>[] datImgLsts;
     
-    public void fillPanels () throws IOException {
-        //  for each dataset
-        //  create AbbeImageJPanel and add to abbeDatasetPanels
-        // panelCount++ currently in AbbeDataset.checkImgComplete
-        abbeDatasetPanels = new JPanel(new GridLayout(panelCount, 1));
-        Params.PanelParams p = null;
-        
-        int col = 1;
-        int row = 0;
-        for (AbbeFolder abF : abbeFolderVect) {
-            for (AbbeFolder.AbbeDataset abDs : abF.abbeDatasetVect) {
-                if (abDs.addToPanel) {
-                    p = abDs.pParams;
-                    p.dsName = abF.folderName;
-                    
-                    JPanel dsPanel = new AbbeImageJPanel(p);
-                    abbeDatasetPanels.add(dsPanel);
-                }
-                
-            }
-        }
+    // AbbeFile Constructor
+    AbbeFile(Path filePath, int abbeFileVectIndex) throws FormatException, IOException, ParserConfigurationException, SAXException {
+        this.fPath = filePath;
+        this.fParams.labelsUsed = new HashMap<Integer,String>();
+        this.fParams.fileName = filePath.getFileName().toString();
+        this.fParams.abbeFilesVectIndex = abbeFileVectIndex;
+        //  start waiting thread
+        reader.setMetadataStore(omeMeta);
+        reader.setId(this.fPath.toString());
+        // end waiting thread
     }
-    
-    /**
-     * for each image in dataset
-     *      pull data
-     *      resize for thumb
-     *      rescale to uint8, but keep in short, for applying RGB LUTs
-     *      get color and LUT
-     * for each dataset
-     *      overlay/blend colors into RGB for display
-     *      get image info for making ImagePlus
-     *      fill params and create panel
-     */
-    public void pullImageInfo () {
-//        reader.	getChannelEmissionWavelength(int imageIndex, int channelIndex)
-//        reader.getChannelFluor(int imageIndex, int channelIndex)
-//        reader.	getChannelColor(int imageIndex, int channelIndex)
-//        
-//        	getPixelsDimensionOrder(int imageIndex)
-//                	getPixelsPhysicalSizeX(int imageIndex)
-//                        Y & Z
-                                
-    }
+
 
     /** Nested classes AbbeFolder -> AbbeDataset -> AbbeImage
      * requires the images in each dataset be predetermined before
@@ -332,10 +299,10 @@ public class AbbeFile {
                 }
                 public void setColorTable () throws IOException {
                     Length emis = omeMeta.getChannelEmissionWavelength(this.imageIndex, 0);
-                    fParams.labelsUsed.add(omeMeta.getChannelFluor(this.imageIndex, 0));
                     Number lambda = emis.value();
                     short nm = (short)(lambda.doubleValue()*1e9);
                     this.imgParams.emissionLambda = nm;
+                    fParams.labelsUsed.put((int)nm, omeMeta.getChannelFluor(this.imageIndex, 0));
                     if (nm < 454) { this.lutName = "Blue.lut"; }
                     else if (nm < 490) { this.lutName = "Cyan.lut"; }
                     else if (nm < 535) { this.lutName = "Green.lut"; }
@@ -495,24 +462,54 @@ public class AbbeFile {
                 }
             }
         }
+
     
-
-    // AbbeFile Constructor
-    AbbeFile(Path filePath, int panelIndex) throws FormatException, IOException, ParserConfigurationException, SAXException {
-        this.fPath = filePath;
-        this.fParams.labelsUsed = (Set) new HashSet();
-        this.fParams.fileName = filePath.getFileName().toString();
-        this.index = panelIndex;
-        //  start waiting thread
-        reader.setMetadataStore(omeMeta);
-        reader.setId(this.fPath.toString());
-        // end waiting thread
+    public void fillPanels () throws IOException {
+        //  for each dataset
+        //  create AbbeDatasetJPanel and add to abbeDatasetPanels
+        // panelCount++ currently in AbbeDataset.checkImgComplete
+        this.abbeDatasetPanels = new JPanel(new GridLayout(panelCount, 1, 4, 11));
+        this.abbeDatasetPanels.setBackground(Color.black);
+        Params.PanelParams p = null;
+        
+        int col = 1;
+        int row = 0;
+        for (AbbeFolder abF : abbeFolderVect) {
+            for (AbbeFolder.AbbeDataset abDs : abF.abbeDatasetVect) {
+                if (abDs.addToPanel) {
+                    p = abDs.pParams;
+                    p.dsName = abF.folderName;
+                    
+                    JPanel dsPanel = new AbbeDatasetJPanel(p);
+                    abbeDatasetPanels.add(dsPanel);
+                }
+                
+            }
+        }
     }
-
-    public void setIndex (int index) {
-        this.index = index;
+    
+    /**
+     * for each image in dataset
+     *      pull data
+     *      resize for thumb
+     *      rescale to uint8, but keep in short, for applying RGB LUTs
+     *      get color and LUT
+     * for each dataset
+     *      overlay/blend colors into RGB for display
+     *      get image info for making ImagePlus
+     *      fill params and create panel
+     */
+    public void pullImageInfo () {
+//        reader.	getChannelEmissionWavelength(int imageIndex, int channelIndex)
+//        reader.getChannelFluor(int imageIndex, int channelIndex)
+//        reader.	getChannelColor(int imageIndex, int channelIndex)
+//        
+//        	getPixelsDimensionOrder(int imageIndex)
+//                	getPixelsPhysicalSizeX(int imageIndex)
+//                        Y & Z
+                                
     }
-
+    
      /**
      * Scans AbbeFile omeMeta for all Datasets and creates Folders.
      * Datasets are stored in datImgLsts variable in AbbeFile class
@@ -672,14 +669,6 @@ public class AbbeFile {
     String decodeUTF8(byte[] bytes) {
         return new String(bytes, UTF8_CHARSET);
     }
-    
-//    static short maxShort (short[] sArr) {
-//        short max = 0;
-//        for (int i=0; i<sArr.length; i++){
-//            if (sArr[i] > max) { max = sArr[i]; }
-//        }
-//        return max;
-//    }
     
     /* old functions - review for deletion */
     

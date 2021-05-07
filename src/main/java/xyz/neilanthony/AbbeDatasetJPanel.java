@@ -13,7 +13,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 
-public class AbbeImageJPanel extends javax.swing.JPanel {
+public class AbbeDatasetJPanel extends javax.swing.JPanel {
 
     private final Color colorBkgdPanel = Color.getHSBColor(0.0f, 0.0f, 0.13f);
     private final Color colorBkgdMouseOver = Color.getHSBColor(0.0f, 0.0f, 0.15f);
@@ -25,7 +25,7 @@ public class AbbeImageJPanel extends javax.swing.JPanel {
     private final JPanel jPanel_Thumb = new JPanel();
     
     // Constructor
-    public AbbeImageJPanel(Params.PanelParams params) throws IOException {
+    public AbbeDatasetJPanel(Params.PanelParams params) throws IOException {
         initComponents();
         
         this.p = params;
@@ -72,7 +72,7 @@ public class AbbeImageJPanel extends javax.swing.JPanel {
             JLabel lab = new JLabel();
             lab.setText(p.chnNames[i]);
             lab.setBackground(null);
-            lab.setForeground(spectral_color((double) p.lambdas[i]));
+            lab.setForeground(Spectral.spectral_color((double) p.lambdas[i]));
             System.out.println(String.format("Added %s - %dnm to panel", p.chnNames[i], p.lambdas[i]));
             lab.setOpaque(true);
             lab.setFont(new Font("Segoe UI Light", Font.PLAIN, 16));
@@ -168,13 +168,13 @@ public class AbbeImageJPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_formMouseExited
 
     private void formMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseClicked
-        if (p.panelSelected) {
-            p.panelSelected = false;
-            evt.getComponent().setBackground(colorBkgdPanel);
-        } else {
-            p.panelSelected = true;
-            evt.getComponent().setBackground(colorBkgdSelected);
-        }
+//        if (p.panelSelected) {
+//            p.panelSelected = false;
+//            evt.getComponent().setBackground(colorBkgdPanel);
+//        } else {
+//            p.panelSelected = true;
+//            evt.getComponent().setBackground(colorBkgdSelected);
+//        }
     }//GEN-LAST:event_formMouseClicked
 
     private void formMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMousePressed
@@ -186,29 +186,6 @@ public class AbbeImageJPanel extends javax.swing.JPanel {
             evt.getComponent().setBackground(colorBkgdSelected);
         }
     }//GEN-LAST:event_formMousePressed
-
-    
-    //  https://stackoverflow.com/a/22681410/5824166
-    private Color spectral_color(double l) // RGB <0,1> <- lambda l <400,700> [nm]
-    {
-        double t;
-        double r=0.0;
-        double g=0.0;
-        double b=0.0;
-             if ((l>=400.0)&&(l<410.0)) { t=(l-400.0)/(410.0-400.0); r=    +(0.33*t)-(0.20*t*t); }
-        else if ((l>=410.0)&&(l<475.0)) { t=(l-410.0)/(475.0-410.0); r=0.14         -(0.13*t*t); }
-        else if ((l>=545.0)&&(l<595.0)) { t=(l-545.0)/(595.0-545.0); r=    +(1.98*t)-(     t*t); }
-        else if ((l>=595.0)&&(l<650.0)) { t=(l-595.0)/(650.0-595.0); r=0.98+(0.06*t)-(0.40*t*t); }
-        else if ((l>=650.0)&&(l<700.0)) { t=(l-650.0)/(700.0-650.0); r=0.65-(0.84*t)+(0.20*t*t); }
-             if ((l>=415.0)&&(l<475.0)) { t=(l-415.0)/(475.0-415.0); g=             +(0.80*t*t); }
-        else if ((l>=475.0)&&(l<590.0)) { t=(l-475.0)/(590.0-475.0); g=0.8 +(0.76*t)-(0.80*t*t); }
-        else if ((l>=585.0)&&(l<639.0)) { t=(l-585.0)/(639.0-585.0); g=0.84-(0.84*t)           ; }
-             if ((l>=400.0)&&(l<475.0)) { t=(l-400.0)/(475.0-400.0); b=    +(2.20*t)-(1.50*t*t); }
-        else if ((l>=475.0)&&(l<560.0)) { t=(l-475.0)/(560.0-475.0); b=0.7 -(     t)+(0.30*t*t); }
-             
-        return new Color((float)r,(float)g,(float)b);
-    }
-    
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel_ImageName;
