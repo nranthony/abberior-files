@@ -250,7 +250,7 @@ public class AbbeFile {
                     imgParams.st = reader.getSizeT();
                     
                     // TODO - consider z-stacks and time-lapses here
-                    int zPlane = (imgParams.sz + 1) / 2;
+                    int zPlane = ( (imgParams.sz + 1) / 2 ) - 1;
                     Object dat = reader.openPlane(zPlane, 0, 0, imgParams.sx, imgParams.sy);
                     byte[] bytes = (byte[])dat;
                     this.data = new short[bytes.length/2];

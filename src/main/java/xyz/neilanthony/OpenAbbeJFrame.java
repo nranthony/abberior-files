@@ -77,16 +77,15 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
 
     
     /* Creates new form OpenAbbeJFrame */
-    public OpenAbbeJFrame(UserInterface ui) throws IOException, FormatException, ParserConfigurationException, SAXException {
+    public OpenAbbeJFrame(UserInterface ui) throws FormatException, ParserConfigurationException, SAXException {
         this.ui = ui;
         //  TODO - make icon images of all sizes
         //this.setIconImages(icons);
-        ImageIcon icon = new ImageIcon(getClass().getResource("icon.png"));
-        this.setIconImage(icon.getImage());
+//        ImageIcon icon = new ImageIcon(getClass().getResource("icon.png"));
+//        this.setIconImage(icon.getImage());
 
         initComponents();
 
-        
         String closeIconPath = "close.png";
         ImageIcon imgIcon_exit = new ImageIcon(
                 getClass().getClassLoader().getResource(closeIconPath));
@@ -160,6 +159,7 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
                     }
                     if (newAdded) {
                         abbeFilesPanel = createFilesPanel();
+                        jScrollPane_FilePanels.getViewport().setViewSize(new Dimension(200,panelCount*103));
                         jScrollPane_FilePanels.setViewportView(abbeFilesPanel);
                     }
                     Thread t = new Thread(new CheckLoadingAbbes());
@@ -291,8 +291,6 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         jScrollPane_FilePanels = new javax.swing.JScrollPane();
         jLabel_Info = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        jTextArea2 = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(32, 32, 32));
@@ -349,6 +347,11 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
 
         jScrollPane_FilePanels.setBorder(null);
         jScrollPane_FilePanels.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        jScrollPane_FilePanels.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jScrollPane_FilePanelsMouseClicked(evt);
+            }
+        });
 
         jLabel_Info.setFont(new java.awt.Font("Segoe UI Semilight", 0, 16)); // NOI18N
         jLabel_Info.setForeground(new java.awt.Color(204, 204, 204));
@@ -361,10 +364,6 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
             }
         });
 
-        jTextArea2.setColumns(20);
-        jTextArea2.setRows(5);
-        jScrollPane2.setViewportView(jTextArea2);
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -373,19 +372,14 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jScrollPane_FilePanels)
-                            .addGroup(layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(jButton1)
-                                .addGap(0, 0, Short.MAX_VALUE)))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))
-                    .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 391, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jLabel_Info, javax.swing.GroupLayout.DEFAULT_SIZE, 661, Short.MAX_VALUE)
+                        .addComponent(jButton1))
+                    .addComponent(jScrollPane_FilePanels, javax.swing.GroupLayout.PREFERRED_SIZE, 259, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(jLabel_Info, javax.swing.GroupLayout.PREFERRED_SIZE, 661, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jScrollPane_ImgPanels))
                 .addContainerGap())
         );
@@ -398,12 +392,9 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
                     .addComponent(jLabel_Info, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(jScrollPane_ImgPanels, javax.swing.GroupLayout.PREFERRED_SIZE, 865, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane2)
-                        .addGap(18, 18, 18)
-                        .addComponent(jScrollPane_FilePanels, javax.swing.GroupLayout.PREFERRED_SIZE, 467, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jScrollPane_ImgPanels, javax.swing.GroupLayout.DEFAULT_SIZE, 865, Short.MAX_VALUE)
+                    .addComponent(jScrollPane_FilePanels)))
         );
 
         pack();
@@ -426,31 +417,41 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jPanel_exitButtonMouseReleased
 
     private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked
-       fileFolderDatasetImage();
+       //fileFolderDatasetImage();
     }//GEN-LAST:event_jButton1MouseClicked
+
+    private void jScrollPane_FilePanelsMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jScrollPane_FilePanelsMouseClicked
+        System.out.println(String.format("Component Clicked: %s, Parent: %s",
+                evt.getComponent().toString(), evt.getComponent().getParent().toString()));
+        int x = evt.getX();
+        int y = evt.getY();
+        System.out.println(String.format("Clicked x: %d y: %d, : %s",
+                x,y,evt.getComponent().getComponentAt(x, y).toString()) );
+        
+    }//GEN-LAST:event_jScrollPane_FilePanelsMouseClicked
     
-    public void fileFolderDatasetImage () {
-        for (AbbeFile abFile : abbeFilesVect) {
-            for (AbbeFile.AbbeFolder abFldr : abFile.abbeFolderVect) {
-                jTextArea2.append(String.format("%s TSC%d",
-                            abFldr.folderName,
-                            abFldr.timeStampCounter) + System.lineSeparator());
-                for (AbbeFile.AbbeFolder.AbbeDataset abDs : abFldr.abbeDatasetVect) {
-                    jTextArea2.append(String.format("%s pnl: %b TS%d",
-                            abDs.datasetName,
-                            abDs.addToPanel,
-                            abDs.timeStampIdx) + System.lineSeparator());
-                    for (AbbeFile.AbbeFolder.AbbeDataset.AbbeImage abImg : abDs.abbeImagesVect) {
-                        jTextArea2.append(String.format("%s cmpst: %b %s %s",
-                                abImg.imageName,
-                                abImg.addToComposite,
-                                abImg.imgParams.chnName,
-                                abImg.imgParams.pxType.toString()) + System.lineSeparator());
-                    }
-                }
-            }
-        }
-    }
+//    public void fileFolderDatasetImage () {
+//        for (AbbeFile abFile : abbeFilesVect) {
+//            for (AbbeFile.AbbeFolder abFldr : abFile.abbeFolderVect) {
+//                jTextArea2.append(String.format("%s TSC%d",
+//                            abFldr.folderName,
+//                            abFldr.timeStampCounter) + System.lineSeparator());
+//                for (AbbeFile.AbbeFolder.AbbeDataset abDs : abFldr.abbeDatasetVect) {
+//                    jTextArea2.append(String.format("%s pnl: %b TS%d",
+//                            abDs.datasetName,
+//                            abDs.addToPanel,
+//                            abDs.timeStampIdx) + System.lineSeparator());
+//                    for (AbbeFile.AbbeFolder.AbbeDataset.AbbeImage abImg : abDs.abbeImagesVect) {
+//                        jTextArea2.append(String.format("%s cmpst: %b %s %s",
+//                                abImg.imageName,
+//                                abImg.addToComposite,
+//                                abImg.imgParams.chnName,
+//                                abImg.imgParams.pxType.toString()) + System.lineSeparator());
+//                    }
+//                }
+//            }
+//        }
+//    }
     
     /**
      * @param args the command line arguments
@@ -489,10 +490,8 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel_Info;
     private javax.swing.JPanel jPanel_exitButton;
     private javax.swing.JPanel jPanel_topBar;
-    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane_FilePanels;
     private javax.swing.JScrollPane jScrollPane_ImgPanels;
     private javax.swing.JTextArea jTextArea1;
-    private javax.swing.JTextArea jTextArea2;
     // End of variables declaration//GEN-END:variables
 }

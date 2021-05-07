@@ -62,7 +62,7 @@ public class OpenAbberior<T extends RealType<T>> implements Command {
         OpenAbbeJFrame AbbeFrame = null;
         try {
             AbbeFrame = new OpenAbbeJFrame(ui);
-        } catch (IOException | FormatException | ParserConfigurationException | SAXException ex) {
+        } catch (FormatException | ParserConfigurationException | SAXException ex) {
             Logger.getLogger(OpenAbberior.class.getName()).log(Level.SEVERE, null, ex);
         }
         AbbeFrame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);

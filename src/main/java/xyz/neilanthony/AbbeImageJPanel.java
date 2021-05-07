@@ -17,7 +17,7 @@ public class AbbeImageJPanel extends javax.swing.JPanel {
 
     private final Color colorBkgdPanel = Color.getHSBColor(0.0f, 0.0f, 0.13f);
     private final Color colorBkgdMouseOver = Color.getHSBColor(0.0f, 0.0f, 0.15f);
-    private final Color colorBkgdSelected = Color.getHSBColor(198f, 0.6f, 0.1f);
+    private final Color colorBkgdSelected = Color.getHSBColor(0.55f, 0.6f, 0.1f);
     private final Color colorThumb = Color.getHSBColor(0.0f, 0.0f, 0.08f);
     private final Color colorChnText = Color.getHSBColor(0.54f, 0.46f, 0.66f);
     private Params.PanelParams p = null;
@@ -114,16 +114,13 @@ public class AbbeImageJPanel extends javax.swing.JPanel {
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 formMouseExited(evt);
             }
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                formMousePressed(evt);
+            }
         });
 
         jLabel_ImageName.setFont(new java.awt.Font("Segoe UI Light", 1, 18)); // NOI18N
         jLabel_ImageName.setText("Image Name Goes Here");
-
-        jPanel_PlaceHolder.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jPanel_PlaceHolderMouseClicked(evt);
-            }
-        });
 
         javax.swing.GroupLayout jPanel_PlaceHolderLayout = new javax.swing.GroupLayout(jPanel_PlaceHolder);
         jPanel_PlaceHolder.setLayout(jPanel_PlaceHolderLayout);
@@ -158,12 +155,6 @@ public class AbbeImageJPanel extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jPanel_PlaceHolderMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanel_PlaceHolderMouseClicked
-        evt.getComponent().getParent().setBackground(Color.YELLOW);
-        //evt.getComponent().
-        // TODO - add a flag for selected or not here
-    }//GEN-LAST:event_jPanel_PlaceHolderMouseClicked
-
     private void formMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseEntered
         if (!p.panelSelected) {
         evt.getComponent().setBackground(colorBkgdMouseOver);
@@ -185,6 +176,16 @@ public class AbbeImageJPanel extends javax.swing.JPanel {
             evt.getComponent().setBackground(colorBkgdSelected);
         }
     }//GEN-LAST:event_formMouseClicked
+
+    private void formMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMousePressed
+        if (p.panelSelected) {
+            p.panelSelected = false;
+            evt.getComponent().setBackground(colorBkgdPanel);
+        } else {
+            p.panelSelected = true;
+            evt.getComponent().setBackground(colorBkgdSelected);
+        }
+    }//GEN-LAST:event_formMousePressed
 
     
     //  https://stackoverflow.com/a/22681410/5824166
