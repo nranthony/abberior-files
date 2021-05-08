@@ -201,6 +201,7 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         }
     }
     
+    
     public class FilePanelMouseEvent implements MouseListener {
         @Override
         public void mouseClicked(MouseEvent e) {

@@ -92,6 +92,7 @@ public class AbbeFile {
         // end waiting thread
     }
 
+    
 
     /** Nested classes AbbeFolder -> AbbeDataset -> AbbeImage
      * requires the images in each dataset be predetermined before
@@ -525,15 +526,18 @@ public class AbbeFile {
     public void scanFoldersDatasets() throws FormatException, IOException {
         // fill datImgLsts with image indicies for all datasets
         int datasetCount = omeMeta.getDatasetCount();
-        int imgCount = -1;
+        int imgRefCount = -1;
+        int imageCounter = 0;
         String imgID;
         datImgLsts = new ArrayList[datasetCount];
         for (int i = 0; i < datasetCount; i++) {  //  for each dataset
-            imgCount = omeMeta.getDatasetImageRefCount(i);
+            imgRefCount = omeMeta.getDatasetImageRefCount(i);
             datImgLsts[i] = new ArrayList<>();
-            for (int j = 0; j < imgCount; j++) {  //  for each image in each dataset
+            for (int j = 0; j < imgRefCount; j++) {  //  for each image in each dataset
                 imgID = omeMeta.getDatasetImageRef(i, j);
-                datImgLsts[i].add(j, Integer.valueOf(imgID.replace("Image:", ""))-1);
+                //datImgLsts[i].add(j, Integer.valueOf(imgID.replace("Image:", ""))-1); // inconsistent when images/dataset deleted/editted
+                datImgLsts[i].add(j, imageCounter);
+                imageCounter++;
             }
         }
         // create folder objects

@@ -4,7 +4,8 @@ def get_bytes_from_file(filename):
 
 #fname = r"C:\temp-data\abberior_obf_examples\Sample 7.obf"
 #fname = r"C:\\ici-cloud-sections\\WBRB Abberior STED\\2021\\Neil\\2021-03-17\\Ab4C_02.obf"
-fname = r"C:\\ici-cloud-sections\\WBRB Abberior STED\\2020\\ICI\\Neil\\npcs_5.obf"
+# fname = r"C:\\ici-cloud-sections\\WBRB Abberior STED\\2020\\ICI\\Neil\\npcs_5.obf"
+fname = r"C:\\ici-cloud-sections\\WBRB Abberior STED\\2021\\Neil\\2021-03-17\\Ab4C_drift.obf"
 fbytes = get_bytes_from_file(fname)
 
 i = 5
