@@ -137,6 +137,7 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
                         if ( file.getPath().endsWith(".obf") | file.getPath().endsWith(".msr") ) { 
                             Params.FileParams fP = new Params.FileParams();
                             fP.fileName = file.toPath().getFileName().toString();
+                            fP.abbeFilesVectIndex = panelCount;
                             System.out.println("NewAbbeFile Callable; creating new AbbeFilePanel");
                             panelList.add(new AbbeFileJPanel(fP));
                             
@@ -208,7 +209,9 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         @Override
         public void mousePressed(MouseEvent e) {
             //System.out.println("FilePanelMouseEvent MouseListener mousePressed");
-            int idx = ((AbbeFileJPanel)e.getSource()).fP.abbeFilesVectIndex;
+            AbbeFileJPanel abFP = (AbbeFileJPanel) e.getComponent();
+            int idx = abFP.fP.abbeFilesVectIndex;
+//            int idx = ((AbbeFileJPanel)e.getSource()).fP.abbeFilesVectIndex;
             jScrollPane_ImgPanels.setViewportView(abbeFilesVect.get(idx).abbeDatasetPanels);
         }
         @Override

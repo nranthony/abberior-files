@@ -30,11 +30,6 @@ public class AbbeFileJPanel extends javax.swing.JPanel {
      */
     public AbbeFileJPanel(Params.FileParams params) {
         initComponents();
-
-        Dimension dim = new Dimension(198,97);
-        //this.setPreferredSize(dim);
-        //this.setSize(dim);
-        //this.setBounds(0, 0, 198, 97);
         
         this.fP = params;
         this.jLabel_Filename.setText(params.fileName);
@@ -163,10 +158,9 @@ public class AbbeFileJPanel extends javax.swing.JPanel {
     }
     
     private void displayLabelsUsed (Map labelHashMap) {
-//        List<JLabel> labels;
-//        labels = new ArrayList<JLabel>();
-        //Map.Entry eSet = labelHashMap.entrySet();
+        
         this.remove(jLabel_Loading);
+        fP.labelsUsed = labelHashMap;
         
         int i = 0;
         for(Object key : labelHashMap.keySet() ) {
@@ -178,7 +172,6 @@ public class AbbeFileJPanel extends javax.swing.JPanel {
             lab.setFont(new Font("Segoe UI Light", Font.PLAIN, 16));
             lab.setBounds(40, 45 + (i*22), 200, 22);
             i++;
-//            labels.add(lab);
             this.add(lab);
         }
         fP.panelSelected = true;
