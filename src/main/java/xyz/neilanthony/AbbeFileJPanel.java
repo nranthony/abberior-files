@@ -1,13 +1,10 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package xyz.neilanthony;
 
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -165,10 +162,6 @@ public class AbbeFileJPanel extends javax.swing.JPanel {
         return fP.panelSelected;
     }
     
-    private void testParent() {
-        
-    }
-    
     private void displayLabelsUsed (Map labelHashMap) {
 //        List<JLabel> labels;
 //        labels = new ArrayList<JLabel>();
@@ -188,7 +181,10 @@ public class AbbeFileJPanel extends javax.swing.JPanel {
 //            labels.add(lab);
             this.add(lab);
         }
-        this.getParent().revalidate();
+        fP.panelSelected = true;
+        this.setBackground(UIColors.colorBkgdSelected);
+        this.revalidate();
+        this.repaint();
     }
     
     private void formMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMousePressed

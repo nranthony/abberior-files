@@ -15,6 +15,8 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -197,7 +199,32 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
             
         }
     }
-        
+    
+    public class FilePanelMouseEvent implements MouseListener {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            //System.out.println("FilePanelMouseEvent MouseListener mouseClicked");
+        }
+        @Override
+        public void mousePressed(MouseEvent e) {
+            //System.out.println("FilePanelMouseEvent MouseListener mousePressed");
+            int idx = ((AbbeFileJPanel)e.getSource()).fP.abbeFilesVectIndex;
+            jScrollPane_ImgPanels.setViewportView(abbeFilesVect.get(idx).abbeDatasetPanels);
+        }
+        @Override
+        public void mouseReleased(MouseEvent e) {
+            //System.out.println("FilePanelMouseEvent MouseListener mouseReleased");
+        }
+        @Override
+        public void mouseEntered(MouseEvent e) {
+            //System.out.println("FilePanelMouseEvent MouseListener mouseEntered");
+        }
+        @Override
+        public void mouseExited(MouseEvent e) {
+            //System.out.println("FilePanelMouseEvent MouseListener mouseExited");
+        }
+    }
+    
     public class NewAbbeFile implements Callable {
         private File fname;
         private int index;
@@ -218,9 +245,7 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
             System.out.println("NewAbbeFile Callable; stopping loading thread");
             AbbeFileJPanel abFP = (AbbeFileJPanel) (panelList.get(index));
             abFP.loadingRunnable.stopThread(newAbbe.fParams.labelsUsed);
-            
-            
-            
+            abFP.addMouseListener(new FilePanelMouseEvent());
             return newAbbe;
         }
     }
@@ -340,11 +365,6 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
 
         jScrollPane_FilePanels.setBorder(null);
         jScrollPane_FilePanels.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        jScrollPane_FilePanels.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mousePressed(java.awt.event.MouseEvent evt) {
-                jScrollPane_FilePanelsMousePressed(evt);
-            }
-        });
 
         jLabel_Info.setFont(new java.awt.Font("Segoe UI Semilight", 0, 16)); // NOI18N
         jLabel_Info.setForeground(new java.awt.Color(204, 204, 204));
@@ -412,19 +432,14 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
     private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked
        //fileFolderDatasetImage();
     }//GEN-LAST:event_jButton1MouseClicked
-
-    private void jScrollPane_FilePanelsMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jScrollPane_FilePanelsMousePressed
-        
-        System.out.println(String.format("Component %s at (%d,%d): %s",
-                evt.getComponent().toString(),
-                evt.getX(),evt.getY(),
-                evt.getComponent().getComponentAt(evt.getPoint()).toString()));
-//        setDatasetsPanel((AbbeFileJPanel)abFilePanel.fP.abbeFilesVectIndex);
-    }//GEN-LAST:event_jScrollPane_FilePanelsMousePressed
-    public void setDatasetsPanel(int abbeFilesVectIndex) {
-        jScrollPane_ImgPanels.setViewportView(
-                abbeFilesVect.get(abbeFilesVectIndex).abbeDatasetPanels);
-    }
+    
+//    public static void setDatasetsPanel(int abbeFilesVectIndex) {
+//        AbbeFile abF = abbeFilesVectIndex.get(abbeFilesVectIndex);
+//        
+//    }
+//    public void setDatasetsViewport (JPanel p) {
+//        jScrollPane_ImgPanels.setViewportView(p);
+//    }
     
     private void getSelectedFilePanels () {
         boolean selected;

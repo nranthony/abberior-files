@@ -131,9 +131,6 @@
         </Property>
         <Property name="horizontalScrollBarPolicy" type="int" value="31"/>
       </Properties>
-      <Events>
-        <EventHandler event="mousePressed" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="jScrollPane_FilePanelsMousePressed"/>
-      </Events>
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
     </Container>
