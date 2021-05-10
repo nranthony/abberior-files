@@ -4,6 +4,8 @@ Used to encapsulate all the information required for each Abberior file thats im
 */
 package xyz.neilanthony;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import static com.google.common.primitives.Shorts.max;
 import java.awt.image.BufferedImage;
 import java.io.FileInputStream;
@@ -32,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -78,7 +81,9 @@ public class AbbeFile {
     private String[] folderNames = null;
     /* array of associated indxs  -  List<imageIndx>[datasetIndx]
     An array of Lists, where each list contains the imageIdxs in that dataset */
-    private ArrayList<Integer>[] datImgLsts;
+    //private ArrayList<Integer>[] datImgLsts;
+    // change to BFIdxPair pairs for bioformats index paired with imageIDStr
+    private ArrayList<BFIdxPair>[] datImgLsts;
     
     // AbbeFile Constructor
     AbbeFile(Path filePath, int abbeFileVectIndex) throws FormatException, IOException, ParserConfigurationException, SAXException {
@@ -90,9 +95,15 @@ public class AbbeFile {
         reader.setMetadataStore(omeMeta);
         reader.setId(this.fPath.toString());
         // end waiting thread
+        System.out.println("AbbeFile consructor");
     }
 
+    public static class BFIdxPair {
+        public int bfIndex; // bioformats will index from 0,1,2 ... (n-1) 
+        public int idIdx; // ID index is # in ID string, e.g. ID="Image:7"
+    }
     
+    private final Map<Integer,Integer> bfIDmap = new HashMap<>();
 
     /** Nested classes AbbeFolder -> AbbeDataset -> AbbeImage
      * requires the images in each dataset be predetermined before
@@ -102,7 +113,7 @@ public class AbbeFile {
     public class AbbeFolder {
         
         public String folderName;
-        public String folderID;
+        public String folderIDStr;
         public int folderIndex = -1;
         public int timeStampCounter = 0;
         // TODO - add subfolder count and list; add roi count and list
@@ -110,25 +121,30 @@ public class AbbeFile {
         public final ArrayList<AbbeDataset> abbeDatasetVect = new ArrayList<>();
         public final ArrayList<Integer> fldrImgIndxs = new ArrayList<>();
         
-        // constructor
+        /** constructor
+        * bioformats folder index appears to be 1,2,3,...N
+        * ID="Folder:#" increasing and random order based on image history
+        */
         AbbeFolder(int fldrIndex, String fldrIDStr, String fldrName) {
             this.folderName = fldrName;
-            this.folderID = fldrIDStr;
+            this.folderIDStr = fldrIDStr;
             this.folderIndex = fldrIndex;
             //  get the list of image indicies in the folder
-            String imgID;
+            String imgIDStr;
             int imgCount = omeMeta.getFolderImageRefCount(fldrIndex);
             for (int i = 0; i < imgCount; i++) {
-                imgID = omeMeta.getFolderImageRef(fldrIndex, i);
-                fldrImgIndxs.add(i, Integer.valueOf(imgID.replace("Image:", ""))-1);
+                imgIDStr = omeMeta.getFolderImageRef(fldrIndex, i);
+                fldrImgIndxs.add(i, Integer.valueOf(imgIDStr.replace("Image:", "")));
             }
         }
         
-        public void addDataset(int datasetIndx, Integer[] imgIdxs) throws IOException, FormatException {
+        public void addDataset(int datasetIndx, Integer[] imgIDArr) throws IOException, FormatException {
             this.timeStampCounter++;
             this.abbeDatasetVect.add(
-                    new AbbeDataset(datasetIndx, omeMeta.getDatasetID(datasetIndx),
-                                    omeMeta.getDatasetName(datasetIndx), imgIdxs,
+                    new AbbeDataset(datasetIndx,
+                                    omeMeta.getDatasetID(datasetIndx),
+                                    omeMeta.getDatasetName(datasetIndx),
+                                    imgIDArr,
                                     this.timeStampCounter));
         }
         
@@ -142,24 +158,24 @@ public class AbbeFile {
             public boolean tiled = false;
             public int timeStampIdx;
             public int imageCount = -1;
-            public Integer[] imageIndxs = null;
+            public Integer[] imageIDIdxs = null;
             public int parentFolderIndex = -1;
             public Params.PanelParams pParams = new Params.PanelParams();
             public boolean addToPanel = true;
             
             // constructor
             AbbeDataset(int datIndex, String datIDStr,
-                    String datName, Integer[] imgIndxs, int timeStamp) throws IOException, FormatException {
+                    String datName, Integer[] imgIDArr, int timeStamp) throws IOException, FormatException {
                 System.out.println("Contructing AbbeDataSet");
                 this.datasetName = datName;
                 this.datasetID = datIDStr;
                 this.datasetIndex = datIndex;
-                this.imageIndxs = imgIndxs;
+                this.imageIDIdxs = imgIDArr;
                 this.timeStampIdx = timeStamp;
-                this.imageCount = imgIndxs.length;
+                this.imageCount = imgIDArr.length;
                 
-                for (int i = 0; i < imgIndxs.length; i++) {
-                    this.abbeImagesVect.add(i, new AbbeImage(imgIndxs[i]));
+                for (int i = 0; i < imgIDArr.length; i++) {
+                    this.abbeImagesVect.add(i, new AbbeImage(imgIDArr[i]));
                 }
                 
                 checkIncludedChannels();
@@ -172,8 +188,9 @@ public class AbbeFile {
             public class AbbeImage {
 
                 public String imageName;
-                public String imageID;
-                public int imageIndex = -1;
+                public String imageIDStr;
+                public int imageIDIndex = -1;
+                public int bfIndex = -1;
                 public short[] data = null;
                 public short[] mask = null; // note data is uint8, but Java only has int8; storing in short[] 
                 //public int[] thumbData = null;
@@ -191,19 +208,20 @@ public class AbbeFile {
                 private int ctSize;
 
                 // constructor
-                AbbeImage(int imgIdx) throws IOException, FormatException {
-                    this.imageIndex = imgIdx;
-                    this.imageID = String.format("Image:%d", imgIdx);
-                    this.imageName = omeMeta.getImageName(imgIdx);
-                    this.imgParams.pxType = omeMeta.getPixelsType(imgIdx);
-                    this.imgParams.chnName = omeMeta.getChannelName(imgIdx, 0);
+                AbbeImage(int imageID) throws IOException, FormatException {
+                    this.imageIDIndex = imageID;
+                    this.imageIDStr = String.format("Image:%d", imageID);
+                    this.bfIndex = bfIDmap.get(imageID);
+                    this.imageName = omeMeta.getImageName(bfIndex);
+                    this.imgParams.pxType = omeMeta.getPixelsType(bfIndex);
+                    this.imgParams.chnName = omeMeta.getChannelName(bfIndex, 0);
                     if (this.imageName.contains("DyMIN") | this.imageName.contains("rescue")){
                     //if (this.imgParams.pxType == PixelType.UINT8){
                         this.addToComposite = false;
-                        pullMaskData(imgIdx);
+                        pullMaskData(bfIndex);
                     } else {
                         this.addToComposite = true;
-                        pullImageData(imgIdx);
+                        pullImageData(bfIndex);
                         resizeForThumb();
                         rescaleThumbRange();
                         setColorTable();
@@ -299,11 +317,11 @@ public class AbbeFile {
                     this.shortThumbData = scaledThumb;
                 }
                 public void setColorTable () throws IOException {
-                    Length emis = omeMeta.getChannelEmissionWavelength(this.imageIndex, 0);
+                    Length emis = omeMeta.getChannelEmissionWavelength(bfIDmap.get(this.imageIDIndex), 0);
                     Number lambda = emis.value();
                     short nm = (short)(lambda.doubleValue()*1e9);
                     this.imgParams.emissionLambda = nm;
-                    fParams.labelsUsed.put((int)nm, omeMeta.getChannelFluor(this.imageIndex, 0));
+                    fParams.labelsUsed.put((int)nm, omeMeta.getChannelFluor(bfIDmap.get(this.imageIDIndex), 0));
                     if (nm < 454) { this.lutName = "Blue.lut"; }
                     else if (nm < 490) { this.lutName = "Cyan.lut"; }
                     else if (nm < 535) { this.lutName = "Green.lut"; }
@@ -501,12 +519,12 @@ public class AbbeFile {
      *      fill params and create panel
      */
     public void pullImageInfo () {
-//        reader.	getChannelEmissionWavelength(int imageIndex, int channelIndex)
-//        reader.getChannelFluor(int imageIndex, int channelIndex)
-//        reader.	getChannelColor(int imageIndex, int channelIndex)
+//        reader.	getChannelEmissionWavelength(int imageIDIndex, int channelIndex)
+//        reader.getChannelFluor(int imageIDIndex, int channelIndex)
+//        reader.	getChannelColor(int imageIDIndex, int channelIndex)
 //        
-//        	getPixelsDimensionOrder(int imageIndex)
-//                	getPixelsPhysicalSizeX(int imageIndex)
+//        	getPixelsDimensionOrder(int imageIDIndex)
+//                	getPixelsPhysicalSizeX(int imageIDIndex)
 //                        Y & Z
                                 
     }
@@ -523,21 +541,24 @@ public class AbbeFile {
      * @throws FormatException
      * @throws IOException 
      */
-    public void scanFoldersDatasets() throws FormatException, IOException {
+    public void scanDatasetsFoldersImages() throws FormatException, IOException {
         // fill datImgLsts with image indicies for all datasets
         int datasetCount = omeMeta.getDatasetCount();
         int imgRefCount = -1;
         int imageCounter = 0;
-        String imgID;
-        datImgLsts = new ArrayList[datasetCount];
+        String imgIDStr;
+        BFIdxPair bfIdxPair;
+        this.datImgLsts = new ArrayList[datasetCount];
         for (int i = 0; i < datasetCount; i++) {  //  for each dataset
             imgRefCount = omeMeta.getDatasetImageRefCount(i);
-            datImgLsts[i] = new ArrayList<>();
+            this.datImgLsts[i] = new ArrayList<>();
             for (int j = 0; j < imgRefCount; j++) {  //  for each image in each dataset
-                imgID = omeMeta.getDatasetImageRef(i, j);
-                //datImgLsts[i].add(j, Integer.valueOf(imgID.replace("Image:", ""))-1); // inconsistent when images/dataset deleted/editted
-                datImgLsts[i].add(j, imageCounter);
+                bfIdxPair = new BFIdxPair();
+                imgIDStr = omeMeta.getDatasetImageRef(i, j);
+                bfIdxPair.idIdx = (int)Integer.valueOf(imgIDStr.replace("Image:", ""));
+                bfIdxPair.bfIndex = imageCounter;
                 imageCounter++;
+                this.datImgLsts[i].add(j, bfIdxPair);
             }
         }
         // create folder objects
@@ -548,6 +569,16 @@ public class AbbeFile {
             this.abbeFolderVect.add(i, new AbbeFolder(i, omeMeta.getFolderID(i), 
                                                       this.folderNames[i])
                                     );
+        }
+        
+        // TODO - fuse/replace bfIdxPair with bfIDmap
+        int imageCount = omeMeta.getImageCount();
+        int keyID, valueBFidx;
+        for (int i = 0; i < imageCount; i++) {
+            imgIDStr = omeMeta.getImageID(i);
+            keyID = (int)Integer.valueOf(imgIDStr.replace("Image:", ""));
+            valueBFidx = i;
+            bfIDmap.put(keyID, valueBFidx);
         }
     }
     
@@ -564,21 +595,29 @@ public class AbbeFile {
         */
         //Set<Integer> datasetImages = null;
         Set<Integer> folderImages = new HashSet<>();
-        
+        int dsImgCount = 0;
         for (AbbeFolder abF : abbeFolderVect ) {
             // check that all the dataset images are in the folder images
             // if not, then one or both lists are incorrect or dataset corrupt
             // if all dataset images in folder, create new dataset in folder
-            folderImages.clear();
+            
             if (abF.fldrImgIndxs.size() > 0) {
+                
+                folderImages.clear();
                 folderImages.addAll(abF.fldrImgIndxs);
+                
                 for (int ds = 0; ds < datImgLsts.length; ds++) {
-                    Integer[] imgIdxs = new Integer[datImgLsts[ds].size()];
+                    
+                    dsImgCount = datImgLsts[ds].size();
+                    Set<Integer> imgIDSet = new HashSet<>();
+                    for (int i=0;i<dsImgCount;i++) { imgIDSet.add(datImgLsts[ds].get(i).idIdx); }
+                    
                     //  all the images in dataset ds are in the current folder
-                    if (folderImages.containsAll(datImgLsts[ds])) {
-                        imgIdxs = datImgLsts[ds].toArray(imgIdxs);
+                    if (folderImages.containsAll(imgIDSet)) {
+                        Integer[] imgIDArr = new Integer[dsImgCount];
+                        imgIDArr = imgIDSet.toArray(imgIDArr);
                         System.out.println(String.format("Creating ds%d", ds));
-                        abF.addDataset(ds, imgIdxs);
+                        abF.addDataset(ds, imgIDArr);
                     }
                 }
             }
@@ -609,7 +648,7 @@ public class AbbeFile {
     
     public String[] getFolderNames () throws FormatException, IOException {
         if ( this.folderNames == null ) {
-            this.scanFoldersDatasets();
+            this.scanDatasetsFoldersImages();
         }
         return this.folderNames;
     }

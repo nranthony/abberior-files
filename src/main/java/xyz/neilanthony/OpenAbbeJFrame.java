@@ -177,8 +177,6 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         return p;
     }
 
-
-    
     /** TODO notifications / history class
     create class that extends JLabel
     has text area that holds previous label text
@@ -201,7 +199,6 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
         }
     }
     
-    
     public class FilePanelMouseEvent implements MouseListener {
         @Override
         public void mouseClicked(MouseEvent e) {
@@ -212,8 +209,13 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
             //System.out.println("FilePanelMouseEvent MouseListener mousePressed");
             AbbeFileJPanel abFP = (AbbeFileJPanel) e.getComponent();
             int idx = abFP.fP.abbeFilesVectIndex;
+            System.out.println(String.format("FilePanelMouseEvetn %s %d",
+                    e.getComponent().getName(), idx));
 //            int idx = ((AbbeFileJPanel)e.getSource()).fP.abbeFilesVectIndex;
-            jScrollPane_ImgPanels.setViewportView(abbeFilesVect.get(idx).abbeDatasetPanels);
+//            synchronized (abbeFilesVect) {
+//                jScrollPane_ImgPanels.setViewportView(abbeFilesVect.get(idx).abbeDatasetPanels);
+//            }
+            
         }
         @Override
         public void mouseReleased(MouseEvent e) {
@@ -239,7 +241,7 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
             System.out.println("NewAbbeFile Callable; creating new AbbeFile");
             AbbeFile newAbbe = new AbbeFile(fname.toPath(),index);
             System.out.println("NewAbbeFile Callable; scanFoldersDatasets");
-            newAbbe.scanFoldersDatasets();
+            newAbbe.scanDatasetsFoldersImages();
             System.out.println("NewAbbeFile Callable; collateFolderImages");
             newAbbe.collateFolderImages();
             System.out.println("NewAbbeFile Callable; fillPanels");
@@ -453,6 +455,7 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
             selected = ((AbbeFileJPanel)abFileJP).fileSelected();
             if(selected) {
                 // get index for abbeFileVect
+                //AbbeFilePanel abFP = 
                 fileVectIndex = ((AbbeFileJPanel)abFileJP).fP.abbeFilesVectIndex;
                 
             }
@@ -460,7 +463,10 @@ public class OpenAbbeJFrame extends javax.swing.JFrame {
 
         
     }
-    
+
+    public void setAbbeFilePanelSelect(int selectedIdx) {
+        //this.abbeFilesVect.get(0).
+    }
         
     public void fileFolderDatasetImage () {
 //        for (AbbeFile abFile : abbeFilesVect) {

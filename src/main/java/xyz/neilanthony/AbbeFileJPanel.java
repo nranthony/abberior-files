@@ -182,13 +182,13 @@ public class AbbeFileJPanel extends javax.swing.JPanel {
     }
     
     private void formMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMousePressed
-        if (fP.panelSelected) {
-            fP.panelSelected = false;
-            evt.getComponent().setBackground(UIColors.colorBkgdPanel);
-        } else {
-            fP.panelSelected = true;
-            evt.getComponent().setBackground(UIColors.colorBkgdSelected);
-        }
+//        if (fP.panelSelected) {
+//            fP.panelSelected = false;
+//            evt.getComponent().setBackground(UIColors.colorBkgdPanel);
+//        } else {
+//            fP.panelSelected = true;
+//            evt.getComponent().setBackground(UIColors.colorBkgdSelected);
+//        }
     }//GEN-LAST:event_formMousePressed
 
     private void formMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseEntered
