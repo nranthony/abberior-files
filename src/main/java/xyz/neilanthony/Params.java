@@ -29,10 +29,9 @@ public class Params {
         public boolean stack;
         public boolean timeLapse;
         public boolean panelSelected = false;
-        
     }
     
-    // parameters for creating ImagePlus 
+    // parameters for creating ImagePlus
     public static class ImageParams {
         public String name = "";
         public String chnName = "";

@@ -19,6 +19,8 @@ import org.scijava.ui.UIService;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Application;
+import javax.swing.ImageIcon;
 import javax.swing.WindowConstants;
 import javax.xml.parsers.ParserConfigurationException;
 import loci.formats.FormatException;
@@ -62,13 +64,19 @@ public class OpenAbberior<T extends RealType<T>> implements Command {
         OpenAbbeJFrame AbbeFrame = null;
         try {
             AbbeFrame = new OpenAbbeJFrame(ui);
+//            AbbeFrame = new OpenAbbeJFrame();
         } catch (FormatException | ParserConfigurationException | SAXException ex) {
             Logger.getLogger(OpenAbberior.class.getName()).log(Level.SEVERE, null, ex);
         }
         AbbeFrame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
         AbbeFrame.setLocation(64, 64);
-        AbbeFrame.invalidate();
-        AbbeFrame.repaint();
+        
+        //  TODO - make icon images of all sizes
+        //ImageIcon icon = new ImageIcon(AbbeFrame.getClass().getResource("icon.png"));
+        //AbbeFrame.setIconImage(icon.getImage());
+
+        //AbbeFrame.invalidate();
+        //AbbeFrame.repaint();
         AbbeFrame.setVisible(true);
     }
 

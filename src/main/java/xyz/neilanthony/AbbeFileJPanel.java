@@ -13,22 +13,29 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 /**
  *
  * @author nelly
  */
-public class AbbeFileJPanel extends javax.swing.JPanel {
+class AbbeFileJPanel extends javax.swing.JPanel {
 
-    public Params.FileParams fP = new Params.FileParams();
-    public LoadingRunnable loadingRunnable = new LoadingRunnable();
-    public Thread loadingThread = new Thread(loadingRunnable);
+    Params.FileParams fP = new Params.FileParams();
+    LoadingRunnable loadingRunnable = new LoadingRunnable();
+    Thread loadingThread = new Thread(loadingRunnable);
+    boolean ready = false;
+    JLabel jLabel_Open;
+    JLabel jLabel_OpenClick;
+    JPanel jButtonOpen;
     
     /**
      * Creates new form AbbeFileJPanel
      */
-    public AbbeFileJPanel(Params.FileParams params) {
+    AbbeFileJPanel(Params.FileParams params) {
         initComponents();
         
         this.fP = params;
@@ -37,9 +44,28 @@ public class AbbeFileJPanel extends javax.swing.JPanel {
         this.jLabel_Loading.setForeground(Color.pink);
         this.setBackground(UIColors.colorBkgdPanel);
         this.loadingThread.start();
+        
+        jPanel_Button.setBackground(UIColors.colorBkgdPanel);
+        
+        String openIconPath = "open.png";
+        ImageIcon imgIconOpen = new ImageIcon(
+                getClass().getClassLoader().getResource(openIconPath));
+        jLabel_Open = new JLabel();
+        jLabel_Open.setBounds(10,10,48,48);
+        jLabel_Open.setIcon(imgIconOpen);
+        jPanel_Button.add(jLabel_Open);
+
+        openIconPath = "open-click.png";
+        ImageIcon imgIconOpenClick = new ImageIcon(
+                getClass().getClassLoader().getResource(openIconPath));
+        jLabel_OpenClick = new JLabel();
+        jLabel_OpenClick.setBounds(10,10,48,48);
+        jLabel_OpenClick.setIcon(imgIconOpenClick);
+        
+        jButtonOpen = this.jPanel_Button;
     }
     
-    public class LoadingRunnable implements Runnable {
+    class LoadingRunnable implements Runnable {
         
         private int dotCount = 0;
         private int dotMax = 12;
@@ -48,7 +74,7 @@ public class AbbeFileJPanel extends javax.swing.JPanel {
         private String[] dotStrs = new String[dotMax];
         
         private boolean stopThreadNow = false;
-        public synchronized void stopThread(Map labelHashMap) {
+        synchronized void stopThread(Map labelHashMap) {
             this.stopThreadNow = true;
             jLabel_Loading.setText("Done");
             try { Thread.sleep(300);
@@ -112,25 +138,27 @@ public class AbbeFileJPanel extends javax.swing.JPanel {
 
         jLabel_Filename = new javax.swing.JLabel();
         jLabel_Loading = new javax.swing.JLabel();
+        jPanel_Button = new javax.swing.JPanel();
 
         setMaximumSize(new java.awt.Dimension(198, 97));
-        addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                formMouseEntered(evt);
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                formMouseExited(evt);
-            }
-            public void mousePressed(java.awt.event.MouseEvent evt) {
-                formMousePressed(evt);
-            }
-        });
+        setMinimumSize(new java.awt.Dimension(268, 128));
 
         jLabel_Filename.setFont(new java.awt.Font("Segoe UI Light", 0, 18)); // NOI18N
         jLabel_Filename.setText("filenamegoeshere.obf");
 
         jLabel_Loading.setFont(new java.awt.Font("Segoe UI Light", 0, 18)); // NOI18N
         jLabel_Loading.setText("Loading...");
+
+        javax.swing.GroupLayout jPanel_ButtonLayout = new javax.swing.GroupLayout(jPanel_Button);
+        jPanel_Button.setLayout(jPanel_ButtonLayout);
+        jPanel_ButtonLayout.setHorizontalGroup(
+            jPanel_ButtonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 86, Short.MAX_VALUE)
+        );
+        jPanel_ButtonLayout.setVerticalGroup(
+            jPanel_ButtonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 88, Short.MAX_VALUE)
+        );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -141,23 +169,47 @@ public class AbbeFileJPanel extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel_Filename)
                     .addComponent(jLabel_Loading))
-                .addContainerGap(97, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 13, Short.MAX_VALUE)
+                .addComponent(jPanel_Button, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jLabel_Filename)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel_Loading)
-                .addContainerGap(50, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel_Loading)
+                    .addComponent(jPanel_Button, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    public boolean fileSelected() {
+    boolean fileSelected() {
         return fP.panelSelected;
     }
     
+    void setOpenClick() {
+        //AbbeFileJPanel.this.jPanel_Button.add(AbbeFileJPanel.this.jLabel_OpenClick);
+        this.jPanel_Button.removeAll();
+        this.jPanel_Button.add(this.jLabel_OpenClick);
+        this.repaint();
+        this.revalidate();
+    }
+    void setOpenNotClick() {
+        //AbbeFileJPanel.this.jPanel_Button.add(AbbeFileJPanel.this.jLabel_Open);
+        this.jPanel_Button.removeAll();
+        this.jPanel_Button.add(this.jLabel_Open);
+        this.repaint();
+        this.revalidate();
+    }
+    
+    void setButtonPanelSelected() {
+        this.jPanel_Button.setBackground(UIColors.colorBkgdSelected);
+    }
+    void setButtonPanelUnselected() {
+        this.jPanel_Button.setBackground(UIColors.colorBkgdPanel);
+    }
+        
     private void displayLabelsUsed (Map labelHashMap) {
         
         this.remove(jLabel_Loading);
@@ -176,32 +228,14 @@ public class AbbeFileJPanel extends javax.swing.JPanel {
             this.add(lab);
         }
         fP.panelSelected = true;
-        this.setBackground(UIColors.colorBkgdSelected);
+        //this.setBackground(UIColors.colorBkgdSelected);
         this.revalidate();
         this.repaint();
     }
     
-    private void formMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMousePressed
-//        if (fP.panelSelected) {
-//            fP.panelSelected = false;
-//            evt.getComponent().setBackground(UIColors.colorBkgdPanel);
-//        } else {
-//            fP.panelSelected = true;
-//            evt.getComponent().setBackground(UIColors.colorBkgdSelected);
-//        }
-    }//GEN-LAST:event_formMousePressed
-
-    private void formMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseEntered
-        // TODO add your handling code here:
-    }//GEN-LAST:event_formMouseEntered
-
-    private void formMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseExited
-        // TODO add your handling code here:
-    }//GEN-LAST:event_formMouseExited
-
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel_Filename;
     private javax.swing.JLabel jLabel_Loading;
+    private javax.swing.JPanel jPanel_Button;
     // End of variables declaration//GEN-END:variables
 }

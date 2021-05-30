@@ -46,6 +46,7 @@ import loci.formats.MetadataTools;
 import loci.formats.gui.BufferedImageReader;
 import loci.formats.in.OBFReader;
 import loci.formats.meta.IMetadata;
+import ome.units.UNITS;
 import ome.units.quantity.Length;
 import ome.xml.model.enums.PixelType;
 import org.w3c.dom.Document;
@@ -58,14 +59,14 @@ import org.xml.sax.SAXException;
  *
  * @author nelly
  */
-public class AbbeFile {
+class AbbeFile {
        
-    public JPanel abbeDatasetPanels = null;
-    public int panelCount = 0;
+    JPanel abbeDatasetPanels = null;
+    int panelCount = 0;
     
-    private OBFReader reader = new OBFReader();
-    private IMetadata omeMeta = MetadataTools.createOMEXMLMetadata();
-    private BufferedImageReader bufImgReader= new BufferedImageReader(reader);
+    OBFReader reader = new OBFReader();
+    IMetadata omeMeta = MetadataTools.createOMEXMLMetadata();
+    BufferedImageReader bufImgReader= new BufferedImageReader(reader);
 
     private DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     private DocumentBuilder builder = null;
@@ -73,9 +74,9 @@ public class AbbeFile {
     private String omexml = null;
     private Document xmlDoc = null;
     private Path fPath = null;
-    public Params.FileParams fParams = new Params.FileParams();
+    Params.FileParams fParams = new Params.FileParams();
     
-    public final ArrayList<AbbeFolder> abbeFolderVect = new ArrayList<>();
+    final ArrayList<AbbeFolder> abbeFolderVect = new ArrayList<>();
     // cast to sychronized (abbeFolderVect) when multithreading
     
     private String[] folderNames = null;
@@ -95,12 +96,12 @@ public class AbbeFile {
         reader.setMetadataStore(omeMeta);
         reader.setId(this.fPath.toString());
         // end waiting thread
-        System.out.println("AbbeFile consructor");
+//        System.out.println("AbbeFile consructor");
     }
 
-    public static class BFIdxPair {
-        public int bfIndex; // bioformats will index from 0,1,2 ... (n-1) 
-        public int idIdx; // ID index is # in ID string, e.g. ID="Image:7"
+    static class BFIdxPair {
+        int bfIndex; // bioformats will index from 0,1,2 ... (n-1) 
+        int idIdx; // ID index is # in ID string, e.g. ID="Image:7"
     }
     
     private final Map<Integer,Integer> bfIDmap = new HashMap<>();
@@ -110,16 +111,16 @@ public class AbbeFile {
      * creating the datasets in each folder, which requires the overlap of images in
      * dataset and images in folders to be the first step
      */
-    public class AbbeFolder {
+    class AbbeFolder {
         
-        public String folderName;
-        public String folderIDStr;
-        public int folderIndex = -1;
-        public int timeStampCounter = 0;
+        String folderName;
+        String folderIDStr;
+        int folderIndex = -1;
+        int timeStampCounter = 0;
         // TODO - add subfolder count and list; add roi count and list
         
-        public final ArrayList<AbbeDataset> abbeDatasetVect = new ArrayList<>();
-        public final ArrayList<Integer> fldrImgIndxs = new ArrayList<>();
+        final ArrayList<AbbeDataset> abbeDatasetVect = new ArrayList<>();
+        final ArrayList<Integer> fldrImgIndxs = new ArrayList<>();
         
         /** constructor
         * bioformats folder index appears to be 1,2,3,...N
@@ -138,7 +139,7 @@ public class AbbeFile {
             }
         }
         
-        public void addDataset(int datasetIndx, Integer[] imgIDArr) throws IOException, FormatException {
+        void addDataset(int datasetIndx, Integer[] imgIDArr) throws IOException, FormatException {
             this.timeStampCounter++;
             this.abbeDatasetVect.add(
                     new AbbeDataset(datasetIndx,
@@ -148,32 +149,31 @@ public class AbbeFile {
                                     this.timeStampCounter));
         }
         
-        public class AbbeDataset {
+        class AbbeDataset {
             
-            public final ArrayList<AbbeImage> abbeImagesVect = new ArrayList<>();
+            final ArrayList<AbbeImage> abbeImagesVect = new ArrayList<>();
             ArrayList<Integer> incChns = null;
-            public String datasetName;
-            public String datasetID;
-            public int datasetIndex = -1;
-            public boolean tiled = false;
-            public int timeStampIdx;
-            public int imageCount = -1;
-            public Integer[] imageIDIdxs = null;
-            public int parentFolderIndex = -1;
-            public Params.PanelParams pParams = new Params.PanelParams();
-            public boolean addToPanel = true;
+            String datasetName;
+            String datasetID;
+            int datasetIndex = -1;
+            boolean tiled = false;
+            int timeStampIdx;
+            int imageCount = -1;
+            Integer[] imageIDIdxs = null;
+            int parentFolderIndex = -1;
+            Params.PanelParams pParams = new Params.PanelParams();
+            boolean addToPanel = true;
             
             // constructor
             AbbeDataset(int datIndex, String datIDStr,
                     String datName, Integer[] imgIDArr, int timeStamp) throws IOException, FormatException {
-                System.out.println("Contructing AbbeDataSet");
+//                System.out.println("Contructing AbbeDataSet");
                 this.datasetName = datName;
                 this.datasetID = datIDStr;
                 this.datasetIndex = datIndex;
                 this.imageIDIdxs = imgIDArr;
                 this.timeStampIdx = timeStamp;
                 this.imageCount = imgIDArr.length;
-                
                 for (int i = 0; i < imgIDArr.length; i++) {
                     this.abbeImagesVect.add(i, new AbbeImage(imgIDArr[i]));
                 }
@@ -185,27 +185,28 @@ public class AbbeFile {
                 checkImgComplete();
             }
             
-            public class AbbeImage {
+            class AbbeImage {
 
-                public String imageName;
-                public String imageIDStr;
-                public int imageIDIndex = -1;
-                public int bfIndex = -1;
-                public short[] data = null;
-                public short[] mask = null; // note data is uint8, but Java only has int8; storing in short[] 
-                //public int[] thumbData = null;
-                public short[] shortThumbData = null;
-                public Params.ImageParams imgParams = new Params.ImageParams();
-                public boolean addToComposite;  // for excluding DyMIN and RESCue from display
-                public boolean tiled = false;
+                String imageName;
+                String imageIDStr;
+                int imageIDIndex = -1;
+                int bfIndex = -1;
+                short[] data = null;
+                short[] mask = null; // note data is uint8, but Java only has int8; storing in short[] 
+                //int[] thumbData = null;
+                short[] shortThumbData = null;
+                Params.ImageParams imgParams = new Params.ImageParams();
+                boolean addToComposite;  // for excluding DyMIN and RESCue from display
+                boolean tiled = false;
                 private short minimumMax = 35; // to stop channels of mostly noise 'swamping' thumbnail
                 private short offset = 2; // chops the lower values to remove a little noise
                 
                 @Parameter
                 private final LUTService ls = new DefaultLUTService();
                 String lutName = "Grays.lut"; // 
-                private Color[] colorTable;
-                private int ctSize;
+                Color[] colorTable;
+                int ctSize;
+                ColorTable ct;
 
                 // constructor
                 AbbeImage(int imageID) throws IOException, FormatException {
@@ -218,23 +219,35 @@ public class AbbeFile {
                     if (this.imageName.contains("DyMIN") | this.imageName.contains("rescue")){
                     //if (this.imgParams.pxType == PixelType.UINT8){
                         this.addToComposite = false;
+                        pullParams(bfIndex);
                         pullMaskData(bfIndex);
                     } else {
                         this.addToComposite = true;
+                        pullParams(bfIndex);
                         pullImageData(bfIndex);
                         resizeForThumb();
                         rescaleThumbRange();
                         setColorTable();
                     }
                 }
-
-                public void pullImageData (int imgIdx) throws IOException, FormatException {
+                
+                void pullParams (int imgIdx) {
                     reader.setSeries(imgIdx);
-                    imgParams.sx = reader.getSizeX();
-                    imgParams.sy = reader.getSizeY();
-                    imgParams.sz = reader.getSizeZ();
-                    imgParams.st = reader.getSizeT();
+                    this.imgParams.sx = reader.getSizeX();
+                    this.imgParams.sy = reader.getSizeY();
+                    this.imgParams.sz = reader.getSizeZ();
+                    this.imgParams.st = reader.getSizeT();
+                    this.imgParams.dx = (double) omeMeta.getPixelsPhysicalSizeX(imgIdx).value(UNITS.MICROMETER);
+                    this.imgParams.dy = (double) omeMeta.getPixelsPhysicalSizeY(imgIdx).value(UNITS.MICROMETER);
+//                    if (this.imgParams.st > 1) {
+//                        omeMeta.getpixels
+//                        this.imgParams.dz = (double) omeMeta.getPixelsPhysicalSizeZ(imgIdx).value(UNITS.MICROMETER);
+//                    }
                     
+                }
+                
+                void pullImageData (int imgIdx) throws IOException, FormatException {
+
                     // TODO - consider z-stacks and time-lapses here
                     int zPlane = ( (imgParams.sz + 1) / 2 ) - 1;
                     Object dat = reader.openPlane(zPlane, 0, 0, imgParams.sx, imgParams.sy);
@@ -242,12 +255,8 @@ public class AbbeFile {
                     this.data = new short[bytes.length/2];
                     ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(this.data);
                 }
-                public void pullMaskData (int imgIdx) throws IOException, FormatException {
-                    reader.setSeries(imgIdx);
-                    imgParams.sx = reader.getSizeX();
-                    imgParams.sy = reader.getSizeY();
-                    imgParams.sz = reader.getSizeZ();
-                    imgParams.st = reader.getSizeT();
+                void pullMaskData (int imgIdx) throws IOException, FormatException {
+
                     // TODO - consider z-stacks and time-lapses here
                     Object dat = reader.openPlane(0, 0, 0, imgParams.sx, imgParams.sy);
                     byte[] bytes = (byte[])dat;
@@ -262,7 +271,7 @@ public class AbbeFile {
                     }
                     
                 }
-                public void resizeForThumb () {
+                void resizeForThumb () {
                     /*
                     retain aspect ratio and ensure both:
                     tsx <= JPanel width
@@ -302,7 +311,7 @@ public class AbbeFile {
                     AbbeDataset.this.pParams.nx = nx;
                     AbbeDataset.this.pParams.ny = ny;
                 }
-                public void rescaleThumbRange () {
+                void rescaleThumbRange () {
                     
                     short[] scaledThumb = new short[this.shortThumbData.length];
                     short max = minimumMax;
@@ -316,7 +325,7 @@ public class AbbeFile {
                     }
                     this.shortThumbData = scaledThumb;
                 }
-                public void setColorTable () throws IOException {
+                void setColorTable () throws IOException {
                     Length emis = omeMeta.getChannelEmissionWavelength(bfIDmap.get(this.imageIDIndex), 0);
                     Number lambda = emis.value();
                     short nm = (short)(lambda.doubleValue()*1e9);
@@ -348,10 +357,10 @@ public class AbbeFile {
                     * Green Fire Blue.lut
                     * Cyan Hot.lut */
                 }
-                public void getColorTable(String colormap) throws IOException {
+                void getColorTable(String colormap) throws IOException {
                     String lutPath = "/luts/" + colormap;
                     InputStream lutStream = getClass().getResourceAsStream(lutPath);
-                    ColorTable ct = ls.loadLUT(lutStream);
+                    this.ct = ls.loadLUT(lutStream);
                     //ColorTable ct = ls.loadLUT(ls.findLUTs().get(colormap));
                     this.ctSize = ct.getLength();
                     this.colorTable = new Color[this.ctSize];
@@ -483,7 +492,7 @@ public class AbbeFile {
         }
 
     
-    public void fillPanels () throws IOException {
+    void fillPanels () throws IOException {
         //  for each dataset
         //  create AbbeDatasetJPanel and add to abbeDatasetPanels
         // panelCount++ currently in AbbeDataset.checkImgComplete
@@ -518,7 +527,7 @@ public class AbbeFile {
      *      get image info for making ImagePlus
      *      fill params and create panel
      */
-    public void pullImageInfo () {
+    void pullImageInfo () {
 //        reader.	getChannelEmissionWavelength(int imageIDIndex, int channelIndex)
 //        reader.getChannelFluor(int imageIDIndex, int channelIndex)
 //        reader.	getChannelColor(int imageIDIndex, int channelIndex)
@@ -541,7 +550,7 @@ public class AbbeFile {
      * @throws FormatException
      * @throws IOException 
      */
-    public void scanDatasetsFoldersImages() throws FormatException, IOException {
+    void scanDatasetsFoldersImages() throws FormatException, IOException {
         // fill datImgLsts with image indicies for all datasets
         int datasetCount = omeMeta.getDatasetCount();
         int imgRefCount = -1;
@@ -582,11 +591,11 @@ public class AbbeFile {
         }
     }
     
-    public void collateFolderImages() throws IOException, FormatException {
+    void collateFolderImages() throws IOException, FormatException {
         /*
         private ArrayList<Integer>[] datImgLsts;
         In AbbeFolder:
-        public final ArrayList<Integer> fldrImgIndxs = new ArrayList<>();
+        final ArrayList<Integer> fldrImgIndxs = new ArrayList<>();
         
         for each folder:
             for each dataset:
@@ -616,7 +625,7 @@ public class AbbeFile {
                     if (folderImages.containsAll(imgIDSet)) {
                         Integer[] imgIDArr = new Integer[dsImgCount];
                         imgIDArr = imgIDSet.toArray(imgIDArr);
-                        System.out.println(String.format("Creating ds%d", ds));
+//                        System.out.println(String.format("Creating ds%d", ds));
                         abF.addDataset(ds, imgIDArr);
                     }
                 }
@@ -631,7 +640,7 @@ public class AbbeFile {
      * @throws SAXException
      * @throws IOException 
      */
-    public void createXMLDoc () throws ParserConfigurationException, SAXException, IOException {
+    void createXMLDoc () throws ParserConfigurationException, SAXException, IOException {
         if ( this.omexml == null ) {
             this.pullOMEXMLRaw();
         }
@@ -642,25 +651,25 @@ public class AbbeFile {
         Node imgNode;
         for (int n=0; n<imageNodeList.getLength(); n++) {
             imgNode = imageNodeList.item(n);
-            System.out.println(imgNode.toString());
+//            System.out.println(imgNode.toString());
         }
     }
     
-    public String[] getFolderNames () throws FormatException, IOException {
+    String[] getFolderNames () throws FormatException, IOException {
         if ( this.folderNames == null ) {
             this.scanDatasetsFoldersImages();
         }
         return this.folderNames;
     }
     
-    public String getOMEXML () throws IOException {
+    String getOMEXML () throws IOException {
         if ( this.omexml == null ) {
             this.pullOMEXMLRaw();
         }
         return this.omexml;
     }
     
-    public void pullOMEXMLRaw() throws FileNotFoundException, IOException {
+    void pullOMEXMLRaw() throws FileNotFoundException, IOException {
         
         // get memory mapped buffer of last ~2MB of obf file
         // TODO - check location of xml within .msr files
@@ -715,7 +724,7 @@ public class AbbeFile {
     
     /* old functions - review for deletion */
     
-    public void updatePath (Path filePath) {
+    void updatePath (Path filePath) {
         fPath = filePath;
     }    
 }

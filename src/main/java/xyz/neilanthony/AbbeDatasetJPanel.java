@@ -15,12 +15,7 @@ import javax.swing.JPanel;
 
 public class AbbeDatasetJPanel extends javax.swing.JPanel {
 
-    private final Color colorBkgdPanel = Color.getHSBColor(0.0f, 0.0f, 0.13f);
-    private final Color colorBkgdMouseOver = Color.getHSBColor(0.0f, 0.0f, 0.15f);
-    private final Color colorBkgdSelected = Color.getHSBColor(0.55f, 0.6f, 0.1f);
-    private final Color colorThumb = Color.getHSBColor(0.0f, 0.0f, 0.08f);
-    private final Color colorChnText = Color.getHSBColor(0.54f, 0.46f, 0.66f);
-    private Params.PanelParams p = null;
+    Params.PanelParams p = null;
     private final JLabel thumbLabel = null;
     private final JPanel jPanel_Thumb = new JPanel();
     
@@ -29,7 +24,7 @@ public class AbbeDatasetJPanel extends javax.swing.JPanel {
         initComponents();
         
         this.p = params;
-        this.setBackground(colorBkgdPanel);
+        this.setBackground(UIColors.colorBkgdPanel);
         //this.addMouseListener(new MyAdapter());
         
         this.jPanel_PlaceHolder.setBackground(new Color(0,0,0,0));
@@ -59,7 +54,7 @@ public class AbbeDatasetJPanel extends javax.swing.JPanel {
             jPanel_Thumb.setBackground(null);
 
         } else {
-            jPanel_Thumb.setBackground(colorThumb);
+            jPanel_Thumb.setBackground(UIColors.colorThumb);
         }
         
         
@@ -73,7 +68,7 @@ public class AbbeDatasetJPanel extends javax.swing.JPanel {
             lab.setText(p.chnNames[i]);
             lab.setBackground(null);
             lab.setForeground(Spectral.spectral_color((double) p.lambdas[i]));
-            System.out.println(String.format("Added %s - %dnm to panel", p.chnNames[i], p.lambdas[i]));
+//            System.out.println(String.format("Added %s - %dnm to panel", p.chnNames[i], p.lambdas[i]));
             lab.setOpaque(true);
             lab.setFont(new Font("Segoe UI Light", Font.PLAIN, 16));
             lab.setBounds(p.psx+36, 25 + (i*22), 555-p.psx-12, 22);
@@ -158,13 +153,13 @@ public class AbbeDatasetJPanel extends javax.swing.JPanel {
 
     private void formMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseEntered
         if (!p.panelSelected) {
-        evt.getComponent().setBackground(colorBkgdMouseOver);
+        evt.getComponent().setBackground(UIColors.colorBkgdMouseOver);
         }
     }//GEN-LAST:event_formMouseEntered
 
     private void formMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseExited
         if (!p.panelSelected) {
-            evt.getComponent().setBackground(colorBkgdPanel);
+            evt.getComponent().setBackground(UIColors.colorBkgdPanel);
         }
     }//GEN-LAST:event_formMouseExited
 
@@ -181,10 +176,10 @@ public class AbbeDatasetJPanel extends javax.swing.JPanel {
     private void formMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMousePressed
         if (p.panelSelected) {
             p.panelSelected = false;
-            evt.getComponent().setBackground(colorBkgdPanel);
+            evt.getComponent().setBackground(UIColors.colorBkgdPanel);
         } else {
             p.panelSelected = true;
-            evt.getComponent().setBackground(colorBkgdSelected);
+            evt.getComponent().setBackground(UIColors.colorBkgdSelected);
         }
     }//GEN-LAST:event_formMousePressed
 
