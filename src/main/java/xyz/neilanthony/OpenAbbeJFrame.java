@@ -94,7 +94,9 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
         initComponents();
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        this.setSize(900, screenSize.height - 400);
+        int adjHeight = (int)((float)screenSize.height * 0.85f);
+        this.setSize(900, adjHeight);
+        
         
         jPanel_exitButton.setLayout(null);
         jPanel_exitButton.add(createIconLabel("close.png"));
@@ -464,8 +466,8 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jScrollPane_FilePanels)
-                .addGap(18, 18, 18)
+                .addComponent(jScrollPane_FilePanels, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
