@@ -53,6 +53,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import loci.formats.FormatException;
 import loci.plugins.in.ImagePlusReader;
 import java.awt.Component;
+import java.awt.Toolkit;
 import java.awt.image.ColorModel;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -73,8 +74,10 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
     private Point panelOffset = new Point();
     final UserInterface ui;
     
-    JPanel abbeFilesPanel = null;
+    JPanel jPanel_abbeFiles = null;
     private final List<JPanel> filesPanelList = new ArrayList<JPanel>();
+    
+    JPanel jPanel_dragDrop = new JPanel();
     
     //final private LinkedBlockingQueue<File> todoQueue = new LinkedBlockingQueue<>();
     final private ExecutorService importPool = Executors.newFixedThreadPool(4);
@@ -87,19 +90,14 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
     OpenAbbeJFrame(UserInterface ui) throws FormatException, ParserConfigurationException, SAXException {
 //    OpenAbbeJFrame() throws FormatException, ParserConfigurationException, SAXException {
         this.ui = ui;
-
-
+        
         initComponents();
 
-        String closeIconPath = "close.png";
-        ImageIcon imgIcon_exit = new ImageIcon(
-                getClass().getClassLoader().getResource(closeIconPath));
-        JLabel jLabel_exit = new JLabel();
-        jLabel_exit.setBounds(0,0,imgIcon_exit.getIconWidth(),imgIcon_exit.getIconHeight());
-        jLabel_exit.setIcon(imgIcon_exit);
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        this.setSize(900, screenSize.height - 400);
         
         jPanel_exitButton.setLayout(null);
-        jPanel_exitButton.add(jLabel_exit);
+        jPanel_exitButton.add(createIconLabel("close.png"));
         jPanel_topBar.setBackground(UIColors.colorBkgdDark);
         
         this.getContentPane().setBackground(UIColors.colorBkgd);
@@ -129,6 +127,10 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
                 //this.incrButton.
             }
         });
+        // add icon panel
+        jPanel_dragDrop.add(createIconLabel("drag-drop-obf.png"));
+        jPanel_dragDrop.setBackground(UIColors.colorBkgd);
+        jScrollPane_ImgPanels.setViewportView(jPanel_dragDrop);
         
         jPanel_topBar.setVisible(true);
         jPanel_exitButton.setVisible(true);
@@ -164,9 +166,9 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
                         } else { jLabel_Info.setText("Non Abberior files currently not supported.  Please drop .obf or .msr files."); }
                     }
                     if (newAdded) {
-                        abbeFilesPanel = createFilesPanel();
+                        jPanel_abbeFiles = createFilesPanel();
                         jScrollPane_FilePanels.getViewport().setViewSize(new Dimension(200,filesPanelCount*103));
-                        jScrollPane_FilePanels.setViewportView(abbeFilesPanel);
+                        jScrollPane_FilePanels.setViewportView(jPanel_abbeFiles);
                     }
                     Thread t = new Thread(new CheckLoadingAbbes());
                     t.start();
@@ -176,6 +178,14 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
             }
         });
 
+    }
+    
+    private JLabel createIconLabel(String fname) {
+        ImageIcon imgIcon = new ImageIcon(getClass().getClassLoader().getResource(fname));
+        JLabel jLabel_icon = new JLabel();
+        jLabel_icon.setBounds(0,0,imgIcon.getIconWidth(),imgIcon.getIconHeight());
+        jLabel_icon.setIcon(imgIcon);
+        return jLabel_icon;
     }
     
     private JPanel createFilesPanel() throws IOException {
@@ -393,7 +403,6 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
         jScrollPane_ImgPanels = new javax.swing.JScrollPane();
         jScrollPane_FilePanels = new javax.swing.JScrollPane();
         jLabel_Info = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(32, 32, 32));
@@ -433,7 +442,7 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
         jPanel_topBarLayout.setHorizontalGroup(
             jPanel_topBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel_topBarLayout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
+                .addGap(0, 877, Short.MAX_VALUE)
                 .addComponent(jPanel_exitButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         jPanel_topBarLayout.setVerticalGroup(
@@ -449,45 +458,34 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
 
         jLabel_Info.setFont(new java.awt.Font("Segoe UI Semilight", 0, 16)); // NOI18N
         jLabel_Info.setForeground(new java.awt.Color(204, 204, 204));
-        jLabel_Info.setText("Drag 'n' drop *.obf or *.msr files.");
-
-        jButton1.setText("jButton1");
-        jButton1.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jButton1MouseClicked(evt);
-            }
-        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel_topBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jButton1))
-                    .addComponent(jScrollPane_FilePanels, javax.swing.GroupLayout.PREFERRED_SIZE, 259, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(jScrollPane_FilePanels)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(jLabel_Info, javax.swing.GroupLayout.PREFERRED_SIZE, 661, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jScrollPane_ImgPanels))
-                .addContainerGap())
+                    .addComponent(jScrollPane_ImgPanels)))
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jPanel_topBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jPanel_topBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel_Info, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jScrollPane_ImgPanels, javax.swing.GroupLayout.DEFAULT_SIZE, 865, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(6, 6, 6)
+                        .addComponent(jLabel_Info, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane_ImgPanels, javax.swing.GroupLayout.DEFAULT_SIZE, 865, Short.MAX_VALUE))
                     .addComponent(jScrollPane_FilePanels)))
         );
 
@@ -509,11 +507,6 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
     private void jPanel_exitButtonMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanel_exitButtonMouseReleased
         this.dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
     }//GEN-LAST:event_jPanel_exitButtonMouseReleased
-
-    private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked
-       //fileFolderDatasetImage();
-       getSelectedFilePanels();
-    }//GEN-LAST:event_jButton1MouseClicked
     
     void openSelectedDatasets (AbbeFile abFile) throws IOException, FormatException {
         
@@ -528,7 +521,6 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
             if ( selected ) { toOpenDs.add(idx); }
             
         }
-        
         
         // for LUTs
         byte[] r = new byte[256];
@@ -583,25 +575,13 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
                                 imgStk.addSlice(sp);
                             }
                         }
-                        
-//                        LUT lut = new ij.process.LUT(r, g, b);
-//                        ShortProcessor sp = new ShortProcessor(imgParams.sx, imgParams.sy, data, lut.getColorModel());
-                        //sp.setLut(lut);
+
                         // if needed for speed in big stacks timelapses
                         // use setPixels(java.lang.Object pixels)
                         // create empty ShortProcessor and add dat in setPixels
-                        //ImageProcessor improc = new ShortProcessor(buf);
-                        
-                        
-                        
-                        //imgStk.setColorModel(lut.getColorModel());
 
                     }
 
-//                    ImagePlusReader impReader = new ImagePlusReader();
-//                    ImagePlus imp = impReader.createImage(
-//                                    String.format("%s-TS%d", abFldr.folderName, abDs.timeStampIdx),
-//                                    imgStk, luts);
                     ImagePlus imp = new ImagePlus(
                                             String.format("%s-TS%d", abFldr.folderName, abDs.timeStampIdx),
                                             imgStk
@@ -620,27 +600,16 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
                     imp.setCalibration(cali);
                     for (int i = 0; i < abDs.incChns.size(); i++) {
                         imp.setC(i);
-                        imp.setLut(luts.get(i));
+                        imp.setLut((LUT)luts.get(i));
                         
                     }
-                    
-                    
-//                    cali.xOrigin = imgParams.
-//                    imp.setC(0);
-//                    imp.setLut(luts.get(0));
-                    //imp.setDisplayMode("composite");
-                    //imp.set
-                    // open in fiji
-                    //ui.show(imp);
                     
                     imp.setOpenAsHyperStack(true);
                     imp.setDisplayMode(IJ.COMPOSITE);
                     imp.show();
 
-                    // optional opening of rescue and dymin masks...  seperate ImagePlus
+                    // TODO: add optional opening of rescue and dymin masks...  seperate ImagePlus
                 }
-                
-                
 
             }
         }
@@ -748,7 +717,6 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
     
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel_Info;
     private javax.swing.JPanel jPanel_exitButton;
     private javax.swing.JPanel jPanel_topBar;

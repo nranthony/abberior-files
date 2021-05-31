@@ -30,7 +30,7 @@
                   <Component id="jLabel_Filename" min="-2" max="-2" attributes="0"/>
                   <Component id="jLabel_Loading" alignment="0" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace pref="13" max="32767" attributes="0"/>
+              <EmptySpace pref="24" max="32767" attributes="0"/>
               <Component id="jPanel_Button" min="-2" max="-2" attributes="0"/>
           </Group>
       </Group>
