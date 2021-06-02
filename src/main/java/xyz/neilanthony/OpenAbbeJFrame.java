@@ -5,6 +5,7 @@
  */
 package xyz.neilanthony;
 
+import ij.CompositeImage;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.process.ImageProcessor;
@@ -53,10 +54,13 @@ import javax.xml.parsers.ParserConfigurationException;
 import loci.formats.FormatException;
 import loci.plugins.in.ImagePlusReader;
 import java.awt.Component;
+import java.awt.LayoutManager;
 import java.awt.Toolkit;
 import java.awt.image.ColorModel;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import net.imglib2.display.ColorTable;
 import net.imglib2.img.array.ArrayImg;
 import net.imglib2.img.basictypeaccess.array.ShortArray;
@@ -97,6 +101,12 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
         int adjHeight = (int)((float)screenSize.height * 0.85f);
         this.setSize(900, adjHeight);
         
+//        this.jPanel_buttons.setLayout(new BoxLayout(this.jPanel_buttons, BoxLayout.Y_AXIS));
+//        this.jPanel_buttons.add(createIconLabel("select-all.png"));
+//        this.jPanel_buttons.add(Box.createRigidArea(new Dimension(0,10)));
+//        this.jPanel_buttons.add(createIconLabel("select-none.png"));
+//        this.jPanel_buttons.setBackground(UIColors.colorBkgd);
+        //this.jPanel_buttons.addMouseListener(new SelectButtonsMouseEvent());
         
         jPanel_exitButton.setLayout(null);
         jPanel_exitButton.add(createIconLabel("close.png"));
@@ -133,6 +143,8 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
         jPanel_dragDrop.add(createIconLabel("drag-drop-obf.png"));
         jPanel_dragDrop.setBackground(UIColors.colorBkgd);
         jScrollPane_ImgPanels.setViewportView(jPanel_dragDrop);
+        
+        
         
         jPanel_topBar.setVisible(true);
         jPanel_exitButton.setVisible(true);
@@ -190,15 +202,27 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
         return jLabel_icon;
     }
     
+//    private JPanel createFilesPanel() throws IOException {
+//        int N = filesPanelList.size();
+//        JPanel p;
+//        if (N < 6) {
+//            p = new JPanel(new GridLayout(6, 1, 4, 11));
+//        } else {
+//            p = new JPanel(new GridLayout(N, 1, 4, 11));
+//        }
+//        for (int i = 0; i < N; i++) { p.add(filesPanelList.get(i)); }
+//        p.setBackground(UIColors.colorBkgdDark);
+//        return p;
+//    }
+    
     private JPanel createFilesPanel() throws IOException {
         int N = filesPanelList.size();
-        JPanel p;
-        if (N < 6) {
-            p = new JPanel(new GridLayout(6, 1, 4, 11));
-        } else {
-            p = new JPanel(new GridLayout(N, 1, 4, 11));
+        JPanel p = new JPanel();
+        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+        for (int i = 0; i < N; i++) {
+            p.add(filesPanelList.get(i));
+            p.add(Box.createRigidArea(new Dimension(0,10)));
         }
-        for (int i = 0; i < N; i++) { p.add(filesPanelList.get(i)); }
         p.setBackground(UIColors.colorBkgdDark);
         return p;
     }
@@ -224,6 +248,49 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
             
         }
     }
+    
+    class SelectButtonsMouseEvent implements MouseListener {
+        
+        JPanel panel = null;
+        JLabel label = null;
+        
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            System.out.println("SelectButtonsMouseEvent MouseListener mouseClicked");
+            this.panel = (JPanel) e.getComponent();
+            this.label = (JLabel) panel.getComponentAt(e.getPoint());
+            System.out.println(String.format("%s", label.getIcon().toString()));
+        }
+        @Override
+        public void mousePressed(MouseEvent e) {
+            System.out.println("SelectButtonsMouseEvent MouseListener mousePressed");
+            this.panel = (JPanel) e.getComponent();
+            this.label = (JLabel) panel.getComponentAt(e.getPoint());
+            this.label.setBackground(UIColors.colorBkgdSelected);
+        }
+        @Override
+        public void mouseReleased(MouseEvent e) {
+            System.out.println("SelectButtonsMouseEvent MouseListener mouseReleased");
+            this.panel = (JPanel) e.getComponent();
+            this.label = (JLabel) panel.getComponentAt(e.getPoint());
+            this.label.setBackground(UIColors.colorBkgd);
+        }
+        @Override
+        public void mouseEntered(MouseEvent e) {
+            System.out.println("SelectButtonsMouseEvent MouseListener mouseEntered");
+            this.panel = (JPanel) e.getComponent();
+            this.label = (JLabel) panel.getComponentAt(e.getPoint());
+            this.label.setBackground(UIColors.colorBkgdMouseOver);
+        }
+        @Override
+        public void mouseExited(MouseEvent e) {
+            System.out.println("SelectButtonsMouseEvent MouseListener mouseExited");
+            this.panel = (JPanel) e.getComponent();
+            this.label = (JLabel) panel.getComponentAt(e.getPoint());
+            this.label.setBackground(UIColors.colorBkgd);
+        }
+    }
+    
     
     class FilePanelMouseEvent implements MouseListener {
         @Override
@@ -369,21 +436,21 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
                     Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 if (Arrays.asList(stillRunningLst).contains(Boolean.TRUE)) {
-                    System.out.println("Arrays.asList(stillRunningLst).contains(Boolean.TRUE) = true");
-                    
-                    for (i=0; i<abbeLen; i++) {
-                        System.out.println(String.format("stillRunningLst[i] = %b", stillRunningLst[i]));
-                    }
-                    System.out.println("setting allStillRunning = true");
+//                    System.out.println("Arrays.asList(stillRunningLst).contains(Boolean.TRUE) = true");
+//                    
+//                    for (i=0; i<abbeLen; i++) {
+//                        System.out.println(String.format("stillRunningLst[i] = %b", stillRunningLst[i]));
+//                    }
+//                    System.out.println("setting allStillRunning = true");
                     
                     allStillRunning = true;
                 } else {
-                    System.out.println("Arrays.asList(stillRunningLst).contains(Boolean.TRUE) = false");
-                    
-                    for (i=0; i<abbeLen; i++) {
-                        System.out.println(String.format("stillRunningLst[i] = %b", stillRunningLst[i]));
-                    }
-                    System.out.println("setting allStillRunning = false");
+//                    System.out.println("Arrays.asList(stillRunningLst).contains(Boolean.TRUE) = false");
+//                    
+//                    for (i=0; i<abbeLen; i++) {
+//                        System.out.println(String.format("stillRunningLst[i] = %b", stillRunningLst[i]));
+//                    }
+//                    System.out.println("setting allStillRunning = false");
                     
                     allStillRunning = false;
                 }
@@ -405,6 +472,8 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
         jScrollPane_ImgPanels = new javax.swing.JScrollPane();
         jScrollPane_FilePanels = new javax.swing.JScrollPane();
         jLabel_Info = new javax.swing.JLabel();
+        jButton_selectNone = new javax.swing.JButton();
+        jButton_selectAll = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(32, 32, 32));
@@ -444,7 +513,7 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
         jPanel_topBarLayout.setHorizontalGroup(
             jPanel_topBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel_topBarLayout.createSequentialGroup()
-                .addGap(0, 877, Short.MAX_VALUE)
+                .addGap(0, 0, Short.MAX_VALUE)
                 .addComponent(jPanel_exitButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         jPanel_topBarLayout.setVerticalGroup(
@@ -460,22 +529,65 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
 
         jLabel_Info.setFont(new java.awt.Font("Segoe UI Semilight", 0, 16)); // NOI18N
         jLabel_Info.setForeground(new java.awt.Color(204, 204, 204));
+        jScrollPane_FilePanels.setViewportView(jLabel_Info);
+
+        jButton_selectNone.setBackground(UIColors.colorBkgd);
+        jButton_selectNone.setIcon(new javax.swing.ImageIcon(getClass().getResource("/select-none.png"))); // NOI18N
+        jButton_selectNone.setBorder(null);
+        jButton_selectNone.setBorderPainted(false);
+        jButton_selectNone.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton_selectNoneMouseClicked(evt);
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                jButton_selectNoneMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                jButton_selectNoneMouseExited(evt);
+            }
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                jButton_selectNoneMousePressed(evt);
+            }
+            public void mouseReleased(java.awt.event.MouseEvent evt) {
+                jButton_selectNoneMouseReleased(evt);
+            }
+        });
+
+        jButton_selectAll.setBackground(UIColors.colorBkgd);
+        jButton_selectAll.setIcon(new javax.swing.ImageIcon(getClass().getResource("/select-all.png"))); // NOI18N
+        jButton_selectAll.setBorder(null);
+        jButton_selectAll.setBorderPainted(false);
+        jButton_selectAll.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton_selectAllMouseClicked(evt);
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                jButton_selectAllMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                jButton_selectAllMouseExited(evt);
+            }
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                jButton_selectAllMousePressed(evt);
+            }
+            public void mouseReleased(java.awt.event.MouseEvent evt) {
+                jButton_selectAllMouseReleased(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jScrollPane_FilePanels, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane_FilePanels, javax.swing.GroupLayout.DEFAULT_SIZE, 276, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jLabel_Info, javax.swing.GroupLayout.PREFERRED_SIZE, 661, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jScrollPane_ImgPanels)))
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jPanel_topBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(jButton_selectNone)
+                    .addComponent(jButton_selectAll))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane_ImgPanels, javax.swing.GroupLayout.PREFERRED_SIZE, 550, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addComponent(jPanel_topBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -483,12 +595,16 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
                 .addComponent(jPanel_topBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane_FilePanels)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(6, 6, 6)
-                        .addComponent(jLabel_Info, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane_ImgPanels, javax.swing.GroupLayout.DEFAULT_SIZE, 865, Short.MAX_VALUE))
-                    .addComponent(jScrollPane_FilePanels)))
+                        .addGap(36, 36, 36)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jButton_selectAll, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButton_selectNone, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addComponent(jScrollPane_ImgPanels, javax.swing.GroupLayout.DEFAULT_SIZE, 816, Short.MAX_VALUE)))))
         );
 
         pack();
@@ -509,6 +625,50 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
     private void jPanel_exitButtonMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanel_exitButtonMouseReleased
         this.dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
     }//GEN-LAST:event_jPanel_exitButtonMouseReleased
+
+    private void jButton_selectNoneMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton_selectNoneMouseEntered
+        evt.getComponent().setBackground(UIColors.colorBkgdMouseOver);
+    }//GEN-LAST:event_jButton_selectNoneMouseEntered
+
+    private void jButton_selectNoneMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton_selectNoneMouseExited
+        evt.getComponent().setBackground(UIColors.colorBkgd);
+    }//GEN-LAST:event_jButton_selectNoneMouseExited
+
+    private void jButton_selectNoneMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton_selectNoneMousePressed
+        evt.getComponent().setBackground(UIColors.colorBkgdSelected);
+    }//GEN-LAST:event_jButton_selectNoneMousePressed
+
+    private void jButton_selectNoneMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton_selectNoneMouseReleased
+        evt.getComponent().setBackground(UIColors.colorBkgdMouseOver);
+    }//GEN-LAST:event_jButton_selectNoneMouseReleased
+
+    private void jButton_selectNoneMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton_selectNoneMouseClicked
+        evt.getComponent().setBackground(UIColors.colorBkgdSelected);
+        // TODO select none code here
+        System.out.println("Select None Mouse Clicked");
+    }//GEN-LAST:event_jButton_selectNoneMouseClicked
+
+    private void jButton_selectAllMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton_selectAllMouseClicked
+        evt.getComponent().setBackground(UIColors.colorBkgdSelected);
+        // TODO select all code here
+        System.out.println("Select All Mouse Clicked");
+    }//GEN-LAST:event_jButton_selectAllMouseClicked
+
+    private void jButton_selectAllMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton_selectAllMouseEntered
+        evt.getComponent().setBackground(UIColors.colorBkgdMouseOver);
+    }//GEN-LAST:event_jButton_selectAllMouseEntered
+
+    private void jButton_selectAllMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton_selectAllMouseExited
+        evt.getComponent().setBackground(UIColors.colorBkgd);
+    }//GEN-LAST:event_jButton_selectAllMouseExited
+
+    private void jButton_selectAllMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton_selectAllMousePressed
+        evt.getComponent().setBackground(UIColors.colorBkgdSelected);
+    }//GEN-LAST:event_jButton_selectAllMousePressed
+
+    private void jButton_selectAllMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton_selectAllMouseReleased
+        evt.getComponent().setBackground(UIColors.colorBkgdMouseOver);
+    }//GEN-LAST:event_jButton_selectAllMouseReleased
     
     void openSelectedDatasets (AbbeFile abFile) throws IOException, FormatException {
         
@@ -588,11 +748,23 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
                                             String.format("%s-TS%d", abFldr.folderName, abDs.timeStampIdx),
                                             imgStk
                                     );
+//                    System.out.println(String.format("ImgPlus chns: %d, dims: %d, frms: %d, slices: %d",
+//                                                    imp.getNChannels(),
+//                                                    imp.getNDimensions(),
+//                                                    imp.getNFrames(),
+//                                                    imp.getNSlices()
+//                    ));
                     imp = HyperStackConverter.toHyperStack(
                                             imp,
                                             abDs.incChns.size(),
                                             imgParams.sz,
                                             imgParams.st);
+//                    System.out.println(String.format("ImgPlusHyper chns: %d, dims: %d, frms: %d, slices: %d",
+//                                                    imp.getNChannels(),
+//                                                    imp.getNDimensions(),
+//                                                    imp.getNFrames(),
+//                                                    imp.getNSlices()
+//                    ));
                     Calibration cali = new Calibration();
                     cali.setUnit("micron");
                     cali.pixelWidth = imgParams.dx;
@@ -600,15 +772,29 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
                     cali.pixelDepth = imgParams.dz;
                     cali.frameInterval = imgParams.dt;
                     imp.setCalibration(cali);
-                    for (int i = 0; i < abDs.incChns.size(); i++) {
-                        imp.setC(i);
-                        imp.setLut((LUT)luts.get(i));
+                    
+                    CompositeImage ci = new CompositeImage(imp, CompositeImage.COMPOSITE);
+//                    System.out.println(String.format("Comp chns: %d, dims: %d, frms: %d, slices: %d",
+//                                                    ci.getNChannels(),
+//                                                    ci.getNDimensions(),
+//                                                    ci.getNFrames(),
+//                                                    ci.getNSlices()
+//                    ));
+//                    
+//                    System.out.println(String.format("abbeDataset incChns: %d, dsName: %s",
+//                                                    abDs.incChns.size(),
+//                                                    abDs.datasetName
+//                    ));
+                    
+                    for (int i = 0; i < ci.getNChannels(); i++) {
+                        ci.setChannelLut((LUT)luts.get(i), i+1);
                         
                     }
-                    
-                    imp.setOpenAsHyperStack(true);
-                    imp.setDisplayMode(IJ.COMPOSITE);
-                    imp.show();
+                    ci.setOpenAsHyperStack(true);
+                    ci.show();
+//                    imp.setOpenAsHyperStack(true);
+//                    imp.setDisplayMode(IJ.COMPOSITE);
+//                    imp.show();
 
                     // TODO: add optional opening of rescue and dymin masks...  seperate ImagePlus
                 }
@@ -717,8 +903,9 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
 
     
     
-    
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButton_selectAll;
+    private javax.swing.JButton jButton_selectNone;
     private javax.swing.JLabel jLabel_Info;
     private javax.swing.JPanel jPanel_exitButton;
     private javax.swing.JPanel jPanel_topBar;

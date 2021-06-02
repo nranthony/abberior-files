@@ -140,8 +140,8 @@ class AbbeFileJPanel extends javax.swing.JPanel {
         jLabel_Loading = new javax.swing.JLabel();
         jPanel_Button = new javax.swing.JPanel();
 
-        setMaximumSize(new java.awt.Dimension(198, 97));
-        setMinimumSize(new java.awt.Dimension(268, 128));
+        setMaximumSize(new java.awt.Dimension(280, 131));
+        setMinimumSize(new java.awt.Dimension(280, 131));
 
         jLabel_Filename.setFont(new java.awt.Font("Segoe UI Light", 0, 18)); // NOI18N
         jLabel_Filename.setText("filenamegoeshere.obf");
