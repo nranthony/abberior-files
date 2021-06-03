@@ -60,7 +60,9 @@ import org.xml.sax.SAXException;
  * @author nelly
  */
 class AbbeFile {
-       
+    
+    private static final org.apache.logging.log4j.Logger LOGGER = org.apache.logging.log4j.LogManager.getLogger(OpenAbbeJFrame.class.getName());
+    
     JPanel abbeDatasetPanels = null;
     int panelCount = 0;
     
@@ -96,7 +98,9 @@ class AbbeFile {
         reader.setMetadataStore(omeMeta);
         reader.setId(this.fPath.toString());
         // end waiting thread
-//        System.out.println("AbbeFile consructor");
+        LOGGER.debug(String.format("AbbeFile %s Constructed, abbeFileVectIndex %d",
+                this.fParams.fileName,
+                this.fParams.abbeFilesVectIndex));
     }
 
     static class BFIdxPair {

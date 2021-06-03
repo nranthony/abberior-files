@@ -93,8 +93,6 @@ class AbbeFileJPanel extends javax.swing.JPanel {
             double dotFraction;
             dotFraction = Math.round ( Math.abs(
                                 Math.sin(timeCounter) * Double.valueOf(dotMax-1) ));
-//            jLabel_Loading.setText(String.format("Loading%s",
-//                    String.valueOf(Arrays.copyOfRange(dots, 0, (int)dotFraction))));
             jLabel_Loading.setText(String.format("Loading%s",dotStrs[((int)dotFraction)]));
             timeCounter += 0.2;
         }
