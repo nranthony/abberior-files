@@ -535,6 +535,7 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
         jButton_selectNone.setIcon(new javax.swing.ImageIcon(getClass().getResource("/select-none.png"))); // NOI18N
         jButton_selectNone.setBorder(null);
         jButton_selectNone.setBorderPainted(false);
+        jButton_selectNone.setFocusPainted(false);
         jButton_selectNone.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 jButton_selectNoneMouseClicked(evt);
@@ -557,6 +558,7 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
         jButton_selectAll.setIcon(new javax.swing.ImageIcon(getClass().getResource("/select-all.png"))); // NOI18N
         jButton_selectAll.setBorder(null);
         jButton_selectAll.setBorderPainted(false);
+        jButton_selectAll.setFocusPainted(false);
         jButton_selectAll.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 jButton_selectAllMouseClicked(evt);
@@ -681,7 +683,6 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
             boolean selected = ((AbbeDatasetJPanel)jp).p.panelSelected;
             System.out.println(String.format("Dataset Index: %d, selected: %b", idx, selected));
             if ( selected ) { toOpenDs.add(idx); }
-            
         }
         
         // for LUTs
@@ -727,6 +728,11 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
                         // for each t
                         // data is inheriently each c for abberior as far as I've seen
                         abFile.reader.setSeries(abImg.bfIndex);
+                        System.out.println(String.format("%s %s", abFile.fParams.fileName, abFile.reader.getDimensionOrder()));
+                        System.out.println(String.format("%s", abFile.reader.getDatasetStructureDescription()));
+                        System.out.println(String.format("EffectiveSizeC: %d", abFile.reader.getEffectiveSizeC()));
+                        System.out.println(String.format("ImageCount: %d", abFile.reader.getImageCount()) );
+                        
                         for(int t = 0; t < imgParams.st; t++) {
                             for (int z = 0; z < imgParams.sz; z++) {
                                 Object dat = abFile.reader.openPlane(z+(t*imgParams.sz), 0, 0, imgParams.sx, imgParams.sy);
@@ -744,21 +750,20 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
 
                     }
 
-                    ImagePlus imp = new ImagePlus(
-                                            String.format("%s-TS%d", abFldr.folderName, abDs.timeStampIdx),
-                                            imgStk
-                                    );
+//                    ImagePlus imp = new ImagePlus(
+//                                            String.format("%s-TS%d", abFldr.folderName, abDs.timeStampIdx),
+//                                            imgStk
+//                                    );
 //                    System.out.println(String.format("ImgPlus chns: %d, dims: %d, frms: %d, slices: %d",
 //                                                    imp.getNChannels(),
 //                                                    imp.getNDimensions(),
 //                                                    imp.getNFrames(),
 //                                                    imp.getNSlices()
 //                    ));
-                    imp = HyperStackConverter.toHyperStack(
-                                            imp,
-                                            abDs.incChns.size(),
-                                            imgParams.sz,
-                                            imgParams.st);
+                    
+//                    imp = HyperStackConverter.toHyperStack(imp, abDs.incChns.size(),
+//                                                            imgParams.sz, imgParams.st);
+//                                                            "default", "composite");
 //                    System.out.println(String.format("ImgPlusHyper chns: %d, dims: %d, frms: %d, slices: %d",
 //                                                    imp.getNChannels(),
 //                                                    imp.getNDimensions(),
@@ -771,9 +776,27 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
                     cali.pixelHeight = imgParams.dy;
                     cali.pixelDepth = imgParams.dz;
                     cali.frameInterval = imgParams.dt;
-                    imp.setCalibration(cali);
                     
-                    CompositeImage ci = new CompositeImage(imp, CompositeImage.COMPOSITE);
+                    ImagePlus imp = new ImagePlus();
+                    
+                    imp.setStack(String.format("%s-TS%d", abFldr.folderName, abDs.timeStampIdx), imgStk);
+                    //imp.setDimensions(abDs.incChns.size(), imgParams.sz, imgParams.st);
+                    if (abDs.incChns.size() > 1 | imgParams.sz > 1 | imgParams.st > 1) {
+                        imp = HyperStackConverter.toHyperStack(imp, abDs.incChns.size(),
+                                                                imgParams.sz, imgParams.st, "xyztc", "composite");
+                    }
+                    
+                    imp.setCalibration(cali);
+                    imp = new CompositeImage(imp, CompositeImage.COMPOSITE);
+                    for (int i = 0; i < abDs.incChns.size(); i++) {
+                        ((CompositeImage)imp).setChannelLut((LUT)luts.get(i), i+1);
+                        
+                    }
+                    imp.setOpenAsHyperStack(true);
+                    
+//                    ImagePlusReader impReader = new ImagePlusReader();
+//                    impReader.
+                    
 //                    System.out.println(String.format("Comp chns: %d, dims: %d, frms: %d, slices: %d",
 //                                                    ci.getNChannels(),
 //                                                    ci.getNDimensions(),
@@ -786,15 +809,20 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
 //                                                    abDs.datasetName
 //                    ));
                     
-                    for (int i = 0; i < ci.getNChannels(); i++) {
-                        ci.setChannelLut((LUT)luts.get(i), i+1);
-                        
-                    }
-                    ci.setOpenAsHyperStack(true);
-                    ci.show();
+//                    for (int i = 0; i < ci.getNChannels(); i++) {
+//                        ci.setChannelLut((LUT)luts.get(i), i+1);
+//                        
+//                    }
+//                    ci.setOpenAsHyperStack(true);
+//                    ci.show();
+
+//                    for (int i = 0; i < imp.getNChannels(); i++) {
+//                        imp.setChannelLut((LUT)luts.get(i), i+1);
+//                        
+//                    }
 //                    imp.setOpenAsHyperStack(true);
-//                    imp.setDisplayMode(IJ.COMPOSITE);
-//                    imp.show();
+////                    imp.setDisplayMode(IJ.COMPOSITE);
+                    imp.show();
 
                     // TODO: add optional opening of rescue and dymin masks...  seperate ImagePlus
                 }
@@ -813,7 +841,7 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
                 // get index for abbeFileVect
                 //AbbeFilePanel abFP = 
                 fileVectIndex = ((AbbeFileJPanel)abFileJP).fP.abbeFilesVectIndex;
-                System.out.println(String.format("fileVectIndex: %d", fileVectIndex));
+                //System.out.println(String.format("fileVectIndex: %d", fileVectIndex));
             }
         }
     }
@@ -828,7 +856,7 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
                 // get index for abbeFileVect
                 //AbbeFilePanel abFP = 
                 fileVectIndex = ((AbbeFileJPanel)abFileJP).fP.abbeFilesVectIndex;
-                System.out.println(String.format("fileVectIndex: %d", fileVectIndex));
+                //System.out.println(String.format("fileVectIndex: %d", fileVectIndex));
             }
         }
     }

@@ -9,50 +9,51 @@ import net.imglib2.img.array.ArrayImg;
 import ome.xml.model.enums.PixelType;
 
 
-public class Params {
+class Params {
     
     // parameters to pass to each dataset panel
-    public static class PanelParams {
-        public String dsName;
-        public int dsTimeStamp;
-        public int dsIndex;
-        public BufferedImage bufImg;
-        public ArrayImg arrImg;
-        public int psx = 186;
-        public int psy = 142;
-        public int nx;
-        public int ny;
-        public short[] lambdas;
-        public String[] chnNames;
-        public boolean dymin;
-        public boolean rescue;
-        public boolean stack;
-        public boolean timeLapse;
-        public boolean panelSelected = false;
+    static class PanelParams {
+        String dsName;
+        int dsTimeStamp;
+        int dsIndex;
+        BufferedImage bufImg;
+        ArrayImg arrImg;
+        int psx = 186;
+        int psy = 142;
+        int nx;
+        int ny;
+        short[] lambdas;
+        String[] chnNames;
+        boolean dymin;
+        boolean rescue;
+        boolean stack;
+        boolean timeLapse;
+        boolean panelSelected = false;
     }
     
     // parameters for creating ImagePlus
-    public static class ImageParams {
-        public String name = "";
-        public String chnName = "";
-        public int sx, sy, sz, st;
-        public double dx, dy, dz, dt;
-        public PixelType pxType;
-        public short emissionLambda;
+    static class ImageParams {
+        String name = "";
+        String chnName = "";
+        int sx, sy, sz, st;
+        double dx, dy, dz, dt;
+        PixelType pxType;
+        short emissionLambda;
     }
     
-    public static class DatasetParams {
+    static class DatasetParams {
         
 
     }
     
     // pareameters to pass to each image file panel
-    public static class FileParams {
-        public String fileName;
-        public int numDatasets;
-        public Map<Integer,String> labelsUsed;
-        public boolean panelSelected = false;
-        public int abbeFilesVectIndex = -1;
+    static class FileParams {
+        String fileName;
+        int numDatasets;
+        Map<Integer,String> labelsUsed;
+        boolean panelSelected = false;
+        int abbeFilesVectIndex = -1;
+        int fpIndex = -1;
     }
     
 }
