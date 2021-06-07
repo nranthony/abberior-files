@@ -36,6 +36,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -61,7 +63,9 @@ import org.xml.sax.SAXException;
  */
 class AbbeFile {
     
-    private static final org.apache.logging.log4j.Logger LOGGER = org.apache.logging.log4j.LogManager.getLogger(OpenAbbeJFrame.class.getName());
+    //private static final org.apache.logging.log4j.Logger LOGGER = org.apache.logging.log4j.LogManager.getLogger(OpenAbbeJFrame.class.getName());
+    
+    Logger logger = OpenAbbeJFrame.logger;
     
     JPanel abbeDatasetPanels = null;
     int panelCount = 0;
@@ -98,7 +102,7 @@ class AbbeFile {
         reader.setMetadataStore(omeMeta);
         reader.setId(this.fPath.toString());
         // end waiting thread
-        LOGGER.debug(String.format("AbbeFile %s Constructed, abbeFileVectIndex %d",
+        logger.log(Level.FINE, String.format("AbbeFile %s Constructed, abbeFileVectIndex %d",
                 this.fParams.fileName,
                 this.fParams.abbeFilesVectIndex));
     }
@@ -171,7 +175,7 @@ class AbbeFile {
             // constructor
             AbbeDataset(int datIndex, String datIDStr,
                     String datName, Integer[] imgIDArr, int timeStamp) throws IOException, FormatException {
-//                System.out.println("Contructing AbbeDataSet");
+//                logger.log(Level.FINE, "Contructing AbbeDataSet");
                 this.datasetName = datName;
                 this.datasetID = datIDStr;
                 this.datasetIndex = datIndex;
@@ -629,7 +633,7 @@ class AbbeFile {
                     if (folderImages.containsAll(imgIDSet)) {
                         Integer[] imgIDArr = new Integer[dsImgCount];
                         imgIDArr = imgIDSet.toArray(imgIDArr);
-//                        System.out.println(String.format("Creating ds%d", ds));
+//                        logger.log(Level.FINE, String.format("Creating ds%d", ds));
                         abF.addDataset(ds, imgIDArr);
                     }
                 }
@@ -655,7 +659,7 @@ class AbbeFile {
         Node imgNode;
         for (int n=0; n<imageNodeList.getLength(); n++) {
             imgNode = imageNodeList.item(n);
-//            System.out.println(imgNode.toString());
+//            logger.log(Level.FINE, imgNode.toString());
         }
     }
     

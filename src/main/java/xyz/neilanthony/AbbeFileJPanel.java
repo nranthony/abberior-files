@@ -138,7 +138,7 @@ class AbbeFileJPanel extends javax.swing.JPanel {
         jLabel_Loading = new javax.swing.JLabel();
         jPanel_Button = new javax.swing.JPanel();
 
-        setMaximumSize(new java.awt.Dimension(280, 131));
+        setMaximumSize(new java.awt.Dimension(280, 180));
         setMinimumSize(new java.awt.Dimension(280, 131));
 
         jLabel_Filename.setFont(new java.awt.Font("Segoe UI Light", 0, 18)); // NOI18N
@@ -178,7 +178,8 @@ class AbbeFileJPanel extends javax.swing.JPanel {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel_Loading)
-                    .addComponent(jPanel_Button, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(jPanel_Button, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(19, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -201,11 +202,15 @@ class AbbeFileJPanel extends javax.swing.JPanel {
         this.revalidate();
     }
     
-    void setButtonPanelSelected() {
+    void setPanelSelected() {
+        this.setBackground(UIColors.colorBkgdSelected);
         this.jPanel_Button.setBackground(UIColors.colorBkgdSelected);
+        this.fP.panelSelected = true;
     }
-    void setButtonPanelUnselected() {
+    void setPanelUnselected() {
+        this.setBackground(UIColors.colorBkgdPanel);
         this.jPanel_Button.setBackground(UIColors.colorBkgdPanel);
+        this.fP.panelSelected = false;
     }
         
     private void displayLabelsUsed (Map labelHashMap) {

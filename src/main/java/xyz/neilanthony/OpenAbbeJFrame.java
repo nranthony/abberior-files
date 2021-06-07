@@ -59,6 +59,9 @@ import java.awt.Toolkit;
 import java.awt.image.ColorModel;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.ConsoleHandler;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import net.imglib2.display.ColorTable;
@@ -75,7 +78,13 @@ import org.xml.sax.SAXException;
  */
 class OpenAbbeJFrame extends javax.swing.JFrame {
 
-    private static final org.apache.logging.log4j.Logger LOGGER = org.apache.logging.log4j.LogManager.getLogger(OpenAbbeJFrame.class.getName());
+    //org.apache.log4j.BasicConfigurator
+//    private static org.apache.logging.log4j.Logger LOGGER = org.apache.logging.log4j.LogManager.getLogger(OpenAbbeJFrame.class.getName());
+    //private static org.apache.logging.log4j.Logger LOGGER = org.apache.logging.log4j.LogManager.getLogger();
+   //org.apache.log4j.BasicConfigurator.configure();
+    
+    static Logger logger = null;
+    
     
     private Point panelOffset = new Point();
     final UserInterface ui;
@@ -89,20 +98,25 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
     final private ExecutorService importPool = Executors.newFixedThreadPool(4);
     private List<Future<AbbeFile>> futAbbeList = new ArrayList<Future<AbbeFile>>();
     // holds information about all files dragged on to GUI
-    final Vector<AbbeFile> abbeFilesVect = new Vector<>();
-    // cast to sychronized (abbeFilesVect) when multithreading
+    final Map<Integer, AbbeFile> abbeFilesMap = new HashMap<Integer, AbbeFile>();
+    
+    // cast to sychronized (abbeFilesMap) when multithreading
     
     /* Creates new form OpenAbbeJFrame */
     OpenAbbeJFrame(UserInterface ui) throws FormatException, ParserConfigurationException, SAXException {
 //    OpenAbbeJFrame() throws FormatException, ParserConfigurationException, SAXException {
         this.ui = ui;
-        
-        LOGGER.debug("Debug Message Logged !!!");
-        LOGGER.info("Info Message Logged !!!");
-        LOGGER.error("Error Message Logged !!!", new NullPointerException("NullError"));
-        
-        initComponents();
 
+        initComponents();
+        
+        logger = Logger.getLogger(this.getName());
+        logger.setLevel(Level.FINER);
+        ConsoleHandler handler = new ConsoleHandler();
+        // PUBLISH this level
+        handler.setLevel(Level.FINER);
+        logger.addHandler(handler);
+        
+        
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         int adjHeight = (int)((float)screenSize.height * 0.85f);
         this.setSize(900, adjHeight);
@@ -150,8 +164,6 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
         jPanel_dragDrop.setBackground(UIColors.colorBkgd);
         jScrollPane_ImgPanels.setViewportView(jPanel_dragDrop);
         
-        
-        
         jPanel_topBar.setVisible(true);
         jPanel_exitButton.setVisible(true);
         
@@ -168,18 +180,22 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
                     boolean newAdded = false;
                     futAbbeList.clear();
                     int filesPanelCount = filesPanelList.size();
-                    LOGGER.debug(String.format("filesPanelList size: %d", filesPanelCount));
+                    logger.log(Level.FINE, String.format("filesPanelList size: %d", filesPanelCount));
                     for (File file : droppedFiles) {
                         if ( file.getPath().endsWith(".obf") | file.getPath().endsWith(".msr") ) { 
                             Params.FileParams fP = new Params.FileParams();
                             fP.fileName = file.toPath().getFileName().toString();
                             fP.abbeFilesVectIndex = filesPanelCount;
-                            LOGGER.debug(String.format("Dropped file; creating new AbbeFilePanel %d", filesPanelCount));
+                            logger.log(Level.FINE, String.format("Dropped file %s; creating new AbbeFilePanel %d, fileParams: %s",
+                                    fP.fileName,
+                                    filesPanelCount,
+                                    fP.toString()
+                            ));
                             filesPanelList.add(new AbbeFileJPanel(fP));
                             
                             Callable<AbbeFile> callable = new NewAbbeFile(file, filesPanelCount);
                             filesPanelCount++;
-                            LOGGER.debug(String.format("Submitting %s to pool.", file.toString()));
+                            logger.log(Level.FINE, String.format("Submitting %s to pool.", file.toString()));
                             Future<AbbeFile> future = importPool.submit(callable);
                             futAbbeList.add(future);
                             newAdded = true;
@@ -262,35 +278,36 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
         
         @Override
         public void mouseClicked(MouseEvent e) {
-            LOGGER.debug("SelectButtonsMouseEvent MouseListener mouseClicked");
+            logger.log(Level.FINE, "SelectButtonsMouseEvent MouseListener mouseClicked");
             this.panel = (JPanel) e.getComponent();
             this.label = (JLabel) panel.getComponentAt(e.getPoint());
-            LOGGER.debug(String.format("%s", label.getIcon().toString()));
+            logger.log(Level.FINE, String.format("%s", label.getIcon().toString()));
         }
         @Override
         public void mousePressed(MouseEvent e) {
-            LOGGER.debug("SelectButtonsMouseEvent MouseListener mousePressed");
+            logger.log(Level.FINE, "SelectButtonsMouseEvent MouseListener mousePressed");
+            logger.log(Level.FINE, "SelectButtonsMouseEvent MouseListener mousePressed");
             this.panel = (JPanel) e.getComponent();
             this.label = (JLabel) panel.getComponentAt(e.getPoint());
             this.label.setBackground(UIColors.colorBkgdSelected);
         }
         @Override
         public void mouseReleased(MouseEvent e) {
-            LOGGER.debug("SelectButtonsMouseEvent MouseListener mouseReleased");
+            logger.log(Level.FINE, "SelectButtonsMouseEvent MouseListener mouseReleased");
             this.panel = (JPanel) e.getComponent();
             this.label = (JLabel) panel.getComponentAt(e.getPoint());
             this.label.setBackground(UIColors.colorBkgd);
         }
         @Override
         public void mouseEntered(MouseEvent e) {
-            LOGGER.debug("SelectButtonsMouseEvent MouseListener mouseEntered");
+            logger.log(Level.FINE, "SelectButtonsMouseEvent MouseListener mouseEntered");
             this.panel = (JPanel) e.getComponent();
             this.label = (JLabel) panel.getComponentAt(e.getPoint());
             this.label.setBackground(UIColors.colorBkgdMouseOver);
         }
         @Override
         public void mouseExited(MouseEvent e) {
-            LOGGER.debug("SelectButtonsMouseEvent MouseListener mouseExited");
+            logger.log(Level.FINE, "SelectButtonsMouseEvent MouseListener mouseExited");
             this.panel = (JPanel) e.getComponent();
             this.label = (JLabel) panel.getComponentAt(e.getPoint());
             this.label.setBackground(UIColors.colorBkgd);
@@ -301,48 +318,46 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
     class FilePanelMouseEvent implements MouseListener {
         @Override
         public void mouseClicked(MouseEvent e) {
-            //LOGGER.debug("FilePanelMouseEvent MouseListener mouseClicked");
+            //logger.log(Level.FINE, "FilePanelMouseEvent MouseListener mouseClicked");
         }
         @Override
         public void mousePressed(MouseEvent e) {
-            //LOGGER.debug("FilePanelMouseEvent MouseListener mousePressed");
+            //logger.log(Level.FINE, "FilePanelMouseEvent MouseListener mousePressed");
             AbbeFileJPanel abFP = (AbbeFileJPanel) e.getComponent();
             int idx = abFP.fP.abbeFilesVectIndex;
-            synchronized (abbeFilesVect) {
-                if ( abFP.ready & idx < abbeFilesVect.size() ) {
-                jScrollPane_ImgPanels.setViewportView(abbeFilesVect.get(idx).abbeDatasetPanels);
+            synchronized (abbeFilesMap) {
+                if ( abFP.ready & idx < abbeFilesMap.size() ) {
+                jScrollPane_ImgPanels.setViewportView(abbeFilesMap.get(idx).abbeDatasetPanels);
                 setAbbeFilePanelSelect(idx);
                 }
             }
-            
         }
         @Override
         public void mouseReleased(MouseEvent e) {
-            //LOGGER.debug("FilePanelMouseEvent MouseListener mouseReleased");
+            //logger.log(Level.FINE, "FilePanelMouseEvent MouseListener mouseReleased");
         }
         @Override
         public void mouseEntered(MouseEvent e) {
-            //LOGGER.debug("FilePanelMouseEvent MouseListener mouseEntered");
+            //logger.log(Level.FINE, "FilePanelMouseEvent MouseListener mouseEntered");
         }
         @Override
         public void mouseExited(MouseEvent e) {
-            //LOGGER.debug("FilePanelMouseEvent MouseListener mouseExited");
+            //logger.log(Level.FINE, "FilePanelMouseEvent MouseListener mouseExited");
         }
     }
     
     class FilePanelOpenMouseEvent implements MouseListener {
         @Override
         public void mouseClicked(MouseEvent e) {
-            //LOGGER.debug("FilePanelOpenMouseEvent MouseListener mouseClicked");
+            //logger.log(Level.FINE, "FilePanelOpenMouseEvent MouseListener mouseClicked");
         }
         @Override
         public void mousePressed(MouseEvent e) {
-            //LOGGER.debug("FilePanelOpenMouseEvent MouseListener mousePressed");
+            //logger.log(Level.FINE, "FilePanelOpenMouseEvent MouseListener mousePressed");
             JPanel openPanel = (JPanel) e.getComponent();
             AbbeFileJPanel abFP = (AbbeFileJPanel) openPanel.getParent();
             try {
-                openSelectedDatasets(
-                        OpenAbbeJFrame.this.abbeFilesVect.get(abFP.fP.abbeFilesVectIndex));
+                openSelectedDatasets(OpenAbbeJFrame.this.abbeFilesMap.get(abFP.fP.abbeFilesVectIndex));
             } catch (IOException | FormatException ex) {
                 Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -350,11 +365,11 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
         }
         @Override
         public void mouseReleased(MouseEvent e) {
-            //LOGGER.debug("FilePanelOpenMouseEvent MouseListener mouseReleased");
+            //logger.log(Level.FINE, "FilePanelOpenMouseEvent MouseListener mouseReleased");
         }
         @Override
         public void mouseEntered(MouseEvent e) {
-            //LOGGER.debug("FilePanelOpenMouseEvent MouseListener mouseEntered");
+            //logger.log(Level.FINE, "FilePanelOpenMouseEvent MouseListener mouseEntered");
             JPanel openPanel = (JPanel) e.getComponent();
             AbbeFileJPanel abFP = (AbbeFileJPanel) openPanel.getParent();
             abFP.setOpenClick();
@@ -363,7 +378,7 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
         }
         @Override
         public void mouseExited(MouseEvent e) {
-            //LOGGER.debug("FilePanelOpenMouseEvent MouseListener mouseExited");
+            //logger.log(Level.FINE, "FilePanelOpenMouseEvent MouseListener mouseExited");
             JPanel openPanel = (JPanel) e.getComponent();
             AbbeFileJPanel abFP = (AbbeFileJPanel) openPanel.getParent();
             abFP.setOpenNotClick();
@@ -376,22 +391,31 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
         private int index;
         NewAbbeFile(File f, int idx) { this.fname = f; this.index = idx; }
         @Override
-        public Object call() throws Exception {
+        public synchronized Object call() throws Exception {
             
-            LOGGER.debug(String.format(
-                    "NewAbbeFile Callable; creating new AbbeFile %d, idx %d",
-                    fname.toPath(), index));
+            logger.log(Level.FINE, String.format("creating new AbbeFile %s, idx %d",
+                    fname.toPath().toString(), index));
             AbbeFile newAbbe = new AbbeFile(fname.toPath(),index);
             
             newAbbe.scanDatasetsFoldersImages();
             newAbbe.collateFolderImages();
             newAbbe.fillPanels();
-            jScrollPane_ImgPanels.setViewportView(newAbbe.abbeDatasetPanels);
-            AbbeFileJPanel abFP = (AbbeFileJPanel) (filesPanelList.get(index));
-            abFP.loadingRunnable.stopThread(newAbbe.fParams.labelsUsed);
-            abFP.ready = true;
-            abFP.addMouseListener(new FilePanelMouseEvent());
-            abFP.jButtonOpen.addMouseListener(new FilePanelOpenMouseEvent());
+            //jScrollPane_ImgPanels.setViewportView(newAbbe.abbeDatasetPanels);
+//            String tmpStr = "";
+//            for (int i = 0; i < filesPanelList.size(); i++) {
+//                AbbeFileJPanel abFP = (AbbeFileJPanel) (filesPanelList.get(i));
+//                tmpStr += String.format("; %s - %d - ready %b",
+//                    abFP.fP.fileName,
+//                    abFP.fP.abbeFilesVectIndex,
+//                    abFP.ready
+//                    );
+//            }
+//            logger.log(Level.FINE, tmpStr);
+//            AbbeFileJPanel abFP = (AbbeFileJPanel) (filesPanelList.get(index));
+//            abFP.loadingRunnable.stopThread(newAbbe.fParams.labelsUsed);
+//            abFP.addMouseListener(new FilePanelMouseEvent());
+//            abFP.jButtonOpen.addMouseListener(new FilePanelOpenMouseEvent());
+            //setAbbeFilePanelSelect(index);
             return newAbbe;
         }
     }
@@ -401,29 +425,34 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
         // CheckLoadingAbbes Constructor
         CheckLoadingAbbes () {   }
         
-        public void run() {
-            int i = 0;
+        public synchronized void run() {
+            //int i = 0;
             String tDoneStrs;
             boolean allStillRunning = true;
             int abbeLen = futAbbeList.size();
             Boolean done;
             Boolean[] stillRunningLst = new Boolean[abbeLen];
-            for (i=0; i<abbeLen; i++) { stillRunningLst[i] = Boolean.TRUE; }
+            for (int n=0; n<abbeLen; n++) { stillRunningLst[n] = Boolean.TRUE; }
             while (allStillRunning) {
                 tDoneStrs = "";
-                for (i=0; i<abbeLen; i++) {
+                for (int i=0; i<abbeLen; i++) {
                     if (stillRunningLst[i]) {
-//                        LOGGER.debug(String.format("File %d Still Running: %s", i, stillRunningLst[i].toString()));
+                        
                         done = futAbbeList.get(i).isDone();
                         if (done) {
-                            LOGGER.debug(String.format("File %d Done", i, done.toString()));
+                            logger.log(Level.FINE, String.format("File %d Done", i, done.toString()));
                             stillRunningLst[i] = Boolean.FALSE;
                             try {
                                 // pull AbbeFile instance and place into global vector
-                                synchronized (abbeFilesVect) {
-                                    LOGGER.debug(String.format("Getting futAbbeList item %d",i));
-                                    abbeFilesVect.add(futAbbeList.get(i).get(10, TimeUnit.SECONDS));
-                                    LOGGER.debug(String.format("abbeFilesVect added, length now: %d",abbeFilesVect.size()));
+                                synchronized (abbeFilesMap) {
+                                    AbbeFile abF = futAbbeList.get(i).get(10, TimeUnit.SECONDS);
+                                    AbbeFileJPanel abFP = (AbbeFileJPanel) (filesPanelList.get(abF.fParams.abbeFilesVectIndex));
+                                    abbeFilesMap.put(abF.fParams.abbeFilesVectIndex, abF);
+                                    abFP.loadingRunnable.stopThread(abF.fParams.labelsUsed);
+                                    abFP.addMouseListener(new FilePanelMouseEvent());
+                                    abFP.jButtonOpen.addMouseListener(new FilePanelOpenMouseEvent());
+                                    abFP.ready = true;
+                                    logger.log(Level.FINE, String.format("abbeFilesVect added, length now: %d",abbeFilesMap.size()));
                                 }
                             } catch (InterruptedException | ExecutionException | TimeoutException ex) {
                                 Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
@@ -432,32 +461,14 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
                     }
                     tDoneStrs += String.valueOf(i) + " " + stillRunningLst[i].toString() + " ";
                 }
-//                LOGGER.debug("CheckLoadingAbbes: " + tDoneStrs);
+                
                 try {
-                    
                     Thread.sleep(500);
                 } catch (InterruptedException ex) {
                     Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                if (Arrays.asList(stillRunningLst).contains(Boolean.TRUE)) {
-//                    LOGGER.debug("Arrays.asList(stillRunningLst).contains(Boolean.TRUE) = true");
-//                    
-//                    for (i=0; i<abbeLen; i++) {
-//                        LOGGER.debug(String.format("stillRunningLst[i] = %b", stillRunningLst[i]));
-//                    }
-//                    LOGGER.debug("setting allStillRunning = true");
-                    
-                    allStillRunning = true;
-                } else {
-//                    LOGGER.debug("Arrays.asList(stillRunningLst).contains(Boolean.TRUE) = false");
-//                    
-//                    for (i=0; i<abbeLen; i++) {
-//                        LOGGER.debug(String.format("stillRunningLst[i] = %b", stillRunningLst[i]));
-//                    }
-//                    LOGGER.debug("setting allStillRunning = false");
-                    
-                    allStillRunning = false;
-                }
+                if (Arrays.asList(stillRunningLst).contains(Boolean.TRUE)) { allStillRunning = true; }
+                else { allStillRunning = false; }
             }
         }
     }
@@ -618,13 +629,13 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jPanel_topBarMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanel_topBarMousePressed
-        //        LOGGER.debug(String.format("Pressed: %d %d", evt.getX(), evt.getY()));
+        //        logger.log(Level.FINE, String.format("Pressed: %d %d", evt.getX(), evt.getY()));
         panelOffset.x = evt.getX();
         panelOffset.y = evt.getY();
     }//GEN-LAST:event_jPanel_topBarMousePressed
 
     private void jPanel_topBarMouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanel_topBarMouseDragged
-        //        LOGGER.debug(String.format("Dragging [getXYonScreen]: %d %d", evt.getXOnScreen(), evt.getYOnScreen()));
+        //        logger.log(Level.FINE, String.format("Dragging [getXYonScreen]: %d %d", evt.getXOnScreen(), evt.getYOnScreen()));
         this.setLocation(evt.getLocationOnScreen().x - panelOffset.x,
             evt.getLocationOnScreen().y - panelOffset.y);
     }//GEN-LAST:event_jPanel_topBarMouseDragged
@@ -652,7 +663,7 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
     private void jButton_selectNoneMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton_selectNoneMouseClicked
         evt.getComponent().setBackground(UIColors.colorBkgdSelected);
         // TODO select none code here
-        LOGGER.debug("Select None Mouse Clicked");
+        logger.log(Level.FINE, "Select None Mouse Clicked");
     }//GEN-LAST:event_jButton_selectNoneMouseClicked
 
     private void jButton_selectAllMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton_selectAllMouseClicked
@@ -660,7 +671,7 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
         // TODO select all code here
         //((OpenAbbeJFrame)evt.getComponent().getParent()).
         
-        LOGGER.debug("Select All Mouse Clicked");
+        logger.log(Level.FINE, "Select All Mouse Clicked");
     }//GEN-LAST:event_jButton_selectAllMouseClicked
 
     private void jButton_selectAllMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton_selectAllMouseEntered
@@ -688,7 +699,7 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
             JPanel jp = (JPanel) cmpnts[i];
             int idx = ((AbbeDatasetJPanel)jp).p.dsIndex;
             boolean selected = ((AbbeDatasetJPanel)jp).p.panelSelected;
-            //LOGGER.debug(String.format("Dataset Index: %d, selected: %b", idx, selected));
+            //logger.log(Level.FINE, String.format("Dataset Index: %d, selected: %b", idx, selected));
             if ( selected ) { toOpenDs.add(idx); }
         }
         
@@ -735,10 +746,10 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
                         // for each t
                         // data is inheriently each c for abberior as far as I've seen
                         abFile.reader.setSeries(abImg.bfIndex);
-                        LOGGER.debug(String.format("%s %s", abFile.fParams.fileName, abFile.reader.getDimensionOrder()));
-                        LOGGER.debug(String.format("%s", abFile.reader.getDatasetStructureDescription()));
-                        LOGGER.debug(String.format("EffectiveSizeC: %d", abFile.reader.getEffectiveSizeC()));
-                        LOGGER.debug(String.format("ImageCount: %d", abFile.reader.getImageCount()) );
+//                        logger.log(Level.FINE, String.format("%s %s", abFile.fParams.fileName, abFile.reader.getDimensionOrder()));
+//                        logger.log(Level.FINE, String.format("%s", abFile.reader.getDatasetStructureDescription()));
+//                        logger.log(Level.FINE, String.format("EffectiveSizeC: %d", abFile.reader.getEffectiveSizeC()));
+//                        logger.log(Level.FINE, String.format("ImageCount: %d", abFile.reader.getImageCount()) );
                         
                         for(int t = 0; t < imgParams.st; t++) {
                             for (int z = 0; z < imgParams.sz; z++) {
@@ -761,7 +772,7 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
 //                                            String.format("%s-TS%d", abFldr.folderName, abDs.timeStampIdx),
 //                                            imgStk
 //                                    );
-//                    LOGGER.debug(String.format("ImgPlus chns: %d, dims: %d, frms: %d, slices: %d",
+//                    logger.log(Level.FINE, String.format("ImgPlus chns: %d, dims: %d, frms: %d, slices: %d",
 //                                                    imp.getNChannels(),
 //                                                    imp.getNDimensions(),
 //                                                    imp.getNFrames(),
@@ -771,7 +782,7 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
 //                    imp = HyperStackConverter.toHyperStack(imp, abDs.incChns.size(),
 //                                                            imgParams.sz, imgParams.st);
 //                                                            "default", "composite");
-//                    LOGGER.debug(String.format("ImgPlusHyper chns: %d, dims: %d, frms: %d, slices: %d",
+//                    logger.log(Level.FINE, String.format("ImgPlusHyper chns: %d, dims: %d, frms: %d, slices: %d",
 //                                                    imp.getNChannels(),
 //                                                    imp.getNDimensions(),
 //                                                    imp.getNFrames(),
@@ -804,14 +815,14 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
 //                    ImagePlusReader impReader = new ImagePlusReader();
 //                    impReader.
                     
-//                    LOGGER.debug(String.format("Comp chns: %d, dims: %d, frms: %d, slices: %d",
+//                    logger.log(Level.FINE, String.format("Comp chns: %d, dims: %d, frms: %d, slices: %d",
 //                                                    ci.getNChannels(),
 //                                                    ci.getNDimensions(),
 //                                                    ci.getNFrames(),
 //                                                    ci.getNSlices()
 //                    ));
 //                    
-//                    LOGGER.debug(String.format("abbeDataset incChns: %d, dsName: %s",
+//                    logger.log(Level.FINE, String.format("abbeDataset incChns: %d, dsName: %s",
 //                                                    abDs.incChns.size(),
 //                                                    abDs.datasetName
 //                    ));
@@ -848,7 +859,7 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
                 // get index for abbeFileVect
                 //AbbeFilePanel abFP = 
                 fileVectIndex = ((AbbeFileJPanel)abFileJP).fP.abbeFilesVectIndex;
-                //LOGGER.debug(String.format("fileVectIndex: %d", fileVectIndex));
+                //logger.log(Level.FINE, String.format("fileVectIndex: %d", fileVectIndex));
             }
         }
     }
@@ -863,21 +874,29 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
                 // get index for abbeFileVect
                 //AbbeFilePanel abFP = 
                 fileVectIndex = ((AbbeFileJPanel)abFileJP).fP.abbeFilesVectIndex;
-                //LOGGER.debug(String.format("fileVectIndex: %d", fileVectIndex));
+                //logger.log(Level.FINE, String.format("fileVectIndex: %d", fileVectIndex));
             }
         }
     }
 
     void setAbbeFilePanelSelect(int selectedIdx) {
         JPanel panel = null;
+        logger.log(Level.FINE, String.format(
+                    "OpenAbbeJFrame.filesPanelList size: %d", this.filesPanelList.size()));
         for (int i = 0; i < this.filesPanelList.size(); i++) {
             panel = this.filesPanelList.get(i);
             if (i == selectedIdx) {
-                ( (AbbeFileJPanel)panel ).setBackground(UIColors.colorBkgdSelected);
-                ( (AbbeFileJPanel)panel ).setButtonPanelSelected();
+                ( (AbbeFileJPanel)panel ).setPanelSelected();
+                logger.log(Level.FINE, String.format(
+                    "filesPanelList idx: %d, file: %s -> selected",
+                        i,
+                        ( (AbbeFileJPanel)panel ).fP.fileName));
             } else {
-                ( (AbbeFileJPanel)panel ).setBackground(UIColors.colorBkgdPanel);
-                ( (AbbeFileJPanel)panel ).setButtonPanelUnselected();
+                ( (AbbeFileJPanel)panel ).setPanelUnselected();
+                logger.log(Level.FINE, String.format(
+                    "filesPanelList idx: %d, file: %s -> unselected",
+                        i,
+                        ( (AbbeFileJPanel)panel ).fP.fileName));
             }
         }
     }
@@ -886,25 +905,25 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
         
         getSelectedFilePanels();
         
-        for (AbbeFile abFile : abbeFilesVect) {
-            for (AbbeFile.AbbeFolder abFldr : abFile.abbeFolderVect) {
-                
-                LOGGER.debug(abFldr.fldrImgIndxs.toString());
-                LOGGER.debug(abFldr.abbeDatasetVect.toString());
-                
-                for (AbbeFile.AbbeFolder.AbbeDataset abDs : abFldr.abbeDatasetVect) {
-                    
-                    LOGGER.debug(abDs.abbeImagesVect.toString());
-                    LOGGER.debug(abDs.pParams.toString());
-                    
-                    for (AbbeFile.AbbeFolder.AbbeDataset.AbbeImage abImg : abDs.abbeImagesVect) {
-                        
-                        LOGGER.debug(abImg.imgParams.toString());
-                        
-                    }
-                }
-            }
-        }
+//        for (AbbeFile abFile : abbeFilesMap) {
+//            for (AbbeFile.AbbeFolder abFldr : abFile.abbeFolderVect) {
+//                
+//                logger.log(Level.FINE, abFldr.fldrImgIndxs.toString());
+//                logger.log(Level.FINE, abFldr.abbeDatasetVect.toString());
+//                
+//                for (AbbeFile.AbbeFolder.AbbeDataset abDs : abFldr.abbeDatasetVect) {
+//                    
+//                    logger.log(Level.FINE, abDs.abbeImagesVect.toString());
+//                    logger.log(Level.FINE, abDs.pParams.toString());
+//                    
+//                    for (AbbeFile.AbbeFolder.AbbeDataset.AbbeImage abImg : abDs.abbeImagesVect) {
+//                        
+//                        logger.log(Level.FINE, abImg.imgParams.toString());
+//                        
+//                    }
+//                }
+//            }
+//        }
     }
     
     /**
