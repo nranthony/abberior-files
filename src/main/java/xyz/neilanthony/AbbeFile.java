@@ -97,14 +97,14 @@ class AbbeFile {
         this.fPath = filePath;
         this.fParams.labelsUsed = new HashMap<Integer,String>();
         this.fParams.fileName = filePath.getFileName().toString();
-        this.fParams.abbeFilesVectIndex = abbeFileVectIndex;
+        this.fParams.abbeFilesMapKey = abbeFileVectIndex;
         //  start waiting thread
         reader.setMetadataStore(omeMeta);
         reader.setId(this.fPath.toString());
         // end waiting thread
         logger.log(Level.FINE, String.format("AbbeFile %s Constructed, abbeFileVectIndex %d",
                 this.fParams.fileName,
-                this.fParams.abbeFilesVectIndex));
+                this.fParams.abbeFilesMapKey));
     }
 
     static class BFIdxPair {

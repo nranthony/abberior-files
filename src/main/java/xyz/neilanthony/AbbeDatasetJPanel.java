@@ -151,6 +151,15 @@ public class AbbeDatasetJPanel extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    void unselectPanel () {
+        p.panelSelected = false;
+        this.setBackground(UIColors.colorBkgdPanel);
+    }
+    void selectPanel () {
+        p.panelSelected = true;
+        this.setBackground(UIColors.colorBkgdSelected);
+    }
+    
     private void formMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseEntered
         if (!p.panelSelected) {
         evt.getComponent().setBackground(UIColors.colorBkgdMouseOver);

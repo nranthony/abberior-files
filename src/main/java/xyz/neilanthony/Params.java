@@ -52,7 +52,7 @@ class Params {
         int numDatasets;
         Map<Integer,String> labelsUsed;
         boolean panelSelected = false;
-        int abbeFilesVectIndex = -1;
+        int abbeFilesMapKey = -1;
         int fpIndex = -1;
     }
     
