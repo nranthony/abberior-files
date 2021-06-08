@@ -2,6 +2,10 @@
 
 Plugin to collate and streamline the import of Abberior .obf and .msr files into Fiji/ImageJ
 
+## Installing
+
+Add `OpenAbberiorFiles-#.#.#-[SNAPSHOT].jar` to plugins folder of Fiji/ImageJ install.  See [Releases](https://github.com/nranthony/abberior-files/releases) for suggested versions to use until Fiji update site is setup.
+
 ## Getting Started
 
 Open plugin, in Plugins -> EmoryICI -> Open Abberior Files
@@ -14,15 +18,9 @@ Drag and drop as many .obf files as you like to the window.  Bioformats curently
 
 Select files of interest.  Use select all and select none buttons if needed.
 
-![image](https://user-images.githubusercontent.com/16306836/121114343-881b6d80-c7e1-11eb-8661-81fe8cde48ba.png)
-![image](https://user-images.githubusercontent.com/16306836/121114401-9e292e00-c7e1-11eb-8d57-a53d0c828330.png)
+![image](https://user-images.githubusercontent.com/16306836/121114401-9e292e00-c7e1-11eb-8d57-a53d0c828330.png)![image](https://user-images.githubusercontent.com/16306836/121114343-881b6d80-c7e1-11eb-8661-81fe8cde48ba.png)
 
 Open highlighted/selected files in each file using open in Fiji orange arrow button:
+
 ![image](https://user-images.githubusercontent.com/16306836/121114531-d597da80-c7e1-11eb-9742-c8b38c8f58b4.png)
-
-
-### Installing
-
-Add `OpenAbberiorFiles-#.#.#-[SNAPSHOT].jar` to plugins folder of Fiji/ImageJ install.  See Releases for suggested versions to use until Fiji update site is setup.
-
 
