@@ -119,7 +119,7 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
         
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         int adjHeight = (int)((float)screenSize.height * 0.85f);
-        this.setSize(900, adjHeight);
+        this.setSize(1000, adjHeight);
         
 //        this.jPanel_buttons.setLayout(new BoxLayout(this.jPanel_buttons, BoxLayout.Y_AXIS));
 //        this.jPanel_buttons.add(createIconLabel("select-all.png"));
@@ -580,7 +580,7 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jScrollPane_FilePanels, javax.swing.GroupLayout.DEFAULT_SIZE, 276, Short.MAX_VALUE)
+                .addComponent(jScrollPane_FilePanels, javax.swing.GroupLayout.PREFERRED_SIZE, 368, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jButton_selectNone)

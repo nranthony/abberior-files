@@ -138,11 +138,14 @@ class AbbeFileJPanel extends javax.swing.JPanel {
         jLabel_Loading = new javax.swing.JLabel();
         jPanel_Button = new javax.swing.JPanel();
 
-        setMaximumSize(new java.awt.Dimension(280, 180));
-        setMinimumSize(new java.awt.Dimension(280, 131));
+        setMaximumSize(new java.awt.Dimension(348, 150));
+        setMinimumSize(new java.awt.Dimension(348, 120));
 
         jLabel_Filename.setFont(new java.awt.Font("Segoe UI Light", 0, 18)); // NOI18N
         jLabel_Filename.setText("filenamegoeshere.obf");
+        jLabel_Filename.setMaximumSize(new java.awt.Dimension(342, 25));
+        jLabel_Filename.setMinimumSize(new java.awt.Dimension(242, 25));
+        jLabel_Filename.setPreferredSize(new java.awt.Dimension(342, 25));
 
         jLabel_Loading.setFont(new java.awt.Font("Segoe UI Light", 0, 18)); // NOI18N
         jLabel_Loading.setText("Loading...");
@@ -165,16 +168,17 @@ class AbbeFileJPanel extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel_Filename)
-                    .addComponent(jLabel_Loading))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 24, Short.MAX_VALUE)
-                .addComponent(jPanel_Button, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jLabel_Filename, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel_Loading)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jPanel_Button, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel_Filename)
+                .addComponent(jLabel_Filename, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel_Loading)
