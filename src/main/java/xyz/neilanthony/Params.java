@@ -12,10 +12,12 @@ import ome.xml.model.enums.PixelType;
 class Params {
     
     // parameters to pass to each dataset panel
+    // - upgrading to contain enough infomation to open/process datasets
     static class PanelParams {
         String dsName;
         int dsTimeStamp;
         int dsIndex;
+        int fldrIndex;
         BufferedImage bufImg;
         ArrayImg arrImg;
         int psx = 186;
@@ -60,11 +62,7 @@ class Params {
 
 /** TODO List:
  *  
- *  select all/none code
- *  set last file opened to be selected and highlighted selected
- *  debug file panel order on dragging many files - order gets mixed up
- *  check option for opening single channel - stack required error
- *  apply correct LUTs for opening
+ *  consider static param classes - static should be once instance, but I'm creating many
  *  function to pull color of channel text - debug why occasionally black
  *  icons for zstack, timelapse etc
  *  icons for dymin and rescue
@@ -72,6 +70,8 @@ class Params {
  *  change timestamp option to actual datetime
  *  max project zstack for thumb - maybe skip planes
  *  tile images
+ *  touch drag for scrolling
+ *  
  *  histograms or min/max counts
  *  centralize thumbs in panel
  *  offset subpanel in panel

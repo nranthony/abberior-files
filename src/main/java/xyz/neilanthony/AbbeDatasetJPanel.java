@@ -8,6 +8,8 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -68,7 +70,8 @@ public class AbbeDatasetJPanel extends javax.swing.JPanel {
             lab.setText(p.chnNames[i]);
             lab.setBackground(null);
             lab.setForeground(Spectral.spectral_color((double) p.lambdas[i]));
-//            logger.log(Level.FINE, String.format("Added %s - %dnm to panel", p.chnNames[i], p.lambdas[i]));
+            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    String.format("Added %s - %dnm to panel", p.chnNames[i], p.lambdas[i]));
             lab.setOpaque(true);
             lab.setFont(new Font("Segoe UI Light", Font.PLAIN, 16));
             lab.setBounds(p.psx+36, 25 + (i*22), 555-p.psx-12, 22);
@@ -117,6 +120,7 @@ public class AbbeDatasetJPanel extends javax.swing.JPanel {
 
         jLabel_ImageName.setFont(new java.awt.Font("Segoe UI Light", 1, 18)); // NOI18N
         jLabel_ImageName.setText("Image Name Goes Here");
+        jLabel_ImageName.setPreferredSize(new java.awt.Dimension(359, 25));
 
         javax.swing.GroupLayout jPanel_PlaceHolderLayout = new javax.swing.GroupLayout(jPanel_PlaceHolder);
         jPanel_PlaceHolder.setLayout(jPanel_PlaceHolderLayout);
@@ -137,12 +141,12 @@ public class AbbeDatasetJPanel extends javax.swing.JPanel {
                 .addContainerGap()
                 .addComponent(jPanel_PlaceHolder, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel_ImageName, javax.swing.GroupLayout.DEFAULT_SIZE, 359, Short.MAX_VALUE))
+                .addComponent(jLabel_ImageName, javax.swing.GroupLayout.PREFERRED_SIZE, 359, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jLabel_ImageName)
+                .addComponent(jLabel_ImageName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 129, Short.MAX_VALUE))
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
@@ -164,12 +168,16 @@ public class AbbeDatasetJPanel extends javax.swing.JPanel {
         if (!p.panelSelected) {
         evt.getComponent().setBackground(UIColors.colorBkgdMouseOver);
         }
+        AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    "AbbeDatasetJPanel formMouseEntered");
     }//GEN-LAST:event_formMouseEntered
 
     private void formMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseExited
         if (!p.panelSelected) {
             evt.getComponent().setBackground(UIColors.colorBkgdPanel);
         }
+        AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    "AbbeDatasetJPanel formMouseExited");
     }//GEN-LAST:event_formMouseExited
 
     private void formMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseClicked
@@ -180,6 +188,13 @@ public class AbbeDatasetJPanel extends javax.swing.JPanel {
 //            p.panelSelected = true;
 //            evt.getComponent().setBackground(colorBkgdSelected);
 //        }
+        
+//        if (evt.getClickCount() == 2) {
+//            //
+//        }
+        AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    String.format("AbbeDatasetJPanel formMouseClicked %d times",
+                evt.getClickCount()));
     }//GEN-LAST:event_formMouseClicked
 
     private void formMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMousePressed
@@ -190,6 +205,8 @@ public class AbbeDatasetJPanel extends javax.swing.JPanel {
             p.panelSelected = true;
             evt.getComponent().setBackground(UIColors.colorBkgdSelected);
         }
+        AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    "AbbeDatasetJPanel formMousePressed");
     }//GEN-LAST:event_formMousePressed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

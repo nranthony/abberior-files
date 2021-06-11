@@ -77,14 +77,6 @@ import org.xml.sax.SAXException;
  * @author nelly
  */
 class OpenAbbeJFrame extends javax.swing.JFrame {
-
-    //org.apache.log4j.BasicConfigurator
-//    private static org.apache.logging.log4j.Logger LOGGER = org.apache.logging.log4j.LogManager.getLogger(OpenAbbeJFrame.class.getName());
-    //private static org.apache.logging.log4j.Logger LOGGER = org.apache.logging.log4j.LogManager.getLogger();
-   //org.apache.log4j.BasicConfigurator.configure();
-    
-    static Logger logger = null;
-    
     
     private Point panelOffset = new Point();
     final UserInterface ui;
@@ -99,8 +91,8 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
     private List<Future<AbbeFile>> futAbbeList = new ArrayList<Future<AbbeFile>>();
     // holds information about all files dragged on to GUI
     final Map<Integer, AbbeFile> abbeFilesMap = new HashMap<Integer, AbbeFile>();
-    
     // cast to sychronized (abbeFilesMap) when multithreading
+    
     
     /* Creates new form OpenAbbeJFrame */
     OpenAbbeJFrame(UserInterface ui) throws FormatException, ParserConfigurationException, SAXException {
@@ -108,14 +100,6 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
         this.ui = ui;
 
         initComponents();
-        
-        logger = Logger.getLogger(this.getName());
-        logger.setLevel(Level.OFF);
-        ConsoleHandler handler = new ConsoleHandler();
-        // PUBLISH this level
-        handler.setLevel(Level.OFF);
-        logger.addHandler(handler);
-        
         
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         int adjHeight = (int)((float)screenSize.height * 0.85f);
@@ -180,22 +164,25 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
                     boolean newAdded = false;
                     futAbbeList.clear();
                     int filesPanelCount = filesPanelList.size();
-                    logger.log(Level.FINE, String.format("filesPanelList size: %d", filesPanelCount));
+                    AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                            String.format("filesPanelList size: %d", filesPanelCount));
+                    
                     for (File file : droppedFiles) {
                         if ( file.getPath().endsWith(".obf") | file.getPath().endsWith(".msr") ) { 
                             Params.FileParams fP = new Params.FileParams();
                             fP.fileName = file.toPath().getFileName().toString();
                             fP.abbeFilesMapKey = filesPanelCount;
-                            logger.log(Level.FINE, String.format("Dropped file %s; creating new AbbeFilePanel %d, fileParams: %s",
-                                    fP.fileName,
-                                    filesPanelCount,
-                                    fP.toString()
-                            ));
+                            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    String.format("Dropped file %s; creating new AbbeFilePanel %d, fileParams: %s",
+                                                    fP.fileName,
+                                                    filesPanelCount,
+                                                    fP.toString()));
                             filesPanelList.add(new AbbeFileJPanel(fP));
                             
                             Callable<AbbeFile> callable = new NewAbbeFile(file, filesPanelCount);
                             filesPanelCount++;
-                            logger.log(Level.FINE, String.format("Submitting %s to pool.", file.toString()));
+                            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    String.format("Submitting %s to pool.", file.toString()));
                             Future<AbbeFile> future = importPool.submit(callable);
                             futAbbeList.add(future);
                             newAdded = true;
@@ -216,182 +203,14 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
 
     }
     
-    private JLabel createIconLabel(String fname) {
-        ImageIcon imgIcon = new ImageIcon(getClass().getClassLoader().getResource(fname));
-        JLabel jLabel_icon = new JLabel();
-        jLabel_icon.setBounds(0,0,imgIcon.getIconWidth(),imgIcon.getIconHeight());
-        jLabel_icon.setIcon(imgIcon);
-        return jLabel_icon;
-    }
-    
-//    private JPanel createFilesPanel() throws IOException {
-//        int N = filesPanelList.size();
-//        JPanel p;
-//        if (N < 6) {
-//            p = new JPanel(new GridLayout(6, 1, 4, 11));
-//        } else {
-//            p = new JPanel(new GridLayout(N, 1, 4, 11));
-//        }
-//        for (int i = 0; i < N; i++) { p.add(filesPanelList.get(i)); }
-//        p.setBackground(UIColors.colorBkgdDark);
-//        return p;
-//    }
-    
-    private JPanel createFilesPanel() throws IOException {
-        int N = filesPanelList.size();
-        JPanel p = new JPanel();
-        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-        for (int i = 0; i < N; i++) {
-            p.add(filesPanelList.get(i));
-            p.add(Box.createRigidArea(new Dimension(0,10)));
-        }
-        p.setBackground(UIColors.colorBkgdDark);
-        return p;
-    }
-
-    /** TODO notifications / history class
-    create class that extends JLabel
-    has text area that holds previous label text
-    text area to be added to the viewport jScrollPane_ImgPanels
-    */
-    class JHistoryLabel extends JLabel {
-        TextArea textArea = new TextArea();
-        
-        JHistoryLabel () {
-            textArea.setBackground(null);
-            textArea.setFont(null);
-            textArea.setForeground(null);
-            textArea.setMinimumSize(new Dimension(400, jScrollPane_ImgPanels.getWidth()-10));
-            
-            setBackground(UIColors.colorBkgd);
-            setForeground(UIColors.greyLevel(65f));
-            setFont(new Font("Tahoma", Font.PLAIN, 14));
-            
-            
-        }
-    }
-    
-    class SelectButtonsMouseEvent implements MouseListener {
-        
-        JPanel panel = null;
-        JLabel label = null;
-        
-        @Override
-        public void mouseClicked(MouseEvent e) {
-            logger.log(Level.FINE, "SelectButtonsMouseEvent MouseListener mouseClicked");
-            this.panel = (JPanel) e.getComponent();
-            this.label = (JLabel) panel.getComponentAt(e.getPoint());
-            logger.log(Level.FINE, String.format("%s", label.getIcon().toString()));
-        }
-        @Override
-        public void mousePressed(MouseEvent e) {
-            logger.log(Level.FINE, "SelectButtonsMouseEvent MouseListener mousePressed");
-            logger.log(Level.FINE, "SelectButtonsMouseEvent MouseListener mousePressed");
-            this.panel = (JPanel) e.getComponent();
-            this.label = (JLabel) panel.getComponentAt(e.getPoint());
-            this.label.setBackground(UIColors.colorBkgdSelected);
-        }
-        @Override
-        public void mouseReleased(MouseEvent e) {
-            logger.log(Level.FINE, "SelectButtonsMouseEvent MouseListener mouseReleased");
-            this.panel = (JPanel) e.getComponent();
-            this.label = (JLabel) panel.getComponentAt(e.getPoint());
-            this.label.setBackground(UIColors.colorBkgd);
-        }
-        @Override
-        public void mouseEntered(MouseEvent e) {
-            logger.log(Level.FINE, "SelectButtonsMouseEvent MouseListener mouseEntered");
-            this.panel = (JPanel) e.getComponent();
-            this.label = (JLabel) panel.getComponentAt(e.getPoint());
-            this.label.setBackground(UIColors.colorBkgdMouseOver);
-        }
-        @Override
-        public void mouseExited(MouseEvent e) {
-            logger.log(Level.FINE, "SelectButtonsMouseEvent MouseListener mouseExited");
-            this.panel = (JPanel) e.getComponent();
-            this.label = (JLabel) panel.getComponentAt(e.getPoint());
-            this.label.setBackground(UIColors.colorBkgd);
-        }
-    }
-    
-    class FilePanelMouseEvent implements MouseListener {
-        @Override
-        public void mouseClicked(MouseEvent e) {
-            //logger.log(Level.FINE, "FilePanelMouseEvent MouseListener mouseClicked");
-        }
-        @Override
-        public void mousePressed(MouseEvent e) {
-            //logger.log(Level.FINE, "FilePanelMouseEvent MouseListener mousePressed");
-            AbbeFileJPanel abFP = (AbbeFileJPanel) e.getComponent();
-            int idx = abFP.fP.abbeFilesMapKey;
-            synchronized (abbeFilesMap) {
-                if ( abFP.ready & idx < abbeFilesMap.size() ) {
-                jScrollPane_ImgPanels.setViewportView(abbeFilesMap.get(idx).abbeDatasetPanels);
-                setAbbeFilePanelSelect(idx);
-                }
-            }
-        }
-        @Override
-        public void mouseReleased(MouseEvent e) {
-            //logger.log(Level.FINE, "FilePanelMouseEvent MouseListener mouseReleased");
-        }
-        @Override
-        public void mouseEntered(MouseEvent e) {
-            //logger.log(Level.FINE, "FilePanelMouseEvent MouseListener mouseEntered");
-        }
-        @Override
-        public void mouseExited(MouseEvent e) {
-            //logger.log(Level.FINE, "FilePanelMouseEvent MouseListener mouseExited");
-        }
-    }
-    
-    class FilePanelOpenMouseEvent implements MouseListener {
-        @Override
-        public void mouseClicked(MouseEvent e) {
-            //logger.log(Level.FINE, "FilePanelOpenMouseEvent MouseListener mouseClicked");
-        }
-        @Override
-        public void mousePressed(MouseEvent e) {
-            //logger.log(Level.FINE, "FilePanelOpenMouseEvent MouseListener mousePressed");
-            JPanel openPanel = (JPanel) e.getComponent();
-            AbbeFileJPanel abFP = (AbbeFileJPanel) openPanel.getParent();
-            try {
-                openSelectedDatasets(OpenAbbeJFrame.this.abbeFilesMap.get(abFP.fP.abbeFilesMapKey));
-            } catch (IOException | FormatException ex) {
-                Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            //e.consume();
-        }
-        @Override
-        public void mouseReleased(MouseEvent e) {
-            //logger.log(Level.FINE, "FilePanelOpenMouseEvent MouseListener mouseReleased");
-        }
-        @Override
-        public void mouseEntered(MouseEvent e) {
-            //logger.log(Level.FINE, "FilePanelOpenMouseEvent MouseListener mouseEntered");
-            JPanel openPanel = (JPanel) e.getComponent();
-            AbbeFileJPanel abFP = (AbbeFileJPanel) openPanel.getParent();
-            abFP.setOpenClick();
-            
-            //AbbeFileJPanel.this.jPanel_Button.add(AbbeFileJPanel.this.jLabel_OpenClick);
-        }
-        @Override
-        public void mouseExited(MouseEvent e) {
-            //logger.log(Level.FINE, "FilePanelOpenMouseEvent MouseListener mouseExited");
-            JPanel openPanel = (JPanel) e.getComponent();
-            AbbeFileJPanel abFP = (AbbeFileJPanel) openPanel.getParent();
-            abFP.setOpenNotClick();
-
-        }
-    }
-    
     class NewAbbeFile implements Callable {
         private File fname;
         private int index;
         NewAbbeFile(File f, int idx) { this.fname = f; this.index = idx; }
         @Override
         public synchronized Object call() throws Exception {
-            logger.log(Level.FINE, String.format("creating new AbbeFile %s, idx %d",
+            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    String.format("creating new AbbeFile %s, idx %d",
                     fname.toPath().toString(), index));
             AbbeFile newAbbe = new AbbeFile(fname.toPath(),index);
             newAbbe.scanDatasetsFoldersImages();
@@ -421,7 +240,8 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
                         
                         done = futAbbeList.get(i).isDone();
                         if (done) {
-                            logger.log(Level.FINE, String.format("File %d Done", i, done.toString()));
+                            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    String.format("File %d Done", i, done.toString()));
                             stillRunningLst[i] = Boolean.FALSE;
                             try {
                                 // pull AbbeFile instance and place into global vector
@@ -435,7 +255,8 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
                                     abFP.ready = true;
                                     jScrollPane_ImgPanels.setViewportView(abF.abbeDatasetPanels);
                                     setAbbeFilePanelSelect(abF.fParams.abbeFilesMapKey);
-                                    logger.log(Level.FINE, String.format("abbeFilesMap added, length now: %d",abbeFilesMap.size()));
+                                    AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    String.format("abbeFilesMap added, length now: %d",abbeFilesMap.size()));
                                 }
                             } catch (InterruptedException | ExecutionException | TimeoutException ex) {
                                 Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
@@ -455,6 +276,179 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
             }
         }
     }
+    
+    
+    
+    
+    class SelectButtonsMouseEvent implements MouseListener {
+        
+        JPanel panel = null;
+        JLabel label = null;
+        
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    "SelectButtonsMouseEvent MouseListener mouseClicked");
+            this.panel = (JPanel) e.getComponent();
+            this.label = (JLabel) panel.getComponentAt(e.getPoint());
+            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    String.format("%s", label.getIcon().toString()));
+        }
+        @Override
+        public void mousePressed(MouseEvent e) {
+            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                    "SelectButtonsMouseEvent MouseListener mousePressed");
+            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop","SelectButtonsMouseEvent MouseListener mousePressed");
+            this.panel = (JPanel) e.getComponent();
+            this.label = (JLabel) panel.getComponentAt(e.getPoint());
+            this.label.setBackground(UIColors.colorBkgdSelected);
+        }
+        @Override
+        public void mouseReleased(MouseEvent e) {
+            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop","SelectButtonsMouseEvent MouseListener mouseReleased");
+            this.panel = (JPanel) e.getComponent();
+            this.label = (JLabel) panel.getComponentAt(e.getPoint());
+            this.label.setBackground(UIColors.colorBkgd);
+        }
+        @Override
+        public void mouseEntered(MouseEvent e) {
+            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop","SelectButtonsMouseEvent MouseListener mouseEntered");
+            this.panel = (JPanel) e.getComponent();
+            this.label = (JLabel) panel.getComponentAt(e.getPoint());
+            this.label.setBackground(UIColors.colorBkgdMouseOver);
+        }
+        @Override
+        public void mouseExited(MouseEvent e) {
+            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop","SelectButtonsMouseEvent MouseListener mouseExited");
+            this.panel = (JPanel) e.getComponent();
+            this.label = (JLabel) panel.getComponentAt(e.getPoint());
+            this.label.setBackground(UIColors.colorBkgd);
+        }
+    }
+    
+    class FilePanelMouseEvent implements MouseListener {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            //AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop","FilePanelMouseEvent MouseListener mouseClicked");
+        }
+        @Override
+        public void mousePressed(MouseEvent e) {
+            //AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop","FilePanelMouseEvent MouseListener mousePressed");
+            AbbeFileJPanel abFP = (AbbeFileJPanel) e.getComponent();
+            int idx = abFP.fP.abbeFilesMapKey;
+            synchronized (abbeFilesMap) {
+                if ( abFP.ready & idx < abbeFilesMap.size() ) {
+                jScrollPane_ImgPanels.setViewportView(abbeFilesMap.get(idx).abbeDatasetPanels);
+                setAbbeFilePanelSelect(idx);
+                }
+            }
+        }
+        @Override
+        public void mouseReleased(MouseEvent e) {
+            //AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop","FilePanelMouseEvent MouseListener mouseReleased");
+        }
+        @Override
+        public void mouseEntered(MouseEvent e) {
+            //AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop","FilePanelMouseEvent MouseListener mouseEntered");
+        }
+        @Override
+        public void mouseExited(MouseEvent e) {
+            //AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop","FilePanelMouseEvent MouseListener mouseExited");
+        }
+    }
+    
+    class FilePanelOpenMouseEvent implements MouseListener {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    "FilePanelOpenMouseEvent MouseListener mouseClicked");
+        }
+        @Override
+        public void mousePressed(MouseEvent e) {
+            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    "FilePanelOpenMouseEvent MouseListener mousePressed");
+            JPanel openPanel = (JPanel) e.getComponent();
+            AbbeFileJPanel abFP = (AbbeFileJPanel) openPanel.getParent();
+            try {
+                openSelectedDatasets(OpenAbbeJFrame.this.abbeFilesMap.get(abFP.fP.abbeFilesMapKey));
+            } catch (IOException | FormatException ex) {
+                Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+        }
+        @Override
+        public void mouseReleased(MouseEvent e) {
+            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    "FilePanelOpenMouseEvent MouseListener mouseReleased");
+        }
+        @Override
+        public void mouseEntered(MouseEvent e) {
+            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    "FilePanelOpenMouseEvent MouseListener mouseEntered");
+            JPanel openPanel = (JPanel) e.getComponent();
+            AbbeFileJPanel abFP = (AbbeFileJPanel) openPanel.getParent();
+            abFP.setOpenClick();
+            
+            //AbbeFileJPanel.this.jPanel_Button.add(AbbeFileJPanel.this.jLabel_OpenClick);
+        }
+        @Override
+        public void mouseExited(MouseEvent e) {
+            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    "FilePanelOpenMouseEvent MouseListener mouseExited");
+            JPanel openPanel = (JPanel) e.getComponent();
+            AbbeFileJPanel abFP = (AbbeFileJPanel) openPanel.getParent();
+            abFP.setOpenNotClick();
+
+        }
+    }
+    
+
+    
+    
+    
+    private JLabel createIconLabel(String fname) {
+        ImageIcon imgIcon = new ImageIcon(getClass().getClassLoader().getResource(fname));
+        JLabel jLabel_icon = new JLabel();
+        jLabel_icon.setBounds(0,0,imgIcon.getIconWidth(),imgIcon.getIconHeight());
+        jLabel_icon.setIcon(imgIcon);
+        return jLabel_icon;
+    }
+    
+    private JPanel createFilesPanel() throws IOException {
+        int N = filesPanelList.size();
+        JPanel p = new JPanel();
+        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+        for (int i = 0; i < N; i++) {
+            p.add(filesPanelList.get(i));
+            p.add(Box.createRigidArea(new Dimension(0,10)));
+        }
+        p.setBackground(UIColors.colorBkgdDark);
+        return p;
+    }
+    
+    
+        /** TODO notifications / history class
+    create class that extends JLabel
+    has text area that holds previous label text
+    text area to be added to the viewport jScrollPane_ImgPanels
+    */
+    class JHistoryLabel extends JLabel {
+        TextArea textArea = new TextArea();
+        
+        JHistoryLabel () {
+            textArea.setBackground(null);
+            textArea.setFont(null);
+            textArea.setForeground(null);
+            textArea.setMinimumSize(new Dimension(400, jScrollPane_ImgPanels.getWidth()-10));
+            
+            setBackground(UIColors.colorBkgd);
+            setForeground(UIColors.greyLevel(65f));
+            setFont(new Font("Tahoma", Font.PLAIN, 14));
+            
+            
+        }
+    }
+    
     
     /**
      * This method is called from within the constructor to initialize the form.
@@ -611,13 +605,15 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jPanel_topBarMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanel_topBarMousePressed
-        //        logger.log(Level.FINE, String.format("Pressed: %d %d", evt.getX(), evt.getY()));
+        AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    String.format("Pressed: %d %d", evt.getX(), evt.getY()));
         panelOffset.x = evt.getX();
         panelOffset.y = evt.getY();
     }//GEN-LAST:event_jPanel_topBarMousePressed
 
     private void jPanel_topBarMouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanel_topBarMouseDragged
-        //        logger.log(Level.FINE, String.format("Dragging [getXYonScreen]: %d %d", evt.getXOnScreen(), evt.getYOnScreen()));
+        AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    String.format("Dragging [getXYonScreen]: %d %d", evt.getXOnScreen(), evt.getYOnScreen()));
         this.setLocation(evt.getLocationOnScreen().x - panelOffset.x,
             evt.getLocationOnScreen().y - panelOffset.y);
     }//GEN-LAST:event_jPanel_topBarMouseDragged
@@ -646,7 +642,8 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
         unselectDatasetsPanels();
         //evt.getComponent().setBackground(UIColors.colorBkgdSelected);
         // TODO select none code here
-        logger.log(Level.FINE, "Select None Mouse Clicked");
+        AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    "Select None Mouse Clicked");
     }//GEN-LAST:event_jButton_selectNoneMouseClicked
 
     private void jButton_selectAllMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton_selectAllMouseClicked
@@ -654,7 +651,8 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
         // TODO select all code here
         //((OpenAbbeJFrame)evt.getComponent().getParent()).
         selectAllDatasetsPanels();
-        logger.log(Level.FINE, "Select All Mouse Clicked");
+        AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    "Select All Mouse Clicked");
     }//GEN-LAST:event_jButton_selectAllMouseClicked
 
     private void jButton_selectAllMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton_selectAllMouseEntered
@@ -673,6 +671,92 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
         evt.getComponent().setBackground(UIColors.colorBkgdMouseOver);
     }//GEN-LAST:event_jButton_selectAllMouseReleased
     
+    
+    
+    
+    void openSingleDataset (AbbeFile.AbbeFolder.AbbeDataset abDs,
+                            AbbeFile.AbbeFolder abFldr,
+                            AbbeFile abFile,
+                            byte[] r, byte[] g, byte[] b, Params.ImageParams imgParams) throws FormatException, IOException {
+        
+        ImageStack imgStk = new ImageStack();
+        List luts = new ArrayList<LUT>();
+
+        for (int i = 0; i < abDs.incChns.size(); i++) {
+            int chn = abDs.incChns.get(i);
+            AbbeFile.AbbeFolder.AbbeDataset.AbbeImage abImg = abDs.abbeImagesVect.get(chn);
+
+            imgParams = abImg.imgParams;
+            if (abImg.ctSize != 256) {
+                // create grey scale
+                for (int k = 0; k < 256; k++) {
+                    r[k] = (byte) k;
+                    g[k] = (byte) k;
+                    b[k] = (byte) k;
+                }
+            } else {
+                for (int k = 0; k < 256; k++) {
+                    r[k] = (byte) abImg.colorTable[k].getRed();
+                    g[k] = (byte) abImg.colorTable[k].getGreen();
+                    b[k] = (byte) abImg.colorTable[k].getBlue();
+                }
+            }
+            luts.add(new LUT(r, g, b));
+
+            // for each z
+            // for each t
+            // data is inheriently each c for abberior as far as I've seen
+            abFile.reader.setSeries(abImg.bfIndex);
+            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    String.format("%s %s", abFile.fParams.fileName, abFile.reader.getDimensionOrder()));
+            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    String.format("%s", abFile.reader.getDatasetStructureDescription()));
+            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    String.format("EffectiveSizeC: %d", abFile.reader.getEffectiveSizeC()));
+            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    String.format("ImageCount: %d", abFile.reader.getImageCount()) );
+
+            for(int t = 0; t < imgParams.st; t++) {
+                for (int z = 0; z < imgParams.sz; z++) {
+                    Object dat = abFile.reader.openPlane(z+(t*imgParams.sz), 0, 0, imgParams.sx, imgParams.sy);
+                    byte[] bytes = (byte[])dat;
+                    short[] data = new short[bytes.length/2];
+                    ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(data);
+                    ShortProcessor sp = new ShortProcessor(imgParams.sx, imgParams.sy, data, null);
+                    imgStk.addSlice(sp);
+                }
+            }
+            // if needed for speed in big stacks timelapses
+            // investigate setPixels(java.lang.Object pixels)
+            // create empty ShortProcessor and add dat in setPixels
+        }
+
+        Calibration cali = new Calibration();
+        cali.setUnit("micron");
+        cali.pixelWidth = imgParams.dx;
+        cali.pixelHeight = imgParams.dy;
+        cali.pixelDepth = imgParams.dz;
+        cali.frameInterval = imgParams.dt;
+
+        ImagePlus imp = new ImagePlus();
+
+        imp.setStack(String.format("%s-TS%d", abFldr.folderName, abDs.timeStampIdx), imgStk);
+        //imp.setDimensions(abDs.incChns.size(), imgParams.sz, imgParams.st);
+        if (abDs.incChns.size() > 1 | imgParams.sz > 1 | imgParams.st > 1) {
+            imp = HyperStackConverter.toHyperStack(imp, abDs.incChns.size(),
+                                                    imgParams.sz, imgParams.st, "xyztc", "composite");
+        }
+
+        imp.setCalibration(cali);
+        imp = new CompositeImage(imp, CompositeImage.COMPOSITE);
+        for (int i = 0; i < abDs.incChns.size(); i++) {
+            ((CompositeImage)imp).setChannelLut((LUT)luts.get(i), i+1);
+        }
+        imp.setOpenAsHyperStack(true);
+        imp.show();
+        // TODO: add optional opening of rescue and dymin masks...  seperate ImagePlus
+    }
+    
     void openSelectedDatasets (AbbeFile abFile) throws IOException, FormatException {
         
         Component[] cmpnts = abFile.abbeDatasetPanels.getComponents();
@@ -682,7 +766,8 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
             JPanel jp = (JPanel) cmpnts[i];
             int idx = ((AbbeDatasetJPanel)jp).p.dsIndex;
             boolean selected = ((AbbeDatasetJPanel)jp).p.panelSelected;
-            //logger.log(Level.FINE, String.format("Dataset Index: %d, selected: %b", idx, selected));
+            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    String.format("Dataset Index: %d, selected: %b", idx, selected));
             if ( selected ) { toOpenDs.add(idx); }
         }
         
@@ -696,138 +781,83 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
         for (AbbeFile.AbbeFolder abFldr : abFile.abbeFolderVect) {
             
             for (AbbeFile.AbbeFolder.AbbeDataset abDs : abFldr.abbeDatasetVect) {
-                // create inverse of incChns - these will be adaptive illumination (AI) masks/data
-//                Set incSet = new HashSet(abDs.incChns);
+                // TODO: create inverse of incChns - these will be adaptive illumination (AI) masks/data
                 if (toOpenDs.contains(abDs.datasetIndex) & abDs.addToPanel) {
-                    //int chn = abDs.incChns.get(0);
-                    ImageStack imgStk = new ImageStack();
-                    //Params.ImageParams imgParamsCheck = abDs.abbeImagesVect.get(chn).imgParams;
-                    List luts = new ArrayList<LUT>();
-
-                    for (int i = 0; i < abDs.incChns.size(); i++) {
-                        int chn = abDs.incChns.get(i);
-                        AbbeFile.AbbeFolder.AbbeDataset.AbbeImage abImg = abDs.abbeImagesVect.get(chn);
-                        
-                        imgParams = abImg.imgParams;
-                        if (abImg.ctSize != 256) {
-                            // create grey scale
-                            for (int k = 0; k < 256; k++) {
-                                r[k] = (byte) k;
-                                g[k] = (byte) k;
-                                b[k] = (byte) k;
-                            }
-                        } else {
-                            for (int k = 0; k < 256; k++) {
-                                r[k] = (byte) abImg.colorTable[k].getRed();
-                                g[k] = (byte) abImg.colorTable[k].getGreen();
-                                b[k] = (byte) abImg.colorTable[k].getBlue();
-                            }
-                        }
-                        luts.add(new LUT(r, g, b));
-
-                        // for each z
-                        // for each t
-                        // data is inheriently each c for abberior as far as I've seen
-                        abFile.reader.setSeries(abImg.bfIndex);
+                    openSingleDataset (abDs, abFldr, abFile, r, g, b, imgParams);
+                    
+//                    ImageStack imgStk = new ImageStack();
+//                    List luts = new ArrayList<LUT>();
+//
+//                    for (int i = 0; i < abDs.incChns.size(); i++) {
+//                        int chn = abDs.incChns.get(i);
+//                        AbbeFile.AbbeFolder.AbbeDataset.AbbeImage abImg = abDs.abbeImagesVect.get(chn);
+//                        
+//                        imgParams = abImg.imgParams;
+//                        if (abImg.ctSize != 256) {
+//                            // create grey scale
+//                            for (int k = 0; k < 256; k++) {
+//                                r[k] = (byte) k;
+//                                g[k] = (byte) k;
+//                                b[k] = (byte) k;
+//                            }
+//                        } else {
+//                            for (int k = 0; k < 256; k++) {
+//                                r[k] = (byte) abImg.colorTable[k].getRed();
+//                                g[k] = (byte) abImg.colorTable[k].getGreen();
+//                                b[k] = (byte) abImg.colorTable[k].getBlue();
+//                            }
+//                        }
+//                        luts.add(new LUT(r, g, b));
+//
+//                        // for each z
+//                        // for each t
+//                        // data is inheriently each c for abberior as far as I've seen
+//                        abFile.reader.setSeries(abImg.bfIndex);
 //                        logger.log(Level.FINE, String.format("%s %s", abFile.fParams.fileName, abFile.reader.getDimensionOrder()));
 //                        logger.log(Level.FINE, String.format("%s", abFile.reader.getDatasetStructureDescription()));
 //                        logger.log(Level.FINE, String.format("EffectiveSizeC: %d", abFile.reader.getEffectiveSizeC()));
 //                        logger.log(Level.FINE, String.format("ImageCount: %d", abFile.reader.getImageCount()) );
-                        
-                        for(int t = 0; t < imgParams.st; t++) {
-                            for (int z = 0; z < imgParams.sz; z++) {
-                                Object dat = abFile.reader.openPlane(z+(t*imgParams.sz), 0, 0, imgParams.sx, imgParams.sy);
-                                byte[] bytes = (byte[])dat;
-                                short[] data = new short[bytes.length/2];
-                                ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(data);
-                                ShortProcessor sp = new ShortProcessor(imgParams.sx, imgParams.sy, data, null);
-                                imgStk.addSlice(sp);
-                            }
-                        }
-
-                        // if needed for speed in big stacks timelapses
-                        // use setPixels(java.lang.Object pixels)
-                        // create empty ShortProcessor and add dat in setPixels
-
-                    }
-
-//                    ImagePlus imp = new ImagePlus(
-//                                            String.format("%s-TS%d", abFldr.folderName, abDs.timeStampIdx),
-//                                            imgStk
-//                                    );
-//                    logger.log(Level.FINE, String.format("ImgPlus chns: %d, dims: %d, frms: %d, slices: %d",
-//                                                    imp.getNChannels(),
-//                                                    imp.getNDimensions(),
-//                                                    imp.getNFrames(),
-//                                                    imp.getNSlices()
-//                    ));
-                    
-//                    imp = HyperStackConverter.toHyperStack(imp, abDs.incChns.size(),
-//                                                            imgParams.sz, imgParams.st);
-//                                                            "default", "composite");
-//                    logger.log(Level.FINE, String.format("ImgPlusHyper chns: %d, dims: %d, frms: %d, slices: %d",
-//                                                    imp.getNChannels(),
-//                                                    imp.getNDimensions(),
-//                                                    imp.getNFrames(),
-//                                                    imp.getNSlices()
-//                    ));
-                    Calibration cali = new Calibration();
-                    cali.setUnit("micron");
-                    cali.pixelWidth = imgParams.dx;
-                    cali.pixelHeight = imgParams.dy;
-                    cali.pixelDepth = imgParams.dz;
-                    cali.frameInterval = imgParams.dt;
-                    
-                    ImagePlus imp = new ImagePlus();
-                    
-                    imp.setStack(String.format("%s-TS%d", abFldr.folderName, abDs.timeStampIdx), imgStk);
-                    //imp.setDimensions(abDs.incChns.size(), imgParams.sz, imgParams.st);
-                    if (abDs.incChns.size() > 1 | imgParams.sz > 1 | imgParams.st > 1) {
-                        imp = HyperStackConverter.toHyperStack(imp, abDs.incChns.size(),
-                                                                imgParams.sz, imgParams.st, "xyztc", "composite");
-                    }
-                    
-                    imp.setCalibration(cali);
-                    imp = new CompositeImage(imp, CompositeImage.COMPOSITE);
-                    for (int i = 0; i < abDs.incChns.size(); i++) {
-                        ((CompositeImage)imp).setChannelLut((LUT)luts.get(i), i+1);
-                        
-                    }
-                    imp.setOpenAsHyperStack(true);
-                    
-//                    ImagePlusReader impReader = new ImagePlusReader();
-//                    impReader.
-                    
-//                    logger.log(Level.FINE, String.format("Comp chns: %d, dims: %d, frms: %d, slices: %d",
-//                                                    ci.getNChannels(),
-//                                                    ci.getNDimensions(),
-//                                                    ci.getNFrames(),
-//                                                    ci.getNSlices()
-//                    ));
-//                    
-//                    logger.log(Level.FINE, String.format("abbeDataset incChns: %d, dsName: %s",
-//                                                    abDs.incChns.size(),
-//                                                    abDs.datasetName
-//                    ));
-                    
-//                    for (int i = 0; i < ci.getNChannels(); i++) {
-//                        ci.setChannelLut((LUT)luts.get(i), i+1);
 //                        
+//                        for(int t = 0; t < imgParams.st; t++) {
+//                            for (int z = 0; z < imgParams.sz; z++) {
+//                                Object dat = abFile.reader.openPlane(z+(t*imgParams.sz), 0, 0, imgParams.sx, imgParams.sy);
+//                                byte[] bytes = (byte[])dat;
+//                                short[] data = new short[bytes.length/2];
+//                                ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(data);
+//                                ShortProcessor sp = new ShortProcessor(imgParams.sx, imgParams.sy, data, null);
+//                                imgStk.addSlice(sp);
+//                            }
+//                        }
+//                        // if needed for speed in big stacks timelapses
+//                        // investigate setPixels(java.lang.Object pixels)
+//                        // create empty ShortProcessor and add dat in setPixels
 //                    }
-//                    ci.setOpenAsHyperStack(true);
-//                    ci.show();
-
-//                    for (int i = 0; i < imp.getNChannels(); i++) {
-//                        imp.setChannelLut((LUT)luts.get(i), i+1);
-//                        
+//
+//                    Calibration cali = new Calibration();
+//                    cali.setUnit("micron");
+//                    cali.pixelWidth = imgParams.dx;
+//                    cali.pixelHeight = imgParams.dy;
+//                    cali.pixelDepth = imgParams.dz;
+//                    cali.frameInterval = imgParams.dt;
+//                    
+//                    ImagePlus imp = new ImagePlus();
+//                    
+//                    imp.setStack(String.format("%s-TS%d", abFldr.folderName, abDs.timeStampIdx), imgStk);
+//                    //imp.setDimensions(abDs.incChns.size(), imgParams.sz, imgParams.st);
+//                    if (abDs.incChns.size() > 1 | imgParams.sz > 1 | imgParams.st > 1) {
+//                        imp = HyperStackConverter.toHyperStack(imp, abDs.incChns.size(),
+//                                                                imgParams.sz, imgParams.st, "xyztc", "composite");
+//                    }
+//                    
+//                    imp.setCalibration(cali);
+//                    imp = new CompositeImage(imp, CompositeImage.COMPOSITE);
+//                    for (int i = 0; i < abDs.incChns.size(); i++) {
+//                        ((CompositeImage)imp).setChannelLut((LUT)luts.get(i), i+1);
 //                    }
 //                    imp.setOpenAsHyperStack(true);
-////                    imp.setDisplayMode(IJ.COMPOSITE);
-                    imp.show();
-
+//                    imp.show();
                     // TODO: add optional opening of rescue and dymin masks...  seperate ImagePlus
                 }
-
             }
         }
         unselectDatasetsPanels();
@@ -843,7 +873,8 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
                 // get index for abbeFileVect
                 //AbbeFilePanel abFP = 
                 fileMapKey = ((AbbeFileJPanel)abFileJP).fP.abbeFilesMapKey;
-                //logger.log(Level.FINE, String.format("fileMapKey: %d", fileMapKey));
+                AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    String.format("fileMapKey: %d", fileMapKey));
             }
         }
     }
@@ -858,7 +889,8 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
                 // get index for abbeFileVect
                 //AbbeFilePanel abFP = 
                 fileMapKey = ((AbbeFileJPanel)abFileJP).fP.abbeFilesMapKey;
-                //logger.log(Level.FINE, String.format("fileMapKey: %d", fileMapKey));
+                AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    String.format("fileMapKey: %d", fileMapKey));
             }
         }
     }
@@ -899,19 +931,22 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
     }
     void setAbbeFilePanelSelect(int selectedIdx) {
         JPanel panel = null;
-        logger.log(Level.FINE, String.format(
+        AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    String.format(
                     "OpenAbbeJFrame.filesPanelList size: %d", this.filesPanelList.size()));
         for (int i = 0; i < this.filesPanelList.size(); i++) {
             panel = this.filesPanelList.get(i);
             if (i == selectedIdx) {
                 ( (AbbeFileJPanel)panel ).setPanelSelected();
-                logger.log(Level.FINE, String.format(
+                AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    String.format(
                     "filesPanelList idx: %d, file: %s -> selected",
                         i,
                         ( (AbbeFileJPanel)panel ).fP.fileName));
             } else {
                 ( (AbbeFileJPanel)panel ).setPanelUnselected();
-                logger.log(Level.FINE, String.format(
+                AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    String.format(
                     "filesPanelList idx: %d, file: %s -> unselected",
                         i,
                         ( (AbbeFileJPanel)panel ).fP.fileName));
@@ -943,6 +978,8 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
 //            }
 //        }
     }
+    
+    
     
     /**
      * @param args the command line arguments

@@ -7,6 +7,13 @@ package xyz.neilanthony;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import static com.google.common.primitives.Shorts.max;
+import ij.CompositeImage;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.measure.Calibration;
+import ij.plugin.HyperStackConverter;
+import ij.process.LUT;
+import ij.process.ShortProcessor;
 import java.awt.image.BufferedImage;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -18,9 +25,12 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import loci.formats.FormatException;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.RenderingHints;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -34,8 +44,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
@@ -62,11 +74,7 @@ import org.xml.sax.SAXException;
  * @author nelly
  */
 class AbbeFile {
-    
-    //private static final org.apache.logging.log4j.Logger LOGGER = org.apache.logging.log4j.LogManager.getLogger(OpenAbbeJFrame.class.getName());
-    
-    Logger logger = OpenAbbeJFrame.logger;
-    
+
     JPanel abbeDatasetPanels = null;
     int panelCount = 0;
     
@@ -98,11 +106,13 @@ class AbbeFile {
         this.fParams.labelsUsed = new HashMap<Integer,String>();
         this.fParams.fileName = filePath.getFileName().toString();
         this.fParams.abbeFilesMapKey = abbeFileVectIndex;
+        
         //  start waiting thread
         reader.setMetadataStore(omeMeta);
         reader.setId(this.fPath.toString());
         // end waiting thread
-        logger.log(Level.FINE, String.format("AbbeFile %s Constructed, abbeFileVectIndex %d",
+        AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    String.format("AbbeFile %s Constructed, abbeFileVectIndex %d",
                 this.fParams.fileName,
                 this.fParams.abbeFilesMapKey));
     }
@@ -174,8 +184,9 @@ class AbbeFile {
             
             // constructor
             AbbeDataset(int datIndex, String datIDStr,
-                    String datName, Integer[] imgIDArr, int timeStamp) throws IOException, FormatException {
-//                logger.log(Level.FINE, "Contructing AbbeDataSet");
+                String datName, Integer[] imgIDArr, int timeStamp) throws IOException, FormatException {
+                AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    "Contructing AbbeDataSet");
                 this.datasetName = datName;
                 this.datasetID = datIDStr;
                 this.datasetIndex = datIndex;
@@ -500,6 +511,170 @@ class AbbeFile {
         }
 
     
+    
+    class DatasetPanelMouseEvent implements MouseListener {
+        
+        // for LUTs
+        private byte[] r = new byte[256];
+        private byte[] g = new byte[256];
+        private byte[] b = new byte[256];
+
+        private int ds = -1;
+        private int fldr = -1;
+        
+        private Params.ImageParams imgParams = null;
+        //private AbbeFile.this abFile;
+        
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    String.format(
+                    "DatasetPanelMouseEvent MouseListener mouseClicked %d times",
+                    e.getClickCount()));
+            if (e.getClickCount() == 2) {
+                ds = ((AbbeDatasetJPanel)e.getComponent()).p.dsIndex;
+                fldr = ((AbbeDatasetJPanel)e.getComponent()).p.fldrIndex;
+                AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    String.format("e click == 2, fldr % ds %d %s",
+                                        fldr, ds, ((AbbeDatasetJPanel)e.getComponent()).p.dsName));
+                System.out.println(String.format("Sys e click == 2, fldr % ds %d %s",
+                                        fldr, ds, ((AbbeDatasetJPanel)e.getComponent()).p.dsName));
+                try {
+                    AbbeFile.this.openDataset(fldr, ds, imgParams);
+                } catch (FormatException | IOException ex) {
+                    Logger.getLogger(AbbeFile.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+        @Override
+        public void mousePressed(MouseEvent e) {
+            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    "DatasetPanelMouseEvent MouseListener mousePressed");
+        }
+        @Override
+        public void mouseReleased(MouseEvent e) {
+            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    "DatasetPanelMouseEvent MouseListener mouseReleased");
+        }
+        @Override
+        public void mouseEntered(MouseEvent e) {
+            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    "DatasetPanelMouseEvent MouseListener mouseEntered");
+        }
+        @Override
+        public void mouseExited(MouseEvent e) {
+            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    "DatasetPanelMouseEvent MouseListener mouseExited");
+        }
+    }
+    
+    void openDataset (int fldrIndex, int dsIndex, Params.ImageParams imgParams) throws FormatException, IOException {
+        
+        ImageStack imgStk = new ImageStack();
+        List luts = new ArrayList<LUT>();
+        try {
+            AbbeFolder abFldr = this.abbeFolderVect.get(fldrIndex);
+            AbbeFolder.AbbeDataset abDs = abFldr.abbeDatasetVect.get(dsIndex);
+        } catch (Exception ex){
+            AbbeLogging.postToLog(Level.SEVERE, this.getClass().toString(), "drop",
+                                    String.format("Exception: %s", ex.toString()));
+        }
+        
+        
+        //OpenAbbeJFrame.openSingleDataset(abDs, abFldr, this, r, g, b, imgParams);
+        
+//        
+//        for (AbbeFolder abF : abbeFolderVect ) {
+//            if (abF.abbeDatasetVect.size() > 0) {               
+//                for (int ds = 0; ds < abF.abbeDatasetVect.size(); ds++) {
+//                    abDs = abF.abbeDatasetVect.get(ds);
+//                    logger.log(Level.INFO, String.format("AbbeDataset %s",
+//                                abDs.datasetName));
+//                }
+//            }
+//        }
+
+        int cntr = 0;
+        for (Component panel : abbeDatasetPanels.getComponents()) {
+            
+            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    String.format("panel %d, dsName %s",
+                        cntr, ((AbbeDatasetJPanel)panel).p.dsName));
+            cntr++;
+        }
+                
+//        for (int i = 0; i < abDs.incChns.size(); i++) {
+//            int chn = abDs.incChns.get(i);
+//            AbbeFile.AbbeFolder.AbbeDataset.AbbeImage abImg = abDs.abbeImagesVect.get(chn);
+//
+//            imgParams = abImg.imgParams;
+//            if (abImg.ctSize != 256) {
+//                // create grey scale
+//                for (int k = 0; k < 256; k++) {
+//                    r[k] = (byte) k;
+//                    g[k] = (byte) k;
+//                    b[k] = (byte) k;
+//                }
+//            } else {
+//                for (int k = 0; k < 256; k++) {
+//                    r[k] = (byte) abImg.colorTable[k].getRed();
+//                    g[k] = (byte) abImg.colorTable[k].getGreen();
+//                    b[k] = (byte) abImg.colorTable[k].getBlue();
+//                }
+//            }
+//            luts.add(new LUT(r, g, b));
+//
+//            // for each z
+//            // for each t
+//            // data is inheriently each c for abberior as far as I've seen
+//            abFile.reader.setSeries(abImg.bfIndex);
+//            logger.log(Level.FINE, String.format("%s %s", abFile.fParams.fileName, abFile.reader.getDimensionOrder()));
+//            logger.log(Level.FINE, String.format("%s", abFile.reader.getDatasetStructureDescription()));
+//            logger.log(Level.FINE, String.format("EffectiveSizeC: %d", abFile.reader.getEffectiveSizeC()));
+//            logger.log(Level.FINE, String.format("ImageCount: %d", abFile.reader.getImageCount()) );
+//
+//            for(int t = 0; t < imgParams.st; t++) {
+//                for (int z = 0; z < imgParams.sz; z++) {
+//                    Object dat = abFile.reader.openPlane(z+(t*imgParams.sz), 0, 0, imgParams.sx, imgParams.sy);
+//                    byte[] bytes = (byte[])dat;
+//                    short[] data = new short[bytes.length/2];
+//                    ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(data);
+//                    ShortProcessor sp = new ShortProcessor(imgParams.sx, imgParams.sy, data, null);
+//                    imgStk.addSlice(sp);
+//                }
+//            }
+//            // if needed for speed in big stacks timelapses
+//            // investigate setPixels(java.lang.Object pixels)
+//            // create empty ShortProcessor and add dat in setPixels
+//        }
+//
+//        Calibration cali = new Calibration();
+//        cali.setUnit("micron");
+//        cali.pixelWidth = imgParams.dx;
+//        cali.pixelHeight = imgParams.dy;
+//        cali.pixelDepth = imgParams.dz;
+//        cali.frameInterval = imgParams.dt;
+//
+//        ImagePlus imp = new ImagePlus();
+//
+//        imp.setStack(String.format("%s-TS%d", abFldr.folderName, abDs.timeStampIdx), imgStk);
+//        //imp.setDimensions(abDs.incChns.size(), imgParams.sz, imgParams.st);
+//        if (abDs.incChns.size() > 1 | imgParams.sz > 1 | imgParams.st > 1) {
+//            imp = HyperStackConverter.toHyperStack(imp, abDs.incChns.size(),
+//                                                    imgParams.sz, imgParams.st, "xyztc", "composite");
+//        }
+//
+//        imp.setCalibration(cali);
+//        imp = new CompositeImage(imp, CompositeImage.COMPOSITE);
+//        for (int i = 0; i < abDs.incChns.size(); i++) {
+//            ((CompositeImage)imp).setChannelLut((LUT)luts.get(i), i+1);
+//        }
+//        imp.setOpenAsHyperStack(true);
+//        imp.show();
+//        // TODO: add optional opening of rescue and dymin masks...  seperate ImagePlus
+    }
+    
+    
     void fillPanels () throws IOException {
         //  for each dataset
         //  create AbbeDatasetJPanel and add to abbeDatasetPanels
@@ -515,8 +690,10 @@ class AbbeFile {
                 if (abDs.addToPanel) {
                     p = abDs.pParams;
                     p.dsName = abF.folderName;
+                    p.fldrIndex = abF.folderIndex;
                     
                     JPanel dsPanel = new AbbeDatasetJPanel(p);
+                    dsPanel.addMouseListener(new DatasetPanelMouseEvent());
                     abbeDatasetPanels.add(dsPanel);
                 }
                 
@@ -633,7 +810,8 @@ class AbbeFile {
                     if (folderImages.containsAll(imgIDSet)) {
                         Integer[] imgIDArr = new Integer[dsImgCount];
                         imgIDArr = imgIDSet.toArray(imgIDArr);
-//                        logger.log(Level.FINE, String.format("Creating ds%d", ds));
+                        AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    String.format("Creating ds%d", ds));
                         abF.addDataset(ds, imgIDArr);
                     }
                 }
@@ -659,7 +837,8 @@ class AbbeFile {
         Node imgNode;
         for (int n=0; n<imageNodeList.getLength(); n++) {
             imgNode = imageNodeList.item(n);
-//            logger.log(Level.FINE, imgNode.toString());
+            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                                    imgNode.toString());
         }
     }
     
