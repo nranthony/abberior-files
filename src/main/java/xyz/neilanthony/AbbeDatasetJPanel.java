@@ -168,7 +168,7 @@ public class AbbeDatasetJPanel extends javax.swing.JPanel {
         if (!p.panelSelected) {
         evt.getComponent().setBackground(UIColors.colorBkgdMouseOver);
         }
-        AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+        AbbeLogging.postToLog(Level.FINEST, this.getClass().toString(), "drop",
                                     "AbbeDatasetJPanel formMouseEntered");
     }//GEN-LAST:event_formMouseEntered
 
@@ -176,7 +176,7 @@ public class AbbeDatasetJPanel extends javax.swing.JPanel {
         if (!p.panelSelected) {
             evt.getComponent().setBackground(UIColors.colorBkgdPanel);
         }
-        AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+        AbbeLogging.postToLog(Level.FINEST, this.getClass().toString(), "drop",
                                     "AbbeDatasetJPanel formMouseExited");
     }//GEN-LAST:event_formMouseExited
 
@@ -192,7 +192,7 @@ public class AbbeDatasetJPanel extends javax.swing.JPanel {
 //        if (evt.getClickCount() == 2) {
 //            //
 //        }
-        AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+        AbbeLogging.postToLog(Level.FINEST, this.getClass().toString(), "drop",
                                     String.format("AbbeDatasetJPanel formMouseClicked %d times",
                 evt.getClickCount()));
     }//GEN-LAST:event_formMouseClicked
@@ -205,7 +205,7 @@ public class AbbeDatasetJPanel extends javax.swing.JPanel {
             p.panelSelected = true;
             evt.getComponent().setBackground(UIColors.colorBkgdSelected);
         }
-        AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+        AbbeLogging.postToLog(Level.FINEST, this.getClass().toString(), "drop",
                                     "AbbeDatasetJPanel formMousePressed");
     }//GEN-LAST:event_formMousePressed
 

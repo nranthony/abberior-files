@@ -129,7 +129,7 @@ class AbbeFile {
      * creating the datasets in each folder, which requires the overlap of images in
      * dataset and images in folders to be the first step
      */
-    class AbbeFolder {
+    class AbbeFolder  {
         
         String folderName;
         String folderIDStr;
@@ -162,7 +162,8 @@ class AbbeFile {
             this.abbeDatasetVect.add(
                     new AbbeDataset(datasetIndx,
                                     omeMeta.getDatasetID(datasetIndx),
-                                    omeMeta.getDatasetName(datasetIndx),
+                                    //omeMeta.getDatasetName(datasetIndx), // changing to use folder name here
+                                    this.folderName,
                                     imgIDArr,
                                     this.timeStampCounter));
         }
@@ -185,8 +186,9 @@ class AbbeFile {
             // constructor
             AbbeDataset(int datIndex, String datIDStr,
                 String datName, Integer[] imgIDArr, int timeStamp) throws IOException, FormatException {
-                AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
-                                    "Contructing AbbeDataSet");
+                AbbeLogging.postToLog(
+                    Level.FINE, this.getClass().toString(), "",
+                        String.format("Contructing AbbeDataSet %s, ID %s, idx %d", datName, datIDStr, datIndex));
                 this.datasetName = datName;
                 this.datasetID = datIDStr;
                 this.datasetIndex = datIndex;
@@ -514,11 +516,6 @@ class AbbeFile {
     
     class DatasetPanelMouseEvent implements MouseListener {
         
-        // for LUTs
-        private byte[] r = new byte[256];
-        private byte[] g = new byte[256];
-        private byte[] b = new byte[256];
-
         private int ds = -1;
         private int fldr = -1;
         
@@ -527,20 +524,17 @@ class AbbeFile {
         
         @Override
         public void mouseClicked(MouseEvent e) {
-            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
-                                    String.format(
-                    "DatasetPanelMouseEvent MouseListener mouseClicked %d times",
+            AbbeLogging.postToLog(Level.FINEST, this.getClass().toString(), "drop",
+                    String.format("DatasetPanelMouseEvent MouseListener mouseClicked %d times",
                     e.getClickCount()));
             if (e.getClickCount() == 2) {
                 ds = ((AbbeDatasetJPanel)e.getComponent()).p.dsIndex;
                 fldr = ((AbbeDatasetJPanel)e.getComponent()).p.fldrIndex;
-                AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                AbbeLogging.postToLog(Level.FINEST, this.getClass().toString(), "drop",
                                     String.format("e click == 2, fldr % ds %d %s",
                                         fldr, ds, ((AbbeDatasetJPanel)e.getComponent()).p.dsName));
-                System.out.println(String.format("Sys e click == 2, fldr % ds %d %s",
-                                        fldr, ds, ((AbbeDatasetJPanel)e.getComponent()).p.dsName));
                 try {
-                    AbbeFile.this.openDataset(fldr, ds, imgParams);
+                    AbbeFile.this.openDataset(ds, imgParams);
                 } catch (FormatException | IOException ex) {
                     Logger.getLogger(AbbeFile.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -548,41 +542,156 @@ class AbbeFile {
         }
         @Override
         public void mousePressed(MouseEvent e) {
-            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+            AbbeLogging.postToLog(Level.FINEST, this.getClass().toString(), "drop",
                                     "DatasetPanelMouseEvent MouseListener mousePressed");
         }
         @Override
         public void mouseReleased(MouseEvent e) {
-            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+            AbbeLogging.postToLog(Level.FINEST, this.getClass().toString(), "drop",
                                     "DatasetPanelMouseEvent MouseListener mouseReleased");
         }
         @Override
         public void mouseEntered(MouseEvent e) {
-            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+            AbbeLogging.postToLog(Level.FINEST, this.getClass().toString(), "drop",
                                     "DatasetPanelMouseEvent MouseListener mouseEntered");
         }
         @Override
         public void mouseExited(MouseEvent e) {
-            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+            AbbeLogging.postToLog(Level.FINEST, this.getClass().toString(), "drop",
                                     "DatasetPanelMouseEvent MouseListener mouseExited");
         }
     }
     
-    void openDataset (int fldrIndex, int dsIndex, Params.ImageParams imgParams) throws FormatException, IOException {
+    void openSingleDataset (int dsIdx, byte[] r, byte[] g, byte[] b, Params.ImageParams imgParams) throws FormatException, IOException {
+        
+        int fldrIdx = findDatasetFolder(dsIdx);
+        
+        if (fldrIdx < 0) {
+            AbbeLogging.postToLog(Level.WARNING,
+                this.getClass().toString(),
+                "openSingleDataset",
+                String.format("Dataset %d not found in AbbeFile %s", dsIdx, this.fParams.fileName));
+        }
         
         ImageStack imgStk = new ImageStack();
         List luts = new ArrayList<LUT>();
-        try {
-            AbbeFolder abFldr = this.abbeFolderVect.get(fldrIndex);
-            AbbeFolder.AbbeDataset abDs = abFldr.abbeDatasetVect.get(dsIndex);
-        } catch (Exception ex){
-            AbbeLogging.postToLog(Level.SEVERE, this.getClass().toString(), "drop",
-                                    String.format("Exception: %s", ex.toString()));
+
+        AbbeFolder abFldr = this.abbeFolderVect.get(fldrIdx);
+        AbbeFolder.AbbeDataset abDs = abFldr.abbeDatasetVect.get(dsIdx);
+        
+        for (int i = 0; i < abDs.incChns.size(); i++) {
+            int chn = abDs.incChns.get(i);
+            AbbeFile.AbbeFolder.AbbeDataset.AbbeImage abImg = abDs.abbeImagesVect.get(chn);
+
+            imgParams = abImg.imgParams;
+            if (abImg.ctSize != 256) {
+                // create grey scale
+                for (int k = 0; k < 256; k++) {
+                    r[k] = (byte) k;
+                    g[k] = (byte) k;
+                    b[k] = (byte) k;
+                }
+            } else {
+                for (int k = 0; k < 256; k++) {
+                    r[k] = (byte) abImg.colorTable[k].getRed();
+                    g[k] = (byte) abImg.colorTable[k].getGreen();
+                    b[k] = (byte) abImg.colorTable[k].getBlue();
+                }
+            }
+            luts.add(new LUT(r, g, b));
+
+            // for each z
+            // for each t
+            // data is inheriently each c for abberior as far as I've seen
+            this.reader.setSeries(abImg.bfIndex);
+            AbbeLogging.postToLog(Level.FINE, "AbbeFile", "openSingleDataset",
+                                    String.format("%s %s", this.fParams.fileName, this.reader.getDimensionOrder()));
+            AbbeLogging.postToLog(Level.FINE, "AbbeFile", "openSingleDataset",
+                                    String.format("%s", this.reader.getDatasetStructureDescription()));
+            AbbeLogging.postToLog(Level.FINE, "AbbeFile", "openSingleDataset",
+                                    String.format("EffectiveSizeC: %d", this.reader.getEffectiveSizeC()));
+            AbbeLogging.postToLog(Level.FINE, "AbbeFile", "openSingleDataset",
+                                    String.format("ImageCount: %d", this.reader.getImageCount()) );
+
+            for(int t = 0; t < imgParams.st; t++) {
+                for (int z = 0; z < imgParams.sz; z++) {
+                    Object dat = this.reader.openPlane(z+(t*imgParams.sz), 0, 0, imgParams.sx, imgParams.sy);
+                    byte[] bytes = (byte[])dat;
+                    short[] data = new short[bytes.length/2];
+                    ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(data);
+                    ShortProcessor sp = new ShortProcessor(imgParams.sx, imgParams.sy, data, null);
+                    imgStk.addSlice(sp);
+                }
+            }
+            // if needed for speed in big stacks timelapses
+            // investigate setPixels(java.lang.Object pixels)
+            // create empty ShortProcessor and add dat in setPixels
         }
+
+        Calibration cali = new Calibration();
+        cali.setUnit("micron");
+        cali.pixelWidth = imgParams.dx;
+        cali.pixelHeight = imgParams.dy;
+        cali.pixelDepth = imgParams.dz;
+        cali.frameInterval = imgParams.dt;
+
+        ImagePlus imp = new ImagePlus();
+
+        imp.setStack(String.format("%s-TS%d", abFldr.folderName, abDs.timeStampIdx), imgStk);
+        //imp.setDimensions(abDs.incChns.size(), imgParams.sz, imgParams.st);
+        if (abDs.incChns.size() > 1 | imgParams.sz > 1 | imgParams.st > 1) {
+            imp = HyperStackConverter.toHyperStack(imp, abDs.incChns.size(),
+                                                    imgParams.sz, imgParams.st, "xyztc", "composite");
+        }
+
+        imp.setCalibration(cali);
+        imp = new CompositeImage(imp, CompositeImage.COMPOSITE);
+        for (int i = 0; i < abDs.incChns.size(); i++) {
+            ((CompositeImage)imp).setChannelLut((LUT)luts.get(i), i+1);
+        }
+        imp.setOpenAsHyperStack(true);
+        imp.show();
+        // TODO: add optional opening of rescue and dymin masks...  seperate ImagePlus
+    }
+    
+    int findDatasetFolder (int dsIdx) {
         
-        
-        //OpenAbbeJFrame.openSingleDataset(abDs, abFldr, this, r, g, b, imgParams);
-        
+        for (int f = 0; f < this.abbeFolderVect.size(); f++) {
+            AbbeFolder abFldr = this.abbeFolderVect.get(f);
+            for (int d = 0; d < abFldr.abbeDatasetVect.size(); d++) {
+                AbbeFolder.AbbeDataset abDs = abFldr.abbeDatasetVect.get(d);
+                if (abDs.datasetIndex == dsIdx) {
+                    return abFldr.folderIndex;
+                }
+            }
+        }
+        return -1;
+
+    }
+    
+    void openDataset (int dsIdx, Params.ImageParams imgParams) throws FormatException, IOException {
+
+//        // for LUTs
+//        byte[] r = new byte[256];
+//        byte[] g = new byte[256];
+//        byte[] b = new byte[256];
+//        
+//        ImageStack imgStk = new ImageStack();
+//        List luts = new ArrayList<LUT>();
+//        try {
+//            //AbbeFolder abFldr = this.abbeFolderVect.get(fldrIndex);
+//            //AbbeFolder.AbbeDataset abDs = abFldr.abbeDatasetVect.get(dsIndex);
+//            OpenAbbeJFrame.openSingleDataset(dsIdx, this, r, g, b, imgParams);
+//            AbbeLogging.postToLog(Level.INFO, this.getClass().toString(), "openDataset",
+//                String.format("pFolderIndex %d, pDatasetIndex %d, FolderIndex %d, FolderID %s, DatasetIndex %d, DatasetID %s",
+//                              fldrIndex, dsIdx, abFldr.folderIndex, abFldr.folderIDStr, abDs.datasetIndex, abDs.datasetID));
+//        } catch (Exception ex) {
+//            AbbeLogging.postToLog(Level.SEVERE, this.getClass().toString(), "openDataset",
+//                                    String.format("Exception: %s", ex.toString()));
+//        }
+//        
+//        
+//        
 //        
 //        for (AbbeFolder abF : abbeFolderVect ) {
 //            if (abF.abbeDatasetVect.size() > 0) {               
@@ -594,14 +703,14 @@ class AbbeFile {
 //            }
 //        }
 
-        int cntr = 0;
-        for (Component panel : abbeDatasetPanels.getComponents()) {
-            
-            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
-                                    String.format("panel %d, dsName %s",
-                        cntr, ((AbbeDatasetJPanel)panel).p.dsName));
-            cntr++;
-        }
+//        int cntr = 0;
+//        for (Component panel : abbeDatasetPanels.getComponents()) {
+//            
+//            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+//                                    String.format("panel %d, dsName %s",
+//                        cntr, ((AbbeDatasetJPanel)panel).p.dsName));
+//            cntr++;
+//        }
                 
 //        for (int i = 0; i < abDs.incChns.size(); i++) {
 //            int chn = abDs.incChns.get(i);
@@ -673,6 +782,7 @@ class AbbeFile {
 //        imp.show();
 //        // TODO: add optional opening of rescue and dymin masks...  seperate ImagePlus
     }
+    
     
     
     void fillPanels () throws IOException {
@@ -810,7 +920,7 @@ class AbbeFile {
                     if (folderImages.containsAll(imgIDSet)) {
                         Integer[] imgIDArr = new Integer[dsImgCount];
                         imgIDArr = imgIDSet.toArray(imgIDArr);
-                        AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
+                        AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "collateFolderImages",
                                     String.format("Creating ds%d", ds));
                         abF.addDataset(ds, imgIDArr);
                     }
