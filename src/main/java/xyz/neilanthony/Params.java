@@ -15,21 +15,21 @@ class Params {
     // - upgrading to contain enough infomation to open/process datasets
     static class PanelParams {
         String dsName;
-        int dsTimeStamp;
-        int dsIndex;
-        int fldrIndex;
+        int dsTimeStamp = -1;
+        int bfDatasetIdx = -1;
+        int bfFldrIdx = -1;
         BufferedImage bufImg;
         ArrayImg arrImg;
-        int psx = 186;
+        int psx = 186; // panel thumb size
         int psy = 142;
         int nx;
         int ny;
         short[] lambdas;
         String[] chnNames;
-        boolean dymin;
-        boolean rescue;
-        boolean stack;
-        boolean timeLapse;
+        boolean dymin = false;
+        boolean rescue = false;
+        boolean stack = false;
+        boolean timeLapse = false;
         boolean panelSelected = false;
     }
     

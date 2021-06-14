@@ -168,7 +168,8 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
                             String.format("filesPanelList size: %d", filesPanelCount));
                     
                     for (File file : droppedFiles) {
-                        if ( file.getPath().endsWith(".obf") | file.getPath().endsWith(".msr") ) { 
+                        //if ( file.getPath().endsWith(".obf") | file.getPath().endsWith(".msr") ) { 
+                        if ( file.getPath().endsWith(".obf") ) { 
                             Params.FileParams fP = new Params.FileParams();
                             fP.fileName = file.toPath().getFileName().toString();
                             fP.abbeFilesMapKey = filesPanelCount;
@@ -186,7 +187,7 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
                             Future<AbbeFile> future = importPool.submit(callable);
                             futAbbeList.add(future);
                             newAdded = true;
-                        } else { jLabel_Info.setText("Non Abberior files currently not supported.  Please drop .obf or .msr files."); }
+                        } else { jLabel_Info.setText("Only Abberior OBF files currently supported."); }
                     }
                     if (newAdded) {
                         jPanel_abbeFiles = createFilesPanel();
@@ -374,7 +375,6 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
             } catch (IOException | FormatException ex) {
                 Logger.getLogger(OpenAbbeJFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
         }
         @Override
         public void mouseReleased(MouseEvent e) {
@@ -762,7 +762,7 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
         
         for (int i=0; i<cmpnts.length; i++) {
             JPanel jp = (JPanel) cmpnts[i];
-            int idx = ((AbbeDatasetJPanel)jp).p.dsIndex;
+            int idx = ((AbbeDatasetJPanel)jp).p.bfDatasetIdx;
             boolean selected = ((AbbeDatasetJPanel)jp).p.panelSelected;
             AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "openSelectedDatasets",
                                     String.format("Dataset Index: %d, selected: %b", idx, selected));
@@ -780,8 +780,8 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
             
             for (AbbeFile.AbbeFolder.AbbeDataset abDs : abFldr.abbeDatasetVect) {
                 // TODO: create inverse of incChns - these will be adaptive illumination (AI) masks/data
-                if (toOpenDs.contains(abDs.datasetIndex) & abDs.addToPanel) {
-                    abFile.openSingleDataset(abDs.datasetIndex, r, g, b, imgParams);
+                if (toOpenDs.contains(abDs.bfDatasetIdx) & abDs.addToPanel) {
+                    abFile.openSingleDataset(abDs.bfDatasetIdx, r, g, b, imgParams);
                     
 //                    ImageStack imgStk = new ImageStack();
 //                    List luts = new ArrayList<LUT>();
@@ -959,7 +959,7 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
 //        for (AbbeFile abFile : abbeFilesMap) {
 //            for (AbbeFile.AbbeFolder abFldr : abFile.abbeFolderVect) {
 //                
-//                logger.log(Level.FINE, abFldr.fldrImgIndxs.toString());
+//                logger.log(Level.FINE, abFldr.fldrImgIDs.toString());
 //                logger.log(Level.FINE, abFldr.abbeDatasetVect.toString());
 //                
 //                for (AbbeFile.AbbeFolder.AbbeDataset abDs : abFldr.abbeDatasetVect) {

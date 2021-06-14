@@ -70,8 +70,9 @@ public class AbbeDatasetJPanel extends javax.swing.JPanel {
             lab.setText(p.chnNames[i]);
             lab.setBackground(null);
             lab.setForeground(Spectral.spectral_color((double) p.lambdas[i]));
-            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "drop",
-                                    String.format("Added %s - %dnm to panel", p.chnNames[i], p.lambdas[i]));
+            AbbeLogging.postToLog(Level.FINE, this.getClass().toString(), "AbbeDatasetJPanel_Constructor",
+                                    String.format("Added %s TS%d %s - %dnm to panel",
+                                            p.dsName, p.dsTimeStamp, p.chnNames[i], p.lambdas[i]));
             lab.setOpaque(true);
             lab.setFont(new Font("Segoe UI Light", Font.PLAIN, 16));
             lab.setBounds(p.psx+36, 25 + (i*22), 555-p.psx-12, 22);
