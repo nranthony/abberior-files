@@ -17,6 +17,7 @@ class Params {
         String dsName;
         int dsTimeStamp = -1;
         int bfDatasetIdx = -1;
+        int datasetID = -1;
         int bfFldrIdx = -1;
         BufferedImage bufImg;
         ArrayImg arrImg;

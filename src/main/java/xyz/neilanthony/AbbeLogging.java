@@ -12,7 +12,7 @@ public class AbbeLogging {
     static private ConsoleHandler handler = null;
     
     // update level here
-    static private Level loggingLevel = Level.FINER;
+    static private Level loggingLevel = Level.FINEST;
     
     static {
         

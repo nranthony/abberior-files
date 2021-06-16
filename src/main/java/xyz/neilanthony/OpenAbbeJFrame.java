@@ -781,7 +781,7 @@ class OpenAbbeJFrame extends javax.swing.JFrame {
             for (AbbeFile.AbbeFolder.AbbeDataset abDs : abFldr.abbeDatasetVect) {
                 // TODO: create inverse of incChns - these will be adaptive illumination (AI) masks/data
                 if (toOpenDs.contains(abDs.bfDatasetIdx) & abDs.addToPanel) {
-                    abFile.openSingleDataset(abDs.bfDatasetIdx, r, g, b, imgParams);
+                    abFile.openSingleDataset(abFldr.bfFldrIdx, abDs.datasetID, r, g, b, imgParams);
                     
 //                    ImageStack imgStk = new ImageStack();
 //                    List luts = new ArrayList<LUT>();
